@@ -90,3 +90,51 @@ export namespace OrganizationCreateAdminUserResponse {
   }
 }
 
+export class OrganizationCreateNetworkRequest extends jspb.Message {
+  getEmail(): string;
+  setEmail(value: string): OrganizationCreateNetworkRequest;
+
+  getCompanyname(): string;
+  setCompanyname(value: string): OrganizationCreateNetworkRequest;
+
+  getRole(): string;
+  setRole(value: string): OrganizationCreateNetworkRequest;
+
+  getUserid(): string;
+  setUserid(value: string): OrganizationCreateNetworkRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OrganizationCreateNetworkRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: OrganizationCreateNetworkRequest): OrganizationCreateNetworkRequest.AsObject;
+  static serializeBinaryToWriter(message: OrganizationCreateNetworkRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OrganizationCreateNetworkRequest;
+  static deserializeBinaryFromReader(message: OrganizationCreateNetworkRequest, reader: jspb.BinaryReader): OrganizationCreateNetworkRequest;
+}
+
+export namespace OrganizationCreateNetworkRequest {
+  export type AsObject = {
+    email: string,
+    companyname: string,
+    role: string,
+    userid: string,
+  }
+}
+
+export class OrganizationCreateNetworkResponse extends jspb.Message {
+  getOrganizationid(): string;
+  setOrganizationid(value: string): OrganizationCreateNetworkResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): OrganizationCreateNetworkResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: OrganizationCreateNetworkResponse): OrganizationCreateNetworkResponse.AsObject;
+  static serializeBinaryToWriter(message: OrganizationCreateNetworkResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): OrganizationCreateNetworkResponse;
+  static deserializeBinaryFromReader(message: OrganizationCreateNetworkResponse, reader: jspb.BinaryReader): OrganizationCreateNetworkResponse;
+}
+
+export namespace OrganizationCreateNetworkResponse {
+  export type AsObject = {
+    organizationid: string,
+  }
+}
+

@@ -121,5 +121,48 @@ export class OrganizationServiceClient {
     this.methodDescriptorCreateAdminUser);
   }
 
+  methodDescriptorCreateNetwork = new grpcWeb.MethodDescriptor(
+    '/protos.OrganizationService/CreateNetwork',
+    grpcWeb.MethodType.UNARY,
+    notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkRequest,
+    notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkResponse,
+    (request: notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkRequest) => {
+      return request.serializeBinary();
+    },
+    notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkResponse.deserializeBinary
+  );
+
+  createNetwork(
+    request: notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkRequest,
+    metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkResponse>;
+
+  createNetwork(
+    request: notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError,
+               response: notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkResponse>;
+
+  createNetwork(
+    request: notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError,
+               response: notch_wissy$dashboard_v1_organization_pb.OrganizationCreateNetworkResponse) => void) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ +
+          '/protos.OrganizationService/CreateNetwork',
+        request,
+        metadata || {},
+        this.methodDescriptorCreateNetwork,
+        callback);
+    }
+    return this.client_.unaryCall(
+    this.hostname_ +
+      '/protos.OrganizationService/CreateNetwork',
+    request,
+    metadata || {},
+    this.methodDescriptorCreateNetwork);
+  }
+
 }
 
