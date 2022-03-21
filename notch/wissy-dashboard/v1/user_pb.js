@@ -21,8 +21,6 @@ var global = (function() {
   return Function('return this')();
 }.call(null));
 
-var google_protobuf_empty_pb = require('google-protobuf/google/protobuf/empty_pb.js');
-goog.object.extend(proto, google_protobuf_empty_pb);
 goog.exportSymbol('proto.protos.CreateSetupKeyRequest', null, global);
 goog.exportSymbol('proto.protos.CreateSetupKeyResponse', null, global);
 goog.exportSymbol('proto.protos.GetNetworkInformationRequest', null, global);
