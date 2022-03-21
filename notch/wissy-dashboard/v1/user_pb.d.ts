@@ -58,49 +58,49 @@ export namespace CreateSetupKeyResponse {
   }
 }
 
-export class GetNetworkInformationRequest extends jspb.Message {
+export class GetNetworkRequest extends jspb.Message {
   getOrgid(): string;
-  setOrgid(value: string): GetNetworkInformationRequest;
+  setOrgid(value: string): GetNetworkRequest;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetNetworkInformationRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: GetNetworkInformationRequest): GetNetworkInformationRequest.AsObject;
-  static serializeBinaryToWriter(message: GetNetworkInformationRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetNetworkInformationRequest;
-  static deserializeBinaryFromReader(message: GetNetworkInformationRequest, reader: jspb.BinaryReader): GetNetworkInformationRequest;
+  toObject(includeInstance?: boolean): GetNetworkRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNetworkRequest): GetNetworkRequest.AsObject;
+  static serializeBinaryToWriter(message: GetNetworkRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNetworkRequest;
+  static deserializeBinaryFromReader(message: GetNetworkRequest, reader: jspb.BinaryReader): GetNetworkRequest;
 }
 
-export namespace GetNetworkInformationRequest {
+export namespace GetNetworkRequest {
   export type AsObject = {
     orgid: string,
   }
 }
 
-export class GetNetworkInformationResponse extends jspb.Message {
+export class GetNetworkResponse extends jspb.Message {
   getUsergroupid(): number;
-  setUsergroupid(value: number): GetNetworkInformationResponse;
+  setUsergroupid(value: number): GetNetworkResponse;
 
   getOrgid(): string;
-  setOrgid(value: string): GetNetworkInformationResponse;
+  setOrgid(value: string): GetNetworkResponse;
 
   getNetworkid(): number;
-  setNetworkid(value: number): GetNetworkInformationResponse;
+  setNetworkid(value: number): GetNetworkResponse;
 
   getJobid(): number;
-  setJobid(value: number): GetNetworkInformationResponse;
+  setJobid(value: number): GetNetworkResponse;
 
   getRoleid(): number;
-  setRoleid(value: number): GetNetworkInformationResponse;
+  setRoleid(value: number): GetNetworkResponse;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): GetNetworkInformationResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: GetNetworkInformationResponse): GetNetworkInformationResponse.AsObject;
-  static serializeBinaryToWriter(message: GetNetworkInformationResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): GetNetworkInformationResponse;
-  static deserializeBinaryFromReader(message: GetNetworkInformationResponse, reader: jspb.BinaryReader): GetNetworkInformationResponse;
+  toObject(includeInstance?: boolean): GetNetworkResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNetworkResponse): GetNetworkResponse.AsObject;
+  static serializeBinaryToWriter(message: GetNetworkResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNetworkResponse;
+  static deserializeBinaryFromReader(message: GetNetworkResponse, reader: jspb.BinaryReader): GetNetworkResponse;
 }
 
-export namespace GetNetworkInformationResponse {
+export namespace GetNetworkResponse {
   export type AsObject = {
     usergroupid: number,
     orgid: string,
