@@ -81,26 +81,26 @@ export class UserServiceClient {
   methodDescriptorGetNetworkInformation = new grpcWeb.MethodDescriptor(
     '/protos.UserService/GetNetworkInformation',
     grpcWeb.MethodType.UNARY,
-    notch_wissy$dashboard_v1_user_pb.GetNetworkInformationRequest,
+    notch_wissy$dashboard_v1_user_pb.NetworkInformationRequest,
     notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse,
-    (request: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationRequest) => {
+    (request: notch_wissy$dashboard_v1_user_pb.NetworkInformationRequest) => {
       return request.serializeBinary();
     },
     notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse.deserializeBinary
   );
 
   getNetworkInformation(
-    request: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationRequest,
+    request: notch_wissy$dashboard_v1_user_pb.NetworkInformationRequest,
     metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse>;
 
   getNetworkInformation(
-    request: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationRequest,
+    request: notch_wissy$dashboard_v1_user_pb.NetworkInformationRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
                response: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse>;
 
   getNetworkInformation(
-    request: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationRequest,
+    request: notch_wissy$dashboard_v1_user_pb.NetworkInformationRequest,
     metadata: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
                response: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse) => void) {
