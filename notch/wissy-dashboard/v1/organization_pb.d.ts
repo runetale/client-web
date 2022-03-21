@@ -138,3 +138,55 @@ export namespace OrganizationCreateNetworkResponse {
   }
 }
 
+export class GetNetworkRequest extends jspb.Message {
+  getOrgid(): string;
+  setOrgid(value: string): GetNetworkRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetNetworkRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNetworkRequest): GetNetworkRequest.AsObject;
+  static serializeBinaryToWriter(message: GetNetworkRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNetworkRequest;
+  static deserializeBinaryFromReader(message: GetNetworkRequest, reader: jspb.BinaryReader): GetNetworkRequest;
+}
+
+export namespace GetNetworkRequest {
+  export type AsObject = {
+    orgid: string,
+  }
+}
+
+export class GetNetworkResponse extends jspb.Message {
+  getUsergroupid(): number;
+  setUsergroupid(value: number): GetNetworkResponse;
+
+  getOrgid(): string;
+  setOrgid(value: string): GetNetworkResponse;
+
+  getNetworkid(): number;
+  setNetworkid(value: number): GetNetworkResponse;
+
+  getJobid(): number;
+  setJobid(value: number): GetNetworkResponse;
+
+  getRoleid(): number;
+  setRoleid(value: number): GetNetworkResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetNetworkResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNetworkResponse): GetNetworkResponse.AsObject;
+  static serializeBinaryToWriter(message: GetNetworkResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNetworkResponse;
+  static deserializeBinaryFromReader(message: GetNetworkResponse, reader: jspb.BinaryReader): GetNetworkResponse;
+}
+
+export namespace GetNetworkResponse {
+  export type AsObject = {
+    usergroupid: number,
+    orgid: string,
+    networkid: number,
+    jobid: number,
+    roleid: number,
+  }
+}
+
