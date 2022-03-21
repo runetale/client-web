@@ -552,7 +552,8 @@ proto.protos.GetNetworkRequest.prototype.toObject = function(opt_includeInstance
  */
 proto.protos.GetNetworkRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
-    orgid: jspb.Message.getFieldWithDefault(msg, 1, "")
+    orgid: jspb.Message.getFieldWithDefault(msg, 1, ""),
+    hoge: jspb.Message.getFieldWithDefault(msg, 2, "")
   };
 
   if (includeInstance) {
@@ -593,6 +594,10 @@ proto.protos.GetNetworkRequest.deserializeBinaryFromReader = function(msg, reade
       var value = /** @type {string} */ (reader.readString());
       msg.setOrgid(value);
       break;
+    case 2:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setHoge(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -629,6 +634,13 @@ proto.protos.GetNetworkRequest.serializeBinaryToWriter = function(message, write
       f
     );
   }
+  f = message.getHoge();
+  if (f.length > 0) {
+    writer.writeString(
+      2,
+      f
+    );
+  }
 };
 
 
@@ -647,6 +659,24 @@ proto.protos.GetNetworkRequest.prototype.getOrgid = function() {
  */
 proto.protos.GetNetworkRequest.prototype.setOrgid = function(value) {
   return jspb.Message.setProto3StringField(this, 1, value);
+};
+
+
+/**
+ * optional string hoge = 2;
+ * @return {string}
+ */
+proto.protos.GetNetworkRequest.prototype.getHoge = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 2, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.protos.GetNetworkRequest} returns this
+ */
+proto.protos.GetNetworkRequest.prototype.setHoge = function(value) {
+  return jspb.Message.setProto3StringField(this, 2, value);
 };
 
 

@@ -62,6 +62,9 @@ export class GetNetworkRequest extends jspb.Message {
   getOrgid(): string;
   setOrgid(value: string): GetNetworkRequest;
 
+  getHoge(): string;
+  setHoge(value: string): GetNetworkRequest;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): GetNetworkRequest.AsObject;
   static toObject(includeInstance: boolean, msg: GetNetworkRequest): GetNetworkRequest.AsObject;
@@ -73,6 +76,7 @@ export class GetNetworkRequest extends jspb.Message {
 export namespace GetNetworkRequest {
   export type AsObject = {
     orgid: string,
+    hoge: string,
   }
 }
 
