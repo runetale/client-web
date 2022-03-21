@@ -59,12 +59,30 @@ export namespace CreateSetupKeyResponse {
   }
 }
 
+export class GetNetworkInformationRequest extends jspb.Message {
+  getOrgid(): string;
+  setOrgid(value: string): GetNetworkInformationRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetNetworkInformationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNetworkInformationRequest): GetNetworkInformationRequest.AsObject;
+  static serializeBinaryToWriter(message: GetNetworkInformationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNetworkInformationRequest;
+  static deserializeBinaryFromReader(message: GetNetworkInformationRequest, reader: jspb.BinaryReader): GetNetworkInformationRequest;
+}
+
+export namespace GetNetworkInformationRequest {
+  export type AsObject = {
+    orgid: string,
+  }
+}
+
 export class GetNetworkInformationResponse extends jspb.Message {
   getUsergroupid(): number;
   setUsergroupid(value: number): GetNetworkInformationResponse;
 
-  getOrggroupid(): string;
-  setOrggroupid(value: string): GetNetworkInformationResponse;
+  getOrgid(): string;
+  setOrgid(value: string): GetNetworkInformationResponse;
 
   getNetworkid(): number;
   setNetworkid(value: number): GetNetworkInformationResponse;
@@ -86,7 +104,7 @@ export class GetNetworkInformationResponse extends jspb.Message {
 export namespace GetNetworkInformationResponse {
   export type AsObject = {
     usergroupid: number,
-    orggroupid: string,
+    orgid: string,
     networkid: number,
     jobid: number,
     roleid: number,

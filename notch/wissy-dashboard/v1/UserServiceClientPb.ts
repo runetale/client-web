@@ -13,7 +13,6 @@
 
 import * as grpcWeb from 'grpc-web';
 
-import * as google_protobuf_empty_pb from 'google-protobuf/google/protobuf/empty_pb';
 import * as notch_wissy$dashboard_v1_user_pb from '../../../notch/wissy-dashboard/v1/user_pb';
 
 
@@ -82,26 +81,26 @@ export class UserServiceClient {
   methodDescriptorGetNetworkInformation = new grpcWeb.MethodDescriptor(
     '/protos.UserService/GetNetworkInformation',
     grpcWeb.MethodType.UNARY,
-    google_protobuf_empty_pb.Empty,
+    notch_wissy$dashboard_v1_user_pb.GetNetworkInformationRequest,
     notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse,
-    (request: google_protobuf_empty_pb.Empty) => {
+    (request: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationRequest) => {
       return request.serializeBinary();
     },
     notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse.deserializeBinary
   );
 
   getNetworkInformation(
-    request: google_protobuf_empty_pb.Empty,
+    request: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationRequest,
     metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse>;
 
   getNetworkInformation(
-    request: google_protobuf_empty_pb.Empty,
+    request: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
                response: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse>;
 
   getNetworkInformation(
-    request: google_protobuf_empty_pb.Empty,
+    request: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationRequest,
     metadata: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
                response: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse) => void) {
