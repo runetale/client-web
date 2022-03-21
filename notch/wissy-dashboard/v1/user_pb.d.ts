@@ -58,19 +58,19 @@ export namespace CreateSetupKeyResponse {
   }
 }
 
-export class NetworkInformationRequest extends jspb.Message {
+export class GetNetworkInformationRequest extends jspb.Message {
   getOrgid(): string;
-  setOrgid(value: string): NetworkInformationRequest;
+  setOrgid(value: string): GetNetworkInformationRequest;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): NetworkInformationRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: NetworkInformationRequest): NetworkInformationRequest.AsObject;
-  static serializeBinaryToWriter(message: NetworkInformationRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): NetworkInformationRequest;
-  static deserializeBinaryFromReader(message: NetworkInformationRequest, reader: jspb.BinaryReader): NetworkInformationRequest;
+  toObject(includeInstance?: boolean): GetNetworkInformationRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNetworkInformationRequest): GetNetworkInformationRequest.AsObject;
+  static serializeBinaryToWriter(message: GetNetworkInformationRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNetworkInformationRequest;
+  static deserializeBinaryFromReader(message: GetNetworkInformationRequest, reader: jspb.BinaryReader): GetNetworkInformationRequest;
 }
 
-export namespace NetworkInformationRequest {
+export namespace GetNetworkInformationRequest {
   export type AsObject = {
     orgid: string,
   }
