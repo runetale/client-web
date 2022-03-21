@@ -9,6 +9,9 @@ export class CreateDefaultAdminNetworkRequest extends jspb.Message {
   getUserid(): string;
   setUserid(value: string): CreateDefaultAdminNetworkRequest;
 
+  getEmail(): string;
+  setEmail(value: string): CreateDefaultAdminNetworkRequest;
+
   serializeBinary(): Uint8Array;
   toObject(includeInstance?: boolean): CreateDefaultAdminNetworkRequest.AsObject;
   static toObject(includeInstance: boolean, msg: CreateDefaultAdminNetworkRequest): CreateDefaultAdminNetworkRequest.AsObject;
@@ -21,6 +24,7 @@ export namespace CreateDefaultAdminNetworkRequest {
   export type AsObject = {
     companyname: string,
     userid: string,
+    email: string,
   }
 }
 

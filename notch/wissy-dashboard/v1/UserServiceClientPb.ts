@@ -13,6 +13,7 @@
 
 import * as grpcWeb from 'grpc-web';
 
+import * as google_protobuf_empty_pb from 'google-protobuf/google/protobuf/empty_pb';
 import * as notch_wissy$dashboard_v1_user_pb from '../../../notch/wissy-dashboard/v1/user_pb';
 
 
@@ -35,47 +36,90 @@ export class UserServiceClient {
     this.options_ = options;
   }
 
-  methodDescriptorSetupKey = new grpcWeb.MethodDescriptor(
-    '/protos.UserService/SetupKey',
+  methodDescriptorCreateSetupKey = new grpcWeb.MethodDescriptor(
+    '/protos.UserService/CreateSetupKey',
     grpcWeb.MethodType.UNARY,
-    notch_wissy$dashboard_v1_user_pb.SetupKeyRequest,
-    notch_wissy$dashboard_v1_user_pb.SetupKeyResponse,
-    (request: notch_wissy$dashboard_v1_user_pb.SetupKeyRequest) => {
+    notch_wissy$dashboard_v1_user_pb.CreateSetupKeyRequest,
+    notch_wissy$dashboard_v1_user_pb.CreateSetupKeyResponse,
+    (request: notch_wissy$dashboard_v1_user_pb.CreateSetupKeyRequest) => {
       return request.serializeBinary();
     },
-    notch_wissy$dashboard_v1_user_pb.SetupKeyResponse.deserializeBinary
+    notch_wissy$dashboard_v1_user_pb.CreateSetupKeyResponse.deserializeBinary
   );
 
-  setupKey(
-    request: notch_wissy$dashboard_v1_user_pb.SetupKeyRequest,
-    metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_user_pb.SetupKeyResponse>;
+  createSetupKey(
+    request: notch_wissy$dashboard_v1_user_pb.CreateSetupKeyRequest,
+    metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_user_pb.CreateSetupKeyResponse>;
 
-  setupKey(
-    request: notch_wissy$dashboard_v1_user_pb.SetupKeyRequest,
+  createSetupKey(
+    request: notch_wissy$dashboard_v1_user_pb.CreateSetupKeyRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: notch_wissy$dashboard_v1_user_pb.SetupKeyResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_user_pb.SetupKeyResponse>;
+               response: notch_wissy$dashboard_v1_user_pb.CreateSetupKeyResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_user_pb.CreateSetupKeyResponse>;
 
-  setupKey(
-    request: notch_wissy$dashboard_v1_user_pb.SetupKeyRequest,
+  createSetupKey(
+    request: notch_wissy$dashboard_v1_user_pb.CreateSetupKeyRequest,
     metadata: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: notch_wissy$dashboard_v1_user_pb.SetupKeyResponse) => void) {
+               response: notch_wissy$dashboard_v1_user_pb.CreateSetupKeyResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
-          '/protos.UserService/SetupKey',
+          '/protos.UserService/CreateSetupKey',
         request,
         metadata || {},
-        this.methodDescriptorSetupKey,
+        this.methodDescriptorCreateSetupKey,
         callback);
     }
     return this.client_.unaryCall(
     this.hostname_ +
-      '/protos.UserService/SetupKey',
+      '/protos.UserService/CreateSetupKey',
     request,
     metadata || {},
-    this.methodDescriptorSetupKey);
+    this.methodDescriptorCreateSetupKey);
+  }
+
+  methodDescriptorGetNetworkInformation = new grpcWeb.MethodDescriptor(
+    '/protos.UserService/GetNetworkInformation',
+    grpcWeb.MethodType.UNARY,
+    google_protobuf_empty_pb.Empty,
+    notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse,
+    (request: google_protobuf_empty_pb.Empty) => {
+      return request.serializeBinary();
+    },
+    notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse.deserializeBinary
+  );
+
+  getNetworkInformation(
+    request: google_protobuf_empty_pb.Empty,
+    metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse>;
+
+  getNetworkInformation(
+    request: google_protobuf_empty_pb.Empty,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError,
+               response: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse>;
+
+  getNetworkInformation(
+    request: google_protobuf_empty_pb.Empty,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError,
+               response: notch_wissy$dashboard_v1_user_pb.GetNetworkInformationResponse) => void) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ +
+          '/protos.UserService/GetNetworkInformation',
+        request,
+        metadata || {},
+        this.methodDescriptorGetNetworkInformation,
+        callback);
+    }
+    return this.client_.unaryCall(
+    this.hostname_ +
+      '/protos.UserService/GetNetworkInformation',
+    request,
+    metadata || {},
+    this.methodDescriptorGetNetworkInformation);
   }
 
 }

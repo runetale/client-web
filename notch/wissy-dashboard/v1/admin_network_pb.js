@@ -98,7 +98,8 @@ proto.protos.CreateDefaultAdminNetworkRequest.prototype.toObject = function(opt_
 proto.protos.CreateDefaultAdminNetworkRequest.toObject = function(includeInstance, msg) {
   var f, obj = {
     companyname: jspb.Message.getFieldWithDefault(msg, 1, ""),
-    userid: jspb.Message.getFieldWithDefault(msg, 2, "")
+    userid: jspb.Message.getFieldWithDefault(msg, 2, ""),
+    email: jspb.Message.getFieldWithDefault(msg, 3, "")
   };
 
   if (includeInstance) {
@@ -143,6 +144,10 @@ proto.protos.CreateDefaultAdminNetworkRequest.deserializeBinaryFromReader = func
       var value = /** @type {string} */ (reader.readString());
       msg.setUserid(value);
       break;
+    case 3:
+      var value = /** @type {string} */ (reader.readString());
+      msg.setEmail(value);
+      break;
     default:
       reader.skipField();
       break;
@@ -186,6 +191,13 @@ proto.protos.CreateDefaultAdminNetworkRequest.serializeBinaryToWriter = function
       f
     );
   }
+  f = message.getEmail();
+  if (f.length > 0) {
+    writer.writeString(
+      3,
+      f
+    );
+  }
 };
 
 
@@ -222,6 +234,24 @@ proto.protos.CreateDefaultAdminNetworkRequest.prototype.getUserid = function() {
  */
 proto.protos.CreateDefaultAdminNetworkRequest.prototype.setUserid = function(value) {
   return jspb.Message.setProto3StringField(this, 2, value);
+};
+
+
+/**
+ * optional string email = 3;
+ * @return {string}
+ */
+proto.protos.CreateDefaultAdminNetworkRequest.prototype.getEmail = function() {
+  return /** @type {string} */ (jspb.Message.getFieldWithDefault(this, 3, ""));
+};
+
+
+/**
+ * @param {string} value
+ * @return {!proto.protos.CreateDefaultAdminNetworkRequest} returns this
+ */
+proto.protos.CreateDefaultAdminNetworkRequest.prototype.setEmail = function(value) {
+  return jspb.Message.setProto3StringField(this, 3, value);
 };
 
 

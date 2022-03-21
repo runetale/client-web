@@ -1,56 +1,95 @@
 import * as jspb from 'google-protobuf'
 
+import * as google_protobuf_empty_pb from 'google-protobuf/google/protobuf/empty_pb';
 
 
-export class SetupKeyRequest extends jspb.Message {
+export class CreateSetupKeyRequest extends jspb.Message {
   getUsergroupid(): number;
-  setUsergroupid(value: number): SetupKeyRequest;
+  setUsergroupid(value: number): CreateSetupKeyRequest;
 
   getOrggroupid(): string;
-  setOrggroupid(value: string): SetupKeyRequest;
+  setOrggroupid(value: string): CreateSetupKeyRequest;
 
   getNetworkid(): number;
-  setNetworkid(value: number): SetupKeyRequest;
+  setNetworkid(value: number): CreateSetupKeyRequest;
 
-  getJob(): string;
-  setJob(value: string): SetupKeyRequest;
+  getJobid(): number;
+  setJobid(value: number): CreateSetupKeyRequest;
 
-  getPermission(): PermissionType;
-  setPermission(value: PermissionType): SetupKeyRequest;
+  getRoleid(): number;
+  setRoleid(value: number): CreateSetupKeyRequest;
+
+  getEmail(): string;
+  setEmail(value: string): CreateSetupKeyRequest;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): SetupKeyRequest.AsObject;
-  static toObject(includeInstance: boolean, msg: SetupKeyRequest): SetupKeyRequest.AsObject;
-  static serializeBinaryToWriter(message: SetupKeyRequest, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): SetupKeyRequest;
-  static deserializeBinaryFromReader(message: SetupKeyRequest, reader: jspb.BinaryReader): SetupKeyRequest;
+  toObject(includeInstance?: boolean): CreateSetupKeyRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateSetupKeyRequest): CreateSetupKeyRequest.AsObject;
+  static serializeBinaryToWriter(message: CreateSetupKeyRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateSetupKeyRequest;
+  static deserializeBinaryFromReader(message: CreateSetupKeyRequest, reader: jspb.BinaryReader): CreateSetupKeyRequest;
 }
 
-export namespace SetupKeyRequest {
+export namespace CreateSetupKeyRequest {
   export type AsObject = {
     usergroupid: number,
     orggroupid: string,
     networkid: number,
-    job: string,
-    permission: PermissionType,
+    jobid: number,
+    roleid: number,
+    email: string,
   }
 }
 
-export class SetupKeyResponse extends jspb.Message {
+export class CreateSetupKeyResponse extends jspb.Message {
   getSetupkey(): string;
-  setSetupkey(value: string): SetupKeyResponse;
+  setSetupkey(value: string): CreateSetupKeyResponse;
 
   serializeBinary(): Uint8Array;
-  toObject(includeInstance?: boolean): SetupKeyResponse.AsObject;
-  static toObject(includeInstance: boolean, msg: SetupKeyResponse): SetupKeyResponse.AsObject;
-  static serializeBinaryToWriter(message: SetupKeyResponse, writer: jspb.BinaryWriter): void;
-  static deserializeBinary(bytes: Uint8Array): SetupKeyResponse;
-  static deserializeBinaryFromReader(message: SetupKeyResponse, reader: jspb.BinaryReader): SetupKeyResponse;
+  toObject(includeInstance?: boolean): CreateSetupKeyResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: CreateSetupKeyResponse): CreateSetupKeyResponse.AsObject;
+  static serializeBinaryToWriter(message: CreateSetupKeyResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): CreateSetupKeyResponse;
+  static deserializeBinaryFromReader(message: CreateSetupKeyResponse, reader: jspb.BinaryReader): CreateSetupKeyResponse;
 }
 
-export namespace SetupKeyResponse {
+export namespace CreateSetupKeyResponse {
   export type AsObject = {
     setupkey: string,
+  }
+}
+
+export class GetNetworkInformationResponse extends jspb.Message {
+  getUsergroupid(): number;
+  setUsergroupid(value: number): GetNetworkInformationResponse;
+
+  getOrggroupid(): string;
+  setOrggroupid(value: string): GetNetworkInformationResponse;
+
+  getNetworkid(): number;
+  setNetworkid(value: number): GetNetworkInformationResponse;
+
+  getJobid(): number;
+  setJobid(value: number): GetNetworkInformationResponse;
+
+  getRoleid(): number;
+  setRoleid(value: number): GetNetworkInformationResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): GetNetworkInformationResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: GetNetworkInformationResponse): GetNetworkInformationResponse.AsObject;
+  static serializeBinaryToWriter(message: GetNetworkInformationResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): GetNetworkInformationResponse;
+  static deserializeBinaryFromReader(message: GetNetworkInformationResponse, reader: jspb.BinaryReader): GetNetworkInformationResponse;
+}
+
+export namespace GetNetworkInformationResponse {
+  export type AsObject = {
+    usergroupid: number,
+    orggroupid: string,
+    networkid: number,
+    jobid: number,
+    roleid: number,
   }
 }
 
