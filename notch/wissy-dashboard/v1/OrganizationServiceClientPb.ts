@@ -35,47 +35,90 @@ export class OrganizationServiceClient {
     this.options_ = options;
   }
 
-  methodDescriptorGetNetwork = new grpcWeb.MethodDescriptor(
-    '/protos.OrganizationService/GetNetwork',
+  methodDescriptorGetRequiredForCreateSetupKeyInfo = new grpcWeb.MethodDescriptor(
+    '/protos.OrganizationService/GetRequiredForCreateSetupKeyInfo',
     grpcWeb.MethodType.UNARY,
-    notch_wissy$dashboard_v1_organization_pb.GetNetworkRequest,
-    notch_wissy$dashboard_v1_organization_pb.GetNetworkResponse,
-    (request: notch_wissy$dashboard_v1_organization_pb.GetNetworkRequest) => {
+    notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
+    notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse,
+    (request: notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest) => {
       return request.serializeBinary();
     },
-    notch_wissy$dashboard_v1_organization_pb.GetNetworkResponse.deserializeBinary
+    notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse.deserializeBinary
   );
 
-  getNetwork(
-    request: notch_wissy$dashboard_v1_organization_pb.GetNetworkRequest,
-    metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_organization_pb.GetNetworkResponse>;
+  getRequiredForCreateSetupKeyInfo(
+    request: notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
+    metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse>;
 
-  getNetwork(
-    request: notch_wissy$dashboard_v1_organization_pb.GetNetworkRequest,
+  getRequiredForCreateSetupKeyInfo(
+    request: notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: notch_wissy$dashboard_v1_organization_pb.GetNetworkResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_organization_pb.GetNetworkResponse>;
+               response: notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse>;
 
-  getNetwork(
-    request: notch_wissy$dashboard_v1_organization_pb.GetNetworkRequest,
+  getRequiredForCreateSetupKeyInfo(
+    request: notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
     metadata: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: notch_wissy$dashboard_v1_organization_pb.GetNetworkResponse) => void) {
+               response: notch_wissy$dashboard_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
-          '/protos.OrganizationService/GetNetwork',
+          '/protos.OrganizationService/GetRequiredForCreateSetupKeyInfo',
         request,
         metadata || {},
-        this.methodDescriptorGetNetwork,
+        this.methodDescriptorGetRequiredForCreateSetupKeyInfo,
         callback);
     }
     return this.client_.unaryCall(
     this.hostname_ +
-      '/protos.OrganizationService/GetNetwork',
+      '/protos.OrganizationService/GetRequiredForCreateSetupKeyInfo',
     request,
     metadata || {},
-    this.methodDescriptorGetNetwork);
+    this.methodDescriptorGetRequiredForCreateSetupKeyInfo);
+  }
+
+  methodDescriptorCreateSetupKey = new grpcWeb.MethodDescriptor(
+    '/protos.OrganizationService/CreateSetupKey',
+    grpcWeb.MethodType.UNARY,
+    notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyRequest,
+    notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyResponse,
+    (request: notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyRequest) => {
+      return request.serializeBinary();
+    },
+    notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyResponse.deserializeBinary
+  );
+
+  createSetupKey(
+    request: notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyRequest,
+    metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyResponse>;
+
+  createSetupKey(
+    request: notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError,
+               response: notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyResponse>;
+
+  createSetupKey(
+    request: notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError,
+               response: notch_wissy$dashboard_v1_organization_pb.CreateSetupKeyResponse) => void) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ +
+          '/protos.OrganizationService/CreateSetupKey',
+        request,
+        metadata || {},
+        this.methodDescriptorCreateSetupKey,
+        callback);
+    }
+    return this.client_.unaryCall(
+    this.hostname_ +
+      '/protos.OrganizationService/CreateSetupKey',
+    request,
+    metadata || {},
+    this.methodDescriptorCreateSetupKey);
   }
 
 }
