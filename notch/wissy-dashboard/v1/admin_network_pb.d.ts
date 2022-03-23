@@ -46,3 +46,43 @@ export namespace CreateDefaultAdminNetworkResponse {
   }
 }
 
+export class LoginNetworkRequest extends jspb.Message {
+  getNetworkname(): string;
+  setNetworkname(value: string): LoginNetworkRequest;
+
+  getUserid(): string;
+  setUserid(value: string): LoginNetworkRequest;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LoginNetworkRequest.AsObject;
+  static toObject(includeInstance: boolean, msg: LoginNetworkRequest): LoginNetworkRequest.AsObject;
+  static serializeBinaryToWriter(message: LoginNetworkRequest, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LoginNetworkRequest;
+  static deserializeBinaryFromReader(message: LoginNetworkRequest, reader: jspb.BinaryReader): LoginNetworkRequest;
+}
+
+export namespace LoginNetworkRequest {
+  export type AsObject = {
+    networkname: string,
+    userid: string,
+  }
+}
+
+export class LoginNetworkResponse extends jspb.Message {
+  getOrganizationid(): string;
+  setOrganizationid(value: string): LoginNetworkResponse;
+
+  serializeBinary(): Uint8Array;
+  toObject(includeInstance?: boolean): LoginNetworkResponse.AsObject;
+  static toObject(includeInstance: boolean, msg: LoginNetworkResponse): LoginNetworkResponse.AsObject;
+  static serializeBinaryToWriter(message: LoginNetworkResponse, writer: jspb.BinaryWriter): void;
+  static deserializeBinary(bytes: Uint8Array): LoginNetworkResponse;
+  static deserializeBinaryFromReader(message: LoginNetworkResponse, reader: jspb.BinaryReader): LoginNetworkResponse;
+}
+
+export namespace LoginNetworkResponse {
+  export type AsObject = {
+    organizationid: string,
+  }
+}
+

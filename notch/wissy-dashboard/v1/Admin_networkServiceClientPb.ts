@@ -78,5 +78,48 @@ export class AdminNetworkServiceClient {
     this.methodDescriptorCreateDefaultNetwork);
   }
 
+  methodDescriptorLoginNetwork = new grpcWeb.MethodDescriptor(
+    '/protos.AdminNetworkService/LoginNetwork',
+    grpcWeb.MethodType.UNARY,
+    notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkRequest,
+    notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse,
+    (request: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkRequest) => {
+      return request.serializeBinary();
+    },
+    notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse.deserializeBinary
+  );
+
+  loginNetwork(
+    request: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkRequest,
+    metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse>;
+
+  loginNetwork(
+    request: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback: (err: grpcWeb.RpcError,
+               response: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse>;
+
+  loginNetwork(
+    request: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkRequest,
+    metadata: grpcWeb.Metadata | null,
+    callback?: (err: grpcWeb.RpcError,
+               response: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse) => void) {
+    if (callback !== undefined) {
+      return this.client_.rpcCall(
+        this.hostname_ +
+          '/protos.AdminNetworkService/LoginNetwork',
+        request,
+        metadata || {},
+        this.methodDescriptorLoginNetwork,
+        callback);
+    }
+    return this.client_.unaryCall(
+    this.hostname_ +
+      '/protos.AdminNetworkService/LoginNetwork',
+    request,
+    metadata || {},
+    this.methodDescriptorLoginNetwork);
+  }
+
 }
 
