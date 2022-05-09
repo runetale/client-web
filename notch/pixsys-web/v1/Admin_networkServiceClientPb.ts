@@ -13,7 +13,7 @@
 
 import * as grpcWeb from 'grpc-web';
 
-import * as notch_wissy$dashboard_v1_admin_network_pb from '../../../notch/wissy-dashboard/v1/admin_network_pb';
+import * as notch_pixsys$web_v1_admin_network_pb from '../../../notch/pixsys-web/v1/admin_network_pb';
 
 
 export class AdminNetworkServiceClient {
@@ -38,29 +38,29 @@ export class AdminNetworkServiceClient {
   methodDescriptorCreateDefaultNetwork = new grpcWeb.MethodDescriptor(
     '/protos.AdminNetworkService/CreateDefaultNetwork',
     grpcWeb.MethodType.UNARY,
-    notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkRequest,
-    notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkResponse,
-    (request: notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkRequest) => {
+    notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkRequest,
+    notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkResponse,
+    (request: notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkRequest) => {
       return request.serializeBinary();
     },
-    notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkResponse.deserializeBinary
+    notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkResponse.deserializeBinary
   );
 
   createDefaultNetwork(
-    request: notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkRequest,
-    metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkResponse>;
+    request: notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkRequest,
+    metadata: grpcWeb.Metadata | null): Promise<notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkResponse>;
 
   createDefaultNetwork(
-    request: notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkRequest,
+    request: notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkResponse>;
+               response: notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkResponse) => void): grpcWeb.ClientReadableStream<notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkResponse>;
 
   createDefaultNetwork(
-    request: notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkRequest,
+    request: notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkRequest,
     metadata: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: notch_wissy$dashboard_v1_admin_network_pb.CreateDefaultAdminNetworkResponse) => void) {
+               response: notch_pixsys$web_v1_admin_network_pb.CreateDefaultAdminNetworkResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -81,29 +81,29 @@ export class AdminNetworkServiceClient {
   methodDescriptorLoginNetwork = new grpcWeb.MethodDescriptor(
     '/protos.AdminNetworkService/LoginNetwork',
     grpcWeb.MethodType.UNARY,
-    notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkRequest,
-    notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse,
-    (request: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkRequest) => {
+    notch_pixsys$web_v1_admin_network_pb.LoginNetworkRequest,
+    notch_pixsys$web_v1_admin_network_pb.LoginNetworkResponse,
+    (request: notch_pixsys$web_v1_admin_network_pb.LoginNetworkRequest) => {
       return request.serializeBinary();
     },
-    notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse.deserializeBinary
+    notch_pixsys$web_v1_admin_network_pb.LoginNetworkResponse.deserializeBinary
   );
 
   loginNetwork(
-    request: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkRequest,
-    metadata: grpcWeb.Metadata | null): Promise<notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse>;
+    request: notch_pixsys$web_v1_admin_network_pb.LoginNetworkRequest,
+    metadata: grpcWeb.Metadata | null): Promise<notch_pixsys$web_v1_admin_network_pb.LoginNetworkResponse>;
 
   loginNetwork(
-    request: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkRequest,
+    request: notch_pixsys$web_v1_admin_network_pb.LoginNetworkRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse) => void): grpcWeb.ClientReadableStream<notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse>;
+               response: notch_pixsys$web_v1_admin_network_pb.LoginNetworkResponse) => void): grpcWeb.ClientReadableStream<notch_pixsys$web_v1_admin_network_pb.LoginNetworkResponse>;
 
   loginNetwork(
-    request: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkRequest,
+    request: notch_pixsys$web_v1_admin_network_pb.LoginNetworkRequest,
     metadata: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: notch_wissy$dashboard_v1_admin_network_pb.LoginNetworkResponse) => void) {
+               response: notch_pixsys$web_v1_admin_network_pb.LoginNetworkResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
