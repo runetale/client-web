@@ -1,4 +1,4 @@
-// source: notch/pixsys-web/v1/organization.proto
+// source: notch/dotshake-web/v1/organization.proto
 /**
  * @fileoverview
  * @enhanceable
