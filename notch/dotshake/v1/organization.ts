@@ -1,6 +1,8 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "protos";
 
@@ -389,57 +391,168 @@ export const CreateSetupKeyResponse = {
 
 export interface OrganizationService {
   GetRequiredForCreateSetupKeyInfo(
-    request: GetRequiredForCreateSetupKeyInfoRequest
+    request: DeepPartial<GetRequiredForCreateSetupKeyInfoRequest>,
+    metadata?: grpc.Metadata
   ): Promise<GetRequiredForCreateSetupKeyInfoResponse>;
   CreateSetupKey(
-    request: CreateSetupKeyRequest
+    request: DeepPartial<CreateSetupKeyRequest>,
+    metadata?: grpc.Metadata
   ): Promise<CreateSetupKeyResponse>;
 }
 
 export class OrganizationServiceClientImpl implements OrganizationService {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.GetRequiredForCreateSetupKeyInfo =
       this.GetRequiredForCreateSetupKeyInfo.bind(this);
     this.CreateSetupKey = this.CreateSetupKey.bind(this);
   }
+
   GetRequiredForCreateSetupKeyInfo(
-    request: GetRequiredForCreateSetupKeyInfoRequest
+    request: DeepPartial<GetRequiredForCreateSetupKeyInfoRequest>,
+    metadata?: grpc.Metadata
   ): Promise<GetRequiredForCreateSetupKeyInfoResponse> {
-    const data =
-      GetRequiredForCreateSetupKeyInfoRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "protos.OrganizationService",
-      "GetRequiredForCreateSetupKeyInfo",
-      data
-    );
-    return promise.then((data) =>
-      GetRequiredForCreateSetupKeyInfoResponse.decode(new _m0.Reader(data))
+    return this.rpc.unary(
+      OrganizationServiceGetRequiredForCreateSetupKeyInfoDesc,
+      GetRequiredForCreateSetupKeyInfoRequest.fromPartial(request),
+      metadata
     );
   }
 
   CreateSetupKey(
-    request: CreateSetupKeyRequest
+    request: DeepPartial<CreateSetupKeyRequest>,
+    metadata?: grpc.Metadata
   ): Promise<CreateSetupKeyResponse> {
-    const data = CreateSetupKeyRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "protos.OrganizationService",
-      "CreateSetupKey",
-      data
-    );
-    return promise.then((data) =>
-      CreateSetupKeyResponse.decode(new _m0.Reader(data))
+    return this.rpc.unary(
+      OrganizationServiceCreateSetupKeyDesc,
+      CreateSetupKeyRequest.fromPartial(request),
+      metadata
     );
   }
 }
 
+export const OrganizationServiceDesc = {
+  serviceName: "protos.OrganizationService",
+};
+
+export const OrganizationServiceGetRequiredForCreateSetupKeyInfoDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "GetRequiredForCreateSetupKeyInfo",
+    service: OrganizationServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return GetRequiredForCreateSetupKeyInfoRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...GetRequiredForCreateSetupKeyInfoResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+export const OrganizationServiceCreateSetupKeyDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateSetupKey",
+  service: OrganizationServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return CreateSetupKeyRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...CreateSetupKeyResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    }
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 declare var self: any | undefined;

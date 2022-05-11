@@ -1,6 +1,8 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "protos";
 
@@ -330,46 +332,171 @@ export const CreatePeerResponse = {
 
 export interface SessionService {
   /** Auth0ログイン後、/adminにリダイレクトした時に叩かれる */
-  SignIn(request: SignInRequest): Promise<SignInResponse>;
+  SignIn(
+    request: DeepPartial<SignInRequest>,
+    metadata?: grpc.Metadata
+  ): Promise<SignInResponse>;
   /**
    * /adminにリダイレクトし、SignInのRPCを叩いた後にdotshakeで叩かれるRPC
    * `dotshake up` or `dotshake login`
    */
-  CreatePeer(request: CreatePeerRequest): Promise<CreatePeerResponse>;
+  CreatePeer(
+    request: DeepPartial<CreatePeerRequest>,
+    metadata?: grpc.Metadata
+  ): Promise<CreatePeerResponse>;
 }
 
 export class SessionServiceClientImpl implements SessionService {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.SignIn = this.SignIn.bind(this);
     this.CreatePeer = this.CreatePeer.bind(this);
   }
-  SignIn(request: SignInRequest): Promise<SignInResponse> {
-    const data = SignInRequest.encode(request).finish();
-    const promise = this.rpc.request("protos.SessionService", "SignIn", data);
-    return promise.then((data) => SignInResponse.decode(new _m0.Reader(data)));
+
+  SignIn(
+    request: DeepPartial<SignInRequest>,
+    metadata?: grpc.Metadata
+  ): Promise<SignInResponse> {
+    return this.rpc.unary(
+      SessionServiceSignInDesc,
+      SignInRequest.fromPartial(request),
+      metadata
+    );
   }
 
-  CreatePeer(request: CreatePeerRequest): Promise<CreatePeerResponse> {
-    const data = CreatePeerRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "protos.SessionService",
-      "CreatePeer",
-      data
-    );
-    return promise.then((data) =>
-      CreatePeerResponse.decode(new _m0.Reader(data))
+  CreatePeer(
+    request: DeepPartial<CreatePeerRequest>,
+    metadata?: grpc.Metadata
+  ): Promise<CreatePeerResponse> {
+    return this.rpc.unary(
+      SessionServiceCreatePeerDesc,
+      CreatePeerRequest.fromPartial(request),
+      metadata
     );
   }
 }
 
+export const SessionServiceDesc = {
+  serviceName: "protos.SessionService",
+};
+
+export const SessionServiceSignInDesc: UnaryMethodDefinitionish = {
+  methodName: "SignIn",
+  service: SessionServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return SignInRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...SignInResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const SessionServiceCreatePeerDesc: UnaryMethodDefinitionish = {
+  methodName: "CreatePeer",
+  service: SessionServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return CreatePeerRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...CreatePeerResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    }
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 declare var self: any | undefined;
