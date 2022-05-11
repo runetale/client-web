@@ -1,6 +1,8 @@
 /* eslint-disable */
 import Long from "long";
+import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
+import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "protos";
 
@@ -285,51 +287,167 @@ export const LoginNetworkResponse = {
 
 export interface AdminNetworkService {
   CreateDefaultNetwork(
-    request: CreateDefaultAdminNetworkRequest
+    request: DeepPartial<CreateDefaultAdminNetworkRequest>,
+    metadata?: grpc.Metadata
   ): Promise<CreateDefaultAdminNetworkResponse>;
-  LoginNetwork(request: LoginNetworkRequest): Promise<LoginNetworkResponse>;
+  LoginNetwork(
+    request: DeepPartial<LoginNetworkRequest>,
+    metadata?: grpc.Metadata
+  ): Promise<LoginNetworkResponse>;
 }
 
 export class AdminNetworkServiceClientImpl implements AdminNetworkService {
   private readonly rpc: Rpc;
+
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.CreateDefaultNetwork = this.CreateDefaultNetwork.bind(this);
     this.LoginNetwork = this.LoginNetwork.bind(this);
   }
+
   CreateDefaultNetwork(
-    request: CreateDefaultAdminNetworkRequest
+    request: DeepPartial<CreateDefaultAdminNetworkRequest>,
+    metadata?: grpc.Metadata
   ): Promise<CreateDefaultAdminNetworkResponse> {
-    const data = CreateDefaultAdminNetworkRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "protos.AdminNetworkService",
-      "CreateDefaultNetwork",
-      data
-    );
-    return promise.then((data) =>
-      CreateDefaultAdminNetworkResponse.decode(new _m0.Reader(data))
+    return this.rpc.unary(
+      AdminNetworkServiceCreateDefaultNetworkDesc,
+      CreateDefaultAdminNetworkRequest.fromPartial(request),
+      metadata
     );
   }
 
-  LoginNetwork(request: LoginNetworkRequest): Promise<LoginNetworkResponse> {
-    const data = LoginNetworkRequest.encode(request).finish();
-    const promise = this.rpc.request(
-      "protos.AdminNetworkService",
-      "LoginNetwork",
-      data
-    );
-    return promise.then((data) =>
-      LoginNetworkResponse.decode(new _m0.Reader(data))
+  LoginNetwork(
+    request: DeepPartial<LoginNetworkRequest>,
+    metadata?: grpc.Metadata
+  ): Promise<LoginNetworkResponse> {
+    return this.rpc.unary(
+      AdminNetworkServiceLoginNetworkDesc,
+      LoginNetworkRequest.fromPartial(request),
+      metadata
     );
   }
 }
 
+export const AdminNetworkServiceDesc = {
+  serviceName: "protos.AdminNetworkService",
+};
+
+export const AdminNetworkServiceCreateDefaultNetworkDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "CreateDefaultNetwork",
+    service: AdminNetworkServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return CreateDefaultAdminNetworkRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...CreateDefaultAdminNetworkResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+export const AdminNetworkServiceLoginNetworkDesc: UnaryMethodDefinitionish = {
+  methodName: "LoginNetwork",
+  service: AdminNetworkServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return LoginNetworkRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...LoginNetworkResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR
+  extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
 interface Rpc {
-  request(
-    service: string,
-    method: string,
-    data: Uint8Array
-  ): Promise<Uint8Array>;
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+    }
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata,
+        transport: this.options.transport,
+        debug: this.options.debug,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message);
+          } else {
+            const err = new Error(response.statusMessage) as any;
+            err.code = response.status;
+            err.metadata = response.trailers;
+            reject(err);
+          }
+        },
+      });
+    });
+  }
 }
 
 type Builtin =
