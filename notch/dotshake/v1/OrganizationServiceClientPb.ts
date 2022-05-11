@@ -13,7 +13,7 @@
 
 import * as grpcWeb from 'grpc-web';
 
-import * as notch_dotshake$web_v1_organization_pb from '../../../notch/dotshake-web/v1/organization_pb';
+import * as notch_dotshake_v1_organization_pb from '../../../notch/dotshake/v1/organization_pb';
 
 
 export class OrganizationServiceClient {
@@ -38,29 +38,29 @@ export class OrganizationServiceClient {
   methodDescriptorGetRequiredForCreateSetupKeyInfo = new grpcWeb.MethodDescriptor(
     '/protos.OrganizationService/GetRequiredForCreateSetupKeyInfo',
     grpcWeb.MethodType.UNARY,
-    notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
-    notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse,
-    (request: notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest) => {
+    notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
+    notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse,
+    (request: notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest) => {
       return request.serializeBinary();
     },
-    notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse.deserializeBinary
+    notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse.deserializeBinary
   );
 
   getRequiredForCreateSetupKeyInfo(
-    request: notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
-    metadata: grpcWeb.Metadata | null): Promise<notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse>;
+    request: notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
+    metadata: grpcWeb.Metadata | null): Promise<notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse>;
 
   getRequiredForCreateSetupKeyInfo(
-    request: notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
+    request: notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse) => void): grpcWeb.ClientReadableStream<notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse>;
+               response: notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse) => void): grpcWeb.ClientReadableStream<notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse>;
 
   getRequiredForCreateSetupKeyInfo(
-    request: notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
+    request: notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoRequest,
     metadata: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: notch_dotshake$web_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse) => void) {
+               response: notch_dotshake_v1_organization_pb.GetRequiredForCreateSetupKeyInfoResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
@@ -81,29 +81,29 @@ export class OrganizationServiceClient {
   methodDescriptorCreateSetupKey = new grpcWeb.MethodDescriptor(
     '/protos.OrganizationService/CreateSetupKey',
     grpcWeb.MethodType.UNARY,
-    notch_dotshake$web_v1_organization_pb.CreateSetupKeyRequest,
-    notch_dotshake$web_v1_organization_pb.CreateSetupKeyResponse,
-    (request: notch_dotshake$web_v1_organization_pb.CreateSetupKeyRequest) => {
+    notch_dotshake_v1_organization_pb.CreateSetupKeyRequest,
+    notch_dotshake_v1_organization_pb.CreateSetupKeyResponse,
+    (request: notch_dotshake_v1_organization_pb.CreateSetupKeyRequest) => {
       return request.serializeBinary();
     },
-    notch_dotshake$web_v1_organization_pb.CreateSetupKeyResponse.deserializeBinary
+    notch_dotshake_v1_organization_pb.CreateSetupKeyResponse.deserializeBinary
   );
 
   createSetupKey(
-    request: notch_dotshake$web_v1_organization_pb.CreateSetupKeyRequest,
-    metadata: grpcWeb.Metadata | null): Promise<notch_dotshake$web_v1_organization_pb.CreateSetupKeyResponse>;
+    request: notch_dotshake_v1_organization_pb.CreateSetupKeyRequest,
+    metadata: grpcWeb.Metadata | null): Promise<notch_dotshake_v1_organization_pb.CreateSetupKeyResponse>;
 
   createSetupKey(
-    request: notch_dotshake$web_v1_organization_pb.CreateSetupKeyRequest,
+    request: notch_dotshake_v1_organization_pb.CreateSetupKeyRequest,
     metadata: grpcWeb.Metadata | null,
     callback: (err: grpcWeb.RpcError,
-               response: notch_dotshake$web_v1_organization_pb.CreateSetupKeyResponse) => void): grpcWeb.ClientReadableStream<notch_dotshake$web_v1_organization_pb.CreateSetupKeyResponse>;
+               response: notch_dotshake_v1_organization_pb.CreateSetupKeyResponse) => void): grpcWeb.ClientReadableStream<notch_dotshake_v1_organization_pb.CreateSetupKeyResponse>;
 
   createSetupKey(
-    request: notch_dotshake$web_v1_organization_pb.CreateSetupKeyRequest,
+    request: notch_dotshake_v1_organization_pb.CreateSetupKeyRequest,
     metadata: grpcWeb.Metadata | null,
     callback?: (err: grpcWeb.RpcError,
-               response: notch_dotshake$web_v1_organization_pb.CreateSetupKeyResponse) => void) {
+               response: notch_dotshake_v1_organization_pb.CreateSetupKeyResponse) => void) {
     if (callback !== undefined) {
       return this.client_.rpcCall(
         this.hostname_ +
