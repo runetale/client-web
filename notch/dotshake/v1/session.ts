@@ -7,8 +7,6 @@ import { BrowserHeaders } from "browser-headers";
 export const protobufPackage = "protos";
 
 export interface SignInRequest {
-  /** auth0のuserID */
-  userID: string;
   /** auth0で登録したメールアドレス */
   email: string;
 }
@@ -40,7 +38,7 @@ export interface CreatePeerResponse {
 }
 
 function createBaseSignInRequest(): SignInRequest {
-  return { userID: "", email: "" };
+  return { email: "" };
 }
 
 export const SignInRequest = {
@@ -48,11 +46,8 @@ export const SignInRequest = {
     message: SignInRequest,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.userID !== "") {
-      writer.uint32(10).string(message.userID);
-    }
     if (message.email !== "") {
-      writer.uint32(18).string(message.email);
+      writer.uint32(10).string(message.email);
     }
     return writer;
   },
@@ -65,9 +60,6 @@ export const SignInRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.userID = reader.string();
-          break;
-        case 2:
           message.email = reader.string();
           break;
         default:
@@ -80,14 +72,12 @@ export const SignInRequest = {
 
   fromJSON(object: any): SignInRequest {
     return {
-      userID: isSet(object.userID) ? String(object.userID) : "",
       email: isSet(object.email) ? String(object.email) : "",
     };
   },
 
   toJSON(message: SignInRequest): unknown {
     const obj: any = {};
-    message.userID !== undefined && (obj.userID = message.userID);
     message.email !== undefined && (obj.email = message.email);
     return obj;
   },
@@ -96,7 +86,6 @@ export const SignInRequest = {
     object: I
   ): SignInRequest {
     const message = createBaseSignInRequest();
-    message.userID = object.userID ?? "";
     message.email = object.email ?? "";
     return message;
   },
