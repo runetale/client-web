@@ -192,7 +192,7 @@ export interface Negotiation {
     metadata?: grpc.Metadata
   ): Promise<Empty>;
   StartConnect(
-    request: DeepPartial<NegotiationRequest>,
+    request: Observable<DeepPartial<NegotiationRequest>>,
     metadata?: grpc.Metadata
   ): Observable<NegotiationResponse>;
 }
@@ -242,14 +242,10 @@ export class NegotiationClientImpl implements Negotiation {
   }
 
   StartConnect(
-    request: DeepPartial<NegotiationRequest>,
+    request: Observable<DeepPartial<NegotiationRequest>>,
     metadata?: grpc.Metadata
   ): Observable<NegotiationResponse> {
-    return this.rpc.invoke(
-      NegotiationStartConnectDesc,
-      NegotiationRequest.fromPartial(request),
-      metadata
-    );
+    throw new Error("ts-proto does not yet support client streaming!");
   }
 }
 
@@ -315,28 +311,6 @@ export const NegotiationCandidateDesc: UnaryMethodDefinitionish = {
     deserializeBinary(data: Uint8Array) {
       return {
         ...Empty.decode(data),
-        toObject() {
-          return this;
-        },
-      };
-    },
-  } as any,
-};
-
-export const NegotiationStartConnectDesc: UnaryMethodDefinitionish = {
-  methodName: "StartConnect",
-  service: NegotiationDesc,
-  requestStream: false,
-  responseStream: true,
-  requestType: {
-    serializeBinary() {
-      return NegotiationRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      return {
-        ...NegotiationResponse.decode(data),
         toObject() {
           return this;
         },
