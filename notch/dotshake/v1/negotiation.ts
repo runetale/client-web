@@ -53,6 +53,7 @@ export interface NegotiationRequest {
 
 export interface NegotiationResponse {
   type: NegotiationType;
+  isCreate: boolean;
 }
 
 function createBaseNegotiationRequest(): NegotiationRequest {
@@ -111,7 +112,7 @@ export const NegotiationRequest = {
 };
 
 function createBaseNegotiationResponse(): NegotiationResponse {
-  return { type: 0 };
+  return { type: 0, isCreate: false };
 }
 
 export const NegotiationResponse = {
@@ -121,6 +122,9 @@ export const NegotiationResponse = {
   ): _m0.Writer {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
+    }
+    if (message.isCreate === true) {
+      writer.uint32(16).bool(message.isCreate);
     }
     return writer;
   },
@@ -135,6 +139,9 @@ export const NegotiationResponse = {
         case 1:
           message.type = reader.int32() as any;
           break;
+        case 2:
+          message.isCreate = reader.bool();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -146,6 +153,7 @@ export const NegotiationResponse = {
   fromJSON(object: any): NegotiationResponse {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
+      isCreate: isSet(object.isCreate) ? Boolean(object.isCreate) : false,
     };
   },
 
@@ -153,6 +161,7 @@ export const NegotiationResponse = {
     const obj: any = {};
     message.type !== undefined &&
       (obj.type = negotiationTypeToJSON(message.type));
+    message.isCreate !== undefined && (obj.isCreate = message.isCreate);
     return obj;
   },
 
@@ -161,6 +170,7 @@ export const NegotiationResponse = {
   ): NegotiationResponse {
     const message = createBaseNegotiationResponse();
     message.type = object.type ?? 0;
+    message.isCreate = object.isCreate ?? false;
     return message;
   },
 };
