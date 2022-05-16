@@ -50,9 +50,9 @@ export function negotiationTypeToJSON(object: NegotiationType): string {
 export interface NegotiationRequest {
   type: NegotiationType;
   /** remote machine key of the Peer you want to connect to */
-  remotePeerMachineKey: string;
-  /** remote machine key of the Peer you want to connect to */
-  clientWgPubKey: string;
+  dstPeerMachineKey: string;
+  /** wireGuard pub key of the Peer that sent the request (src) */
+  srcWgPubKey: string;
   uFlag: string;
   pwd: string;
 }
@@ -71,8 +71,8 @@ export interface NegotiationResponse {
 function createBaseNegotiationRequest(): NegotiationRequest {
   return {
     type: 0,
-    remotePeerMachineKey: "",
-    clientWgPubKey: "",
+    dstPeerMachineKey: "",
+    srcWgPubKey: "",
     uFlag: "",
     pwd: "",
   };
@@ -86,11 +86,11 @@ export const NegotiationRequest = {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
-    if (message.remotePeerMachineKey !== "") {
-      writer.uint32(18).string(message.remotePeerMachineKey);
+    if (message.dstPeerMachineKey !== "") {
+      writer.uint32(18).string(message.dstPeerMachineKey);
     }
-    if (message.clientWgPubKey !== "") {
-      writer.uint32(26).string(message.clientWgPubKey);
+    if (message.srcWgPubKey !== "") {
+      writer.uint32(26).string(message.srcWgPubKey);
     }
     if (message.uFlag !== "") {
       writer.uint32(34).string(message.uFlag);
@@ -112,10 +112,10 @@ export const NegotiationRequest = {
           message.type = reader.int32() as any;
           break;
         case 2:
-          message.remotePeerMachineKey = reader.string();
+          message.dstPeerMachineKey = reader.string();
           break;
         case 3:
-          message.clientWgPubKey = reader.string();
+          message.srcWgPubKey = reader.string();
           break;
         case 4:
           message.uFlag = reader.string();
@@ -134,12 +134,10 @@ export const NegotiationRequest = {
   fromJSON(object: any): NegotiationRequest {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
-      remotePeerMachineKey: isSet(object.remotePeerMachineKey)
-        ? String(object.remotePeerMachineKey)
+      dstPeerMachineKey: isSet(object.dstPeerMachineKey)
+        ? String(object.dstPeerMachineKey)
         : "",
-      clientWgPubKey: isSet(object.clientWgPubKey)
-        ? String(object.clientWgPubKey)
-        : "",
+      srcWgPubKey: isSet(object.srcWgPubKey) ? String(object.srcWgPubKey) : "",
       uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? String(object.pwd) : "",
     };
@@ -149,10 +147,10 @@ export const NegotiationRequest = {
     const obj: any = {};
     message.type !== undefined &&
       (obj.type = negotiationTypeToJSON(message.type));
-    message.remotePeerMachineKey !== undefined &&
-      (obj.remotePeerMachineKey = message.remotePeerMachineKey);
-    message.clientWgPubKey !== undefined &&
-      (obj.clientWgPubKey = message.clientWgPubKey);
+    message.dstPeerMachineKey !== undefined &&
+      (obj.dstPeerMachineKey = message.dstPeerMachineKey);
+    message.srcWgPubKey !== undefined &&
+      (obj.srcWgPubKey = message.srcWgPubKey);
     message.uFlag !== undefined && (obj.uFlag = message.uFlag);
     message.pwd !== undefined && (obj.pwd = message.pwd);
     return obj;
@@ -163,8 +161,8 @@ export const NegotiationRequest = {
   ): NegotiationRequest {
     const message = createBaseNegotiationRequest();
     message.type = object.type ?? 0;
-    message.remotePeerMachineKey = object.remotePeerMachineKey ?? "";
-    message.clientWgPubKey = object.clientWgPubKey ?? "";
+    message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
+    message.srcWgPubKey = object.srcWgPubKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
     return message;
