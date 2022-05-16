@@ -49,6 +49,7 @@ export function negotiationTypeToJSON(object: NegotiationType): string {
 
 export interface NegotiationRequest {
   type: NegotiationType;
+  remotePeerMachineKey: string;
 }
 
 export interface NegotiationResponse {
@@ -57,7 +58,7 @@ export interface NegotiationResponse {
 }
 
 function createBaseNegotiationRequest(): NegotiationRequest {
-  return { type: 0 };
+  return { type: 0, remotePeerMachineKey: "" };
 }
 
 export const NegotiationRequest = {
@@ -67,6 +68,9 @@ export const NegotiationRequest = {
   ): _m0.Writer {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
+    }
+    if (message.remotePeerMachineKey !== "") {
+      writer.uint32(18).string(message.remotePeerMachineKey);
     }
     return writer;
   },
@@ -81,6 +85,9 @@ export const NegotiationRequest = {
         case 1:
           message.type = reader.int32() as any;
           break;
+        case 2:
+          message.remotePeerMachineKey = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -92,6 +99,9 @@ export const NegotiationRequest = {
   fromJSON(object: any): NegotiationRequest {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
+      remotePeerMachineKey: isSet(object.remotePeerMachineKey)
+        ? String(object.remotePeerMachineKey)
+        : "",
     };
   },
 
@@ -99,6 +109,8 @@ export const NegotiationRequest = {
     const obj: any = {};
     message.type !== undefined &&
       (obj.type = negotiationTypeToJSON(message.type));
+    message.remotePeerMachineKey !== undefined &&
+      (obj.remotePeerMachineKey = message.remotePeerMachineKey);
     return obj;
   },
 
@@ -107,6 +119,7 @@ export const NegotiationRequest = {
   ): NegotiationRequest {
     const message = createBaseNegotiationRequest();
     message.type = object.type ?? 0;
+    message.remotePeerMachineKey = object.remotePeerMachineKey ?? "";
     return message;
   },
 };
