@@ -53,7 +53,7 @@ export interface NegotiationRequest {
 
 export interface NegotiationResponse {
   type: NegotiationType;
-  isCreate: boolean;
+  isNegotiation: boolean;
 }
 
 function createBaseNegotiationRequest(): NegotiationRequest {
@@ -112,7 +112,7 @@ export const NegotiationRequest = {
 };
 
 function createBaseNegotiationResponse(): NegotiationResponse {
-  return { type: 0, isCreate: false };
+  return { type: 0, isNegotiation: false };
 }
 
 export const NegotiationResponse = {
@@ -123,8 +123,8 @@ export const NegotiationResponse = {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
-    if (message.isCreate === true) {
-      writer.uint32(16).bool(message.isCreate);
+    if (message.isNegotiation === true) {
+      writer.uint32(16).bool(message.isNegotiation);
     }
     return writer;
   },
@@ -140,7 +140,7 @@ export const NegotiationResponse = {
           message.type = reader.int32() as any;
           break;
         case 2:
-          message.isCreate = reader.bool();
+          message.isNegotiation = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -153,7 +153,9 @@ export const NegotiationResponse = {
   fromJSON(object: any): NegotiationResponse {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
-      isCreate: isSet(object.isCreate) ? Boolean(object.isCreate) : false,
+      isNegotiation: isSet(object.isNegotiation)
+        ? Boolean(object.isNegotiation)
+        : false,
     };
   },
 
@@ -161,7 +163,8 @@ export const NegotiationResponse = {
     const obj: any = {};
     message.type !== undefined &&
       (obj.type = negotiationTypeToJSON(message.type));
-    message.isCreate !== undefined && (obj.isCreate = message.isCreate);
+    message.isNegotiation !== undefined &&
+      (obj.isNegotiation = message.isNegotiation);
     return obj;
   },
 
@@ -170,7 +173,7 @@ export const NegotiationResponse = {
   ): NegotiationResponse {
     const message = createBaseNegotiationResponse();
     message.type = object.type ?? 0;
-    message.isCreate = object.isCreate ?? false;
+    message.isNegotiation = object.isNegotiation ?? false;
     return message;
   },
 };
