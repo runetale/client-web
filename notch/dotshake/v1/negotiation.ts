@@ -67,6 +67,18 @@ export interface NegotiationResponse {
   pwd: string;
 }
 
+export interface HandshakeRequest {
+  /** remote machine key of the Peer you want to connect to */
+  dstPeerMachineKey: string;
+  /** machine key of the originating peer to be sent to the remote peer */
+  srcPeerMachineKey: string;
+  /** wireguard pub key of the originating peer to be sent to the remote peer */
+  srcWgPubKey: string;
+  uFlag: string;
+  pwd: string;
+  payload: string;
+}
+
 function createBaseNegotiationRequest(): NegotiationRequest {
   return {
     type: 0,
@@ -282,17 +294,130 @@ export const NegotiationResponse = {
   },
 };
 
+function createBaseHandshakeRequest(): HandshakeRequest {
+  return {
+    dstPeerMachineKey: "",
+    srcPeerMachineKey: "",
+    srcWgPubKey: "",
+    uFlag: "",
+    pwd: "",
+    payload: "",
+  };
+}
+
+export const HandshakeRequest = {
+  encode(
+    message: HandshakeRequest,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.dstPeerMachineKey !== "") {
+      writer.uint32(10).string(message.dstPeerMachineKey);
+    }
+    if (message.srcPeerMachineKey !== "") {
+      writer.uint32(18).string(message.srcPeerMachineKey);
+    }
+    if (message.srcWgPubKey !== "") {
+      writer.uint32(26).string(message.srcWgPubKey);
+    }
+    if (message.uFlag !== "") {
+      writer.uint32(34).string(message.uFlag);
+    }
+    if (message.pwd !== "") {
+      writer.uint32(42).string(message.pwd);
+    }
+    if (message.payload !== "") {
+      writer.uint32(50).string(message.payload);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): HandshakeRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHandshakeRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.dstPeerMachineKey = reader.string();
+          break;
+        case 2:
+          message.srcPeerMachineKey = reader.string();
+          break;
+        case 3:
+          message.srcWgPubKey = reader.string();
+          break;
+        case 4:
+          message.uFlag = reader.string();
+          break;
+        case 5:
+          message.pwd = reader.string();
+          break;
+        case 6:
+          message.payload = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): HandshakeRequest {
+    return {
+      dstPeerMachineKey: isSet(object.dstPeerMachineKey)
+        ? String(object.dstPeerMachineKey)
+        : "",
+      srcPeerMachineKey: isSet(object.srcPeerMachineKey)
+        ? String(object.srcPeerMachineKey)
+        : "",
+      srcWgPubKey: isSet(object.srcWgPubKey) ? String(object.srcWgPubKey) : "",
+      uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
+      pwd: isSet(object.pwd) ? String(object.pwd) : "",
+      payload: isSet(object.payload) ? String(object.payload) : "",
+    };
+  },
+
+  toJSON(message: HandshakeRequest): unknown {
+    const obj: any = {};
+    message.dstPeerMachineKey !== undefined &&
+      (obj.dstPeerMachineKey = message.dstPeerMachineKey);
+    message.srcPeerMachineKey !== undefined &&
+      (obj.srcPeerMachineKey = message.srcPeerMachineKey);
+    message.srcWgPubKey !== undefined &&
+      (obj.srcWgPubKey = message.srcWgPubKey);
+    message.uFlag !== undefined && (obj.uFlag = message.uFlag);
+    message.pwd !== undefined && (obj.pwd = message.pwd);
+    message.payload !== undefined && (obj.payload = message.payload);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<HandshakeRequest>, I>>(
+    object: I
+  ): HandshakeRequest {
+    const message = createBaseHandshakeRequest();
+    message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
+    message.srcPeerMachineKey = object.srcPeerMachineKey ?? "";
+    message.srcWgPubKey = object.srcWgPubKey ?? "";
+    message.uFlag = object.uFlag ?? "";
+    message.pwd = object.pwd ?? "";
+    message.payload = object.payload ?? "";
+    return message;
+  },
+};
+
 export interface Negotiation {
   Offer(
-    request: DeepPartial<NegotiationRequest>,
+    request: DeepPartial<HandshakeRequest>,
     metadata?: grpc.Metadata
   ): Promise<NegotiationResponse>;
   Answer(
-    request: DeepPartial<NegotiationRequest>,
+    request: DeepPartial<HandshakeRequest>,
     metadata?: grpc.Metadata
   ): Promise<NegotiationResponse>;
   Candidate(
-    request: DeepPartial<NegotiationRequest>,
+    request: DeepPartial<HandshakeRequest>,
     metadata?: grpc.Metadata
   ): Promise<NegotiationResponse>;
   StartConnect(
@@ -313,34 +438,34 @@ export class NegotiationClientImpl implements Negotiation {
   }
 
   Offer(
-    request: DeepPartial<NegotiationRequest>,
+    request: DeepPartial<HandshakeRequest>,
     metadata?: grpc.Metadata
   ): Promise<NegotiationResponse> {
     return this.rpc.unary(
       NegotiationOfferDesc,
-      NegotiationRequest.fromPartial(request),
+      HandshakeRequest.fromPartial(request),
       metadata
     );
   }
 
   Answer(
-    request: DeepPartial<NegotiationRequest>,
+    request: DeepPartial<HandshakeRequest>,
     metadata?: grpc.Metadata
   ): Promise<NegotiationResponse> {
     return this.rpc.unary(
       NegotiationAnswerDesc,
-      NegotiationRequest.fromPartial(request),
+      HandshakeRequest.fromPartial(request),
       metadata
     );
   }
 
   Candidate(
-    request: DeepPartial<NegotiationRequest>,
+    request: DeepPartial<HandshakeRequest>,
     metadata?: grpc.Metadata
   ): Promise<NegotiationResponse> {
     return this.rpc.unary(
       NegotiationCandidateDesc,
-      NegotiationRequest.fromPartial(request),
+      HandshakeRequest.fromPartial(request),
       metadata
     );
   }
@@ -364,7 +489,7 @@ export const NegotiationOfferDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return NegotiationRequest.encode(this).finish();
+      return HandshakeRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -386,7 +511,7 @@ export const NegotiationAnswerDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return NegotiationRequest.encode(this).finish();
+      return HandshakeRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -408,7 +533,7 @@ export const NegotiationCandidateDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return NegotiationRequest.encode(this).finish();
+      return HandshakeRequest.encode(this).finish();
     },
   } as any,
   responseType: {
