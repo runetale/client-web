@@ -3,7 +3,6 @@ import Long from "long";
 import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
-import { Empty } from "../../../google/protobuf/empty";
 import { BrowserHeaders } from "browser-headers";
 import { share } from "rxjs/operators";
 
@@ -287,15 +286,15 @@ export interface Negotiation {
   Offer(
     request: DeepPartial<NegotiationRequest>,
     metadata?: grpc.Metadata
-  ): Promise<Empty>;
+  ): Promise<NegotiationResponse>;
   Answer(
     request: DeepPartial<NegotiationRequest>,
     metadata?: grpc.Metadata
-  ): Promise<Empty>;
+  ): Promise<NegotiationResponse>;
   Candidate(
     request: DeepPartial<NegotiationRequest>,
     metadata?: grpc.Metadata
-  ): Promise<Empty>;
+  ): Promise<NegotiationResponse>;
   StartConnect(
     request: Observable<DeepPartial<NegotiationRequest>>,
     metadata?: grpc.Metadata
@@ -316,7 +315,7 @@ export class NegotiationClientImpl implements Negotiation {
   Offer(
     request: DeepPartial<NegotiationRequest>,
     metadata?: grpc.Metadata
-  ): Promise<Empty> {
+  ): Promise<NegotiationResponse> {
     return this.rpc.unary(
       NegotiationOfferDesc,
       NegotiationRequest.fromPartial(request),
@@ -327,7 +326,7 @@ export class NegotiationClientImpl implements Negotiation {
   Answer(
     request: DeepPartial<NegotiationRequest>,
     metadata?: grpc.Metadata
-  ): Promise<Empty> {
+  ): Promise<NegotiationResponse> {
     return this.rpc.unary(
       NegotiationAnswerDesc,
       NegotiationRequest.fromPartial(request),
@@ -338,7 +337,7 @@ export class NegotiationClientImpl implements Negotiation {
   Candidate(
     request: DeepPartial<NegotiationRequest>,
     metadata?: grpc.Metadata
-  ): Promise<Empty> {
+  ): Promise<NegotiationResponse> {
     return this.rpc.unary(
       NegotiationCandidateDesc,
       NegotiationRequest.fromPartial(request),
@@ -371,7 +370,7 @@ export const NegotiationOfferDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       return {
-        ...Empty.decode(data),
+        ...NegotiationResponse.decode(data),
         toObject() {
           return this;
         },
@@ -393,7 +392,7 @@ export const NegotiationAnswerDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       return {
-        ...Empty.decode(data),
+        ...NegotiationResponse.decode(data),
         toObject() {
           return this;
         },
@@ -415,7 +414,7 @@ export const NegotiationCandidateDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       return {
-        ...Empty.decode(data),
+        ...NegotiationResponse.decode(data),
         toObject() {
           return this;
         },
