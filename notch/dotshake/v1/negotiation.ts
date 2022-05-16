@@ -65,6 +65,7 @@ export interface NegotiationResponse {
   srcWgPubKey: string;
   uFlag: string;
   pwd: string;
+  payload: string;
 }
 
 export interface HandshakeRequest {
@@ -188,6 +189,7 @@ function createBaseNegotiationResponse(): NegotiationResponse {
     srcWgPubKey: "",
     uFlag: "",
     pwd: "",
+    payload: "",
   };
 }
 
@@ -213,6 +215,9 @@ export const NegotiationResponse = {
     }
     if (message.pwd !== "") {
       writer.uint32(50).string(message.pwd);
+    }
+    if (message.payload !== "") {
+      writer.uint32(58).string(message.payload);
     }
     return writer;
   },
@@ -242,6 +247,9 @@ export const NegotiationResponse = {
         case 6:
           message.pwd = reader.string();
           break;
+        case 7:
+          message.payload = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -262,6 +270,7 @@ export const NegotiationResponse = {
       srcWgPubKey: isSet(object.srcWgPubKey) ? String(object.srcWgPubKey) : "",
       uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? String(object.pwd) : "",
+      payload: isSet(object.payload) ? String(object.payload) : "",
     };
   },
 
@@ -277,6 +286,7 @@ export const NegotiationResponse = {
       (obj.srcWgPubKey = message.srcWgPubKey);
     message.uFlag !== undefined && (obj.uFlag = message.uFlag);
     message.pwd !== undefined && (obj.pwd = message.pwd);
+    message.payload !== undefined && (obj.payload = message.payload);
     return obj;
   },
 
@@ -290,6 +300,7 @@ export const NegotiationResponse = {
     message.srcWgPubKey = object.srcWgPubKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
+    message.payload = object.payload ?? "";
     return message;
   },
 };
