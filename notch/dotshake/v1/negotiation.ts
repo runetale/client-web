@@ -49,16 +49,33 @@ export function negotiationTypeToJSON(object: NegotiationType): string {
 
 export interface NegotiationRequest {
   type: NegotiationType;
+  /** remote machine key of the Peer you want to connect to */
   remotePeerMachineKey: string;
+  /** remote machine key of the Peer you want to connect to */
+  clientWgPubKey: string;
+  uFlag: string;
+  pwd: string;
 }
 
 export interface NegotiationResponse {
   type: NegotiationType;
   isNegotiation: boolean;
+  /** machine key of the originating peer to be sent to the remote peer */
+  srcPeerMachineKey: string;
+  /** wireguard pub key of the originating peer to be sent to the remote peer */
+  srcWgPubKey: string;
+  uFlag: string;
+  pwd: string;
 }
 
 function createBaseNegotiationRequest(): NegotiationRequest {
-  return { type: 0, remotePeerMachineKey: "" };
+  return {
+    type: 0,
+    remotePeerMachineKey: "",
+    clientWgPubKey: "",
+    uFlag: "",
+    pwd: "",
+  };
 }
 
 export const NegotiationRequest = {
@@ -71,6 +88,15 @@ export const NegotiationRequest = {
     }
     if (message.remotePeerMachineKey !== "") {
       writer.uint32(18).string(message.remotePeerMachineKey);
+    }
+    if (message.clientWgPubKey !== "") {
+      writer.uint32(26).string(message.clientWgPubKey);
+    }
+    if (message.uFlag !== "") {
+      writer.uint32(34).string(message.uFlag);
+    }
+    if (message.pwd !== "") {
+      writer.uint32(42).string(message.pwd);
     }
     return writer;
   },
@@ -88,6 +114,15 @@ export const NegotiationRequest = {
         case 2:
           message.remotePeerMachineKey = reader.string();
           break;
+        case 3:
+          message.clientWgPubKey = reader.string();
+          break;
+        case 4:
+          message.uFlag = reader.string();
+          break;
+        case 5:
+          message.pwd = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -102,6 +137,11 @@ export const NegotiationRequest = {
       remotePeerMachineKey: isSet(object.remotePeerMachineKey)
         ? String(object.remotePeerMachineKey)
         : "",
+      clientWgPubKey: isSet(object.clientWgPubKey)
+        ? String(object.clientWgPubKey)
+        : "",
+      uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
+      pwd: isSet(object.pwd) ? String(object.pwd) : "",
     };
   },
 
@@ -111,6 +151,10 @@ export const NegotiationRequest = {
       (obj.type = negotiationTypeToJSON(message.type));
     message.remotePeerMachineKey !== undefined &&
       (obj.remotePeerMachineKey = message.remotePeerMachineKey);
+    message.clientWgPubKey !== undefined &&
+      (obj.clientWgPubKey = message.clientWgPubKey);
+    message.uFlag !== undefined && (obj.uFlag = message.uFlag);
+    message.pwd !== undefined && (obj.pwd = message.pwd);
     return obj;
   },
 
@@ -120,12 +164,22 @@ export const NegotiationRequest = {
     const message = createBaseNegotiationRequest();
     message.type = object.type ?? 0;
     message.remotePeerMachineKey = object.remotePeerMachineKey ?? "";
+    message.clientWgPubKey = object.clientWgPubKey ?? "";
+    message.uFlag = object.uFlag ?? "";
+    message.pwd = object.pwd ?? "";
     return message;
   },
 };
 
 function createBaseNegotiationResponse(): NegotiationResponse {
-  return { type: 0, isNegotiation: false };
+  return {
+    type: 0,
+    isNegotiation: false,
+    srcPeerMachineKey: "",
+    srcWgPubKey: "",
+    uFlag: "",
+    pwd: "",
+  };
 }
 
 export const NegotiationResponse = {
@@ -138,6 +192,18 @@ export const NegotiationResponse = {
     }
     if (message.isNegotiation === true) {
       writer.uint32(16).bool(message.isNegotiation);
+    }
+    if (message.srcPeerMachineKey !== "") {
+      writer.uint32(26).string(message.srcPeerMachineKey);
+    }
+    if (message.srcWgPubKey !== "") {
+      writer.uint32(34).string(message.srcWgPubKey);
+    }
+    if (message.uFlag !== "") {
+      writer.uint32(42).string(message.uFlag);
+    }
+    if (message.pwd !== "") {
+      writer.uint32(50).string(message.pwd);
     }
     return writer;
   },
@@ -155,6 +221,18 @@ export const NegotiationResponse = {
         case 2:
           message.isNegotiation = reader.bool();
           break;
+        case 3:
+          message.srcPeerMachineKey = reader.string();
+          break;
+        case 4:
+          message.srcWgPubKey = reader.string();
+          break;
+        case 5:
+          message.uFlag = reader.string();
+          break;
+        case 6:
+          message.pwd = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -169,6 +247,12 @@ export const NegotiationResponse = {
       isNegotiation: isSet(object.isNegotiation)
         ? Boolean(object.isNegotiation)
         : false,
+      srcPeerMachineKey: isSet(object.srcPeerMachineKey)
+        ? String(object.srcPeerMachineKey)
+        : "",
+      srcWgPubKey: isSet(object.srcWgPubKey) ? String(object.srcWgPubKey) : "",
+      uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
+      pwd: isSet(object.pwd) ? String(object.pwd) : "",
     };
   },
 
@@ -178,6 +262,12 @@ export const NegotiationResponse = {
       (obj.type = negotiationTypeToJSON(message.type));
     message.isNegotiation !== undefined &&
       (obj.isNegotiation = message.isNegotiation);
+    message.srcPeerMachineKey !== undefined &&
+      (obj.srcPeerMachineKey = message.srcPeerMachineKey);
+    message.srcWgPubKey !== undefined &&
+      (obj.srcWgPubKey = message.srcWgPubKey);
+    message.uFlag !== undefined && (obj.uFlag = message.uFlag);
+    message.pwd !== undefined && (obj.pwd = message.pwd);
     return obj;
   },
 
@@ -187,6 +277,10 @@ export const NegotiationResponse = {
     const message = createBaseNegotiationResponse();
     message.type = object.type ?? 0;
     message.isNegotiation = object.isNegotiation ?? false;
+    message.srcPeerMachineKey = object.srcPeerMachineKey ?? "";
+    message.srcWgPubKey = object.srcWgPubKey ?? "";
+    message.uFlag = object.uFlag ?? "";
+    message.pwd = object.pwd ?? "";
     return message;
   },
 };
