@@ -409,7 +409,7 @@ export interface SessionService {
     metadata?: grpc.Metadata
   ): Promise<PeerUpCompleteResponse>;
   /** webでStream接続しておいて立ち上げ完了を受け取る */
-  StreamCompleteUp(
+  StreamCompletePeerUp(
     request: Observable<DeepPartial<Empty>>,
     metadata?: grpc.Metadata
   ): Observable<PeerUpCompleteResponse>;
@@ -423,7 +423,7 @@ export class SessionServiceClientImpl implements SessionService {
     this.SignIn = this.SignIn.bind(this);
     this.SignUp = this.SignUp.bind(this);
     this.CompletePeerUp = this.CompletePeerUp.bind(this);
-    this.StreamCompleteUp = this.StreamCompleteUp.bind(this);
+    this.StreamCompletePeerUp = this.StreamCompletePeerUp.bind(this);
   }
 
   SignIn(
@@ -459,7 +459,7 @@ export class SessionServiceClientImpl implements SessionService {
     );
   }
 
-  StreamCompleteUp(
+  StreamCompletePeerUp(
     request: Observable<DeepPartial<Empty>>,
     metadata?: grpc.Metadata
   ): Observable<PeerUpCompleteResponse> {
