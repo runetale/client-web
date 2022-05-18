@@ -2,7 +2,10 @@
 import Long from "long";
 import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
+import { Observable } from "rxjs";
+import { Empty } from "../../../google/protobuf/empty";
 import { BrowserHeaders } from "browser-headers";
+import { share } from "rxjs/operators";
 
 export const protobufPackage = "protos";
 
@@ -16,25 +19,32 @@ export interface SignInResponse {
   isFirst: boolean;
 }
 
-export interface CreatePeerRequest {
+export interface SignUpRequest {
   /** auth0のuserID */
   userID: string;
-  /** auth0で登録したメールアドレス */
-  email: string;
-  /** クライアントで生成されるWireGuardPublicKey */
-  clientWgPubKey: string;
-  /** 永続的に保持される端末固有のキー */
-  clientMachineKey: string;
+  /** 端末の名前 */
+  host: string;
+  /** 端末のOS */
+  os: string;
 }
 
-export interface CreatePeerResponse {
-  /** 使用するwireguardのIPアドレス。　とりあえず被らない用に自動で付与する */
+export interface SignUpResponse {
+  /** 使用するwireguardのIPアドレス */
   ip: string;
-  /** 使用するwireguardのIPアドレスのCIDR。とりあえず/24がデフォルトで返ってくる */
+  /** 使用するwireguardのIPアドレスのCIDR。今は/24がデフォルトで返ってくる */
   cidr: string;
   /** UDP Hole Punchingするために必要なSignalServerのホストURL */
   signalServerHost: string;
   signalServerPort: number;
+}
+
+export interface PeerUpCompleteResponse {
+  /** 使用するwireguardのIPアドレス */
+  ip: string;
+  /** 端末の名前 */
+  host: string;
+  /** 端末のOS */
+  os: string;
 }
 
 function createBaseSignInRequest(): SignInRequest {
@@ -145,34 +155,31 @@ export const SignInResponse = {
   },
 };
 
-function createBaseCreatePeerRequest(): CreatePeerRequest {
-  return { userID: "", email: "", clientWgPubKey: "", clientMachineKey: "" };
+function createBaseSignUpRequest(): SignUpRequest {
+  return { userID: "", host: "", os: "" };
 }
 
-export const CreatePeerRequest = {
+export const SignUpRequest = {
   encode(
-    message: CreatePeerRequest,
+    message: SignUpRequest,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.userID !== "") {
       writer.uint32(10).string(message.userID);
     }
-    if (message.email !== "") {
-      writer.uint32(18).string(message.email);
+    if (message.host !== "") {
+      writer.uint32(18).string(message.host);
     }
-    if (message.clientWgPubKey !== "") {
-      writer.uint32(26).string(message.clientWgPubKey);
-    }
-    if (message.clientMachineKey !== "") {
-      writer.uint32(34).string(message.clientMachineKey);
+    if (message.os !== "") {
+      writer.uint32(26).string(message.os);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): CreatePeerRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): SignUpRequest {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCreatePeerRequest();
+    const message = createBaseSignUpRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -180,13 +187,10 @@ export const CreatePeerRequest = {
           message.userID = reader.string();
           break;
         case 2:
-          message.email = reader.string();
+          message.host = reader.string();
           break;
         case 3:
-          message.clientWgPubKey = reader.string();
-          break;
-        case 4:
-          message.clientMachineKey = reader.string();
+          message.os = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -196,49 +200,40 @@ export const CreatePeerRequest = {
     return message;
   },
 
-  fromJSON(object: any): CreatePeerRequest {
+  fromJSON(object: any): SignUpRequest {
     return {
       userID: isSet(object.userID) ? String(object.userID) : "",
-      email: isSet(object.email) ? String(object.email) : "",
-      clientWgPubKey: isSet(object.clientWgPubKey)
-        ? String(object.clientWgPubKey)
-        : "",
-      clientMachineKey: isSet(object.clientMachineKey)
-        ? String(object.clientMachineKey)
-        : "",
+      host: isSet(object.host) ? String(object.host) : "",
+      os: isSet(object.os) ? String(object.os) : "",
     };
   },
 
-  toJSON(message: CreatePeerRequest): unknown {
+  toJSON(message: SignUpRequest): unknown {
     const obj: any = {};
     message.userID !== undefined && (obj.userID = message.userID);
-    message.email !== undefined && (obj.email = message.email);
-    message.clientWgPubKey !== undefined &&
-      (obj.clientWgPubKey = message.clientWgPubKey);
-    message.clientMachineKey !== undefined &&
-      (obj.clientMachineKey = message.clientMachineKey);
+    message.host !== undefined && (obj.host = message.host);
+    message.os !== undefined && (obj.os = message.os);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreatePeerRequest>, I>>(
+  fromPartial<I extends Exact<DeepPartial<SignUpRequest>, I>>(
     object: I
-  ): CreatePeerRequest {
-    const message = createBaseCreatePeerRequest();
+  ): SignUpRequest {
+    const message = createBaseSignUpRequest();
     message.userID = object.userID ?? "";
-    message.email = object.email ?? "";
-    message.clientWgPubKey = object.clientWgPubKey ?? "";
-    message.clientMachineKey = object.clientMachineKey ?? "";
+    message.host = object.host ?? "";
+    message.os = object.os ?? "";
     return message;
   },
 };
 
-function createBaseCreatePeerResponse(): CreatePeerResponse {
+function createBaseSignUpResponse(): SignUpResponse {
   return { ip: "", cidr: "", signalServerHost: "", signalServerPort: 0 };
 }
 
-export const CreatePeerResponse = {
+export const SignUpResponse = {
   encode(
-    message: CreatePeerResponse,
+    message: SignUpResponse,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.ip !== "") {
@@ -256,10 +251,10 @@ export const CreatePeerResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): CreatePeerResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): SignUpResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCreatePeerResponse();
+    const message = createBaseSignUpResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -283,7 +278,7 @@ export const CreatePeerResponse = {
     return message;
   },
 
-  fromJSON(object: any): CreatePeerResponse {
+  fromJSON(object: any): SignUpResponse {
     return {
       ip: isSet(object.ip) ? String(object.ip) : "",
       cidr: isSet(object.cidr) ? String(object.cidr) : "",
@@ -296,7 +291,7 @@ export const CreatePeerResponse = {
     };
   },
 
-  toJSON(message: CreatePeerResponse): unknown {
+  toJSON(message: SignUpResponse): unknown {
     const obj: any = {};
     message.ip !== undefined && (obj.ip = message.ip);
     message.cidr !== undefined && (obj.cidr = message.cidr);
@@ -307,14 +302,89 @@ export const CreatePeerResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreatePeerResponse>, I>>(
+  fromPartial<I extends Exact<DeepPartial<SignUpResponse>, I>>(
     object: I
-  ): CreatePeerResponse {
-    const message = createBaseCreatePeerResponse();
+  ): SignUpResponse {
+    const message = createBaseSignUpResponse();
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
     message.signalServerHost = object.signalServerHost ?? "";
     message.signalServerPort = object.signalServerPort ?? 0;
+    return message;
+  },
+};
+
+function createBasePeerUpCompleteResponse(): PeerUpCompleteResponse {
+  return { ip: "", host: "", os: "" };
+}
+
+export const PeerUpCompleteResponse = {
+  encode(
+    message: PeerUpCompleteResponse,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.ip !== "") {
+      writer.uint32(10).string(message.ip);
+    }
+    if (message.host !== "") {
+      writer.uint32(18).string(message.host);
+    }
+    if (message.os !== "") {
+      writer.uint32(26).string(message.os);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): PeerUpCompleteResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePeerUpCompleteResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.ip = reader.string();
+          break;
+        case 2:
+          message.host = reader.string();
+          break;
+        case 3:
+          message.os = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PeerUpCompleteResponse {
+    return {
+      ip: isSet(object.ip) ? String(object.ip) : "",
+      host: isSet(object.host) ? String(object.host) : "",
+      os: isSet(object.os) ? String(object.os) : "",
+    };
+  },
+
+  toJSON(message: PeerUpCompleteResponse): unknown {
+    const obj: any = {};
+    message.ip !== undefined && (obj.ip = message.ip);
+    message.host !== undefined && (obj.host = message.host);
+    message.os !== undefined && (obj.os = message.os);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PeerUpCompleteResponse>, I>>(
+    object: I
+  ): PeerUpCompleteResponse {
+    const message = createBasePeerUpCompleteResponse();
+    message.ip = object.ip ?? "";
+    message.host = object.host ?? "";
+    message.os = object.os ?? "";
     return message;
   },
 };
@@ -326,13 +396,21 @@ export interface SessionService {
     metadata?: grpc.Metadata
   ): Promise<SignInResponse>;
   /**
-   * /adminにリダイレクトし、SignInのRPCを叩いた後にdotshakeで叩かれるRPC
-   * `dotshake up` or `dotshake login`
+   * /adminにリダイレクトし、SignInのRPCを叩いた後にdotshake側で叩くRPC
+   * Webからログインせずにdotshakeから直接叩く場合(ユーザーがまだ作られていない場合)はユーザーの作成、つまりSignInを行う
    */
-  CreatePeer(
-    request: DeepPartial<CreatePeerRequest>,
+  SignUp(
+    request: DeepPartial<SignUpRequest>,
     metadata?: grpc.Metadata
-  ): Promise<CreatePeerResponse>;
+  ): Promise<SignUpResponse>;
+  /**
+   * dotshakeのpeerの立ち上げが完了した時に叩くdotshake側で叩くRPC
+   * webでStream接続しておいて立ち上げ完了を受け取る
+   */
+  PeerUpComplete(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Observable<PeerUpCompleteResponse>;
 }
 
 export class SessionServiceClientImpl implements SessionService {
@@ -341,7 +419,8 @@ export class SessionServiceClientImpl implements SessionService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.SignIn = this.SignIn.bind(this);
-    this.CreatePeer = this.CreatePeer.bind(this);
+    this.SignUp = this.SignUp.bind(this);
+    this.PeerUpComplete = this.PeerUpComplete.bind(this);
   }
 
   SignIn(
@@ -355,13 +434,24 @@ export class SessionServiceClientImpl implements SessionService {
     );
   }
 
-  CreatePeer(
-    request: DeepPartial<CreatePeerRequest>,
+  SignUp(
+    request: DeepPartial<SignUpRequest>,
     metadata?: grpc.Metadata
-  ): Promise<CreatePeerResponse> {
+  ): Promise<SignUpResponse> {
     return this.rpc.unary(
-      SessionServiceCreatePeerDesc,
-      CreatePeerRequest.fromPartial(request),
+      SessionServiceSignUpDesc,
+      SignUpRequest.fromPartial(request),
+      metadata
+    );
+  }
+
+  PeerUpComplete(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Observable<PeerUpCompleteResponse> {
+    return this.rpc.invoke(
+      SessionServicePeerUpCompleteDesc,
+      Empty.fromPartial(request),
       metadata
     );
   }
@@ -393,20 +483,42 @@ export const SessionServiceSignInDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const SessionServiceCreatePeerDesc: UnaryMethodDefinitionish = {
-  methodName: "CreatePeer",
+export const SessionServiceSignUpDesc: UnaryMethodDefinitionish = {
+  methodName: "SignUp",
   service: SessionServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return CreatePeerRequest.encode(this).finish();
+      return SignUpRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
       return {
-        ...CreatePeerResponse.decode(data),
+        ...SignUpResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const SessionServicePeerUpCompleteDesc: UnaryMethodDefinitionish = {
+  methodName: "PeerUpComplete",
+  service: SessionServiceDesc,
+  requestStream: false,
+  responseStream: true,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...PeerUpCompleteResponse.decode(data),
         toObject() {
           return this;
         },
@@ -429,13 +541,18 @@ interface Rpc {
     request: any,
     metadata: grpc.Metadata | undefined
   ): Promise<any>;
+  invoke<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined
+  ): Observable<any>;
 }
 
 export class GrpcWebImpl {
   private host: string;
   private options: {
     transport?: grpc.TransportFactory;
-
+    streamingTransport?: grpc.TransportFactory;
     debug?: boolean;
     metadata?: grpc.Metadata;
   };
@@ -444,7 +561,7 @@ export class GrpcWebImpl {
     host: string,
     options: {
       transport?: grpc.TransportFactory;
-
+      streamingTransport?: grpc.TransportFactory;
       debug?: boolean;
       metadata?: grpc.Metadata;
     }
@@ -485,6 +602,47 @@ export class GrpcWebImpl {
         },
       });
     });
+  }
+
+  invoke<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined
+  ): Observable<any> {
+    // Status Response Codes (https://developers.google.com/maps-booking/reference/grpc-api/status_codes)
+    const upStreamCodes = [2, 4, 8, 9, 10, 13, 14, 15];
+    const DEFAULT_TIMEOUT_TIME: number = 3_000;
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata =
+      metadata && this.options.metadata
+        ? new BrowserHeaders({
+            ...this.options?.metadata.headersMap,
+            ...metadata?.headersMap,
+          })
+        : metadata || this.options.metadata;
+    return new Observable((observer) => {
+      const upStream = () => {
+        const client = grpc.invoke(methodDesc, {
+          host: this.host,
+          request,
+          transport: this.options.streamingTransport || this.options.transport,
+          metadata: maybeCombinedMetadata,
+          debug: this.options.debug,
+          onMessage: (next) => observer.next(next),
+          onEnd: (code: grpc.Code, message: string) => {
+            if (code === 0) {
+              observer.complete();
+            } else if (upStreamCodes.includes(code)) {
+              setTimeout(upStream, DEFAULT_TIMEOUT_TIME);
+            } else {
+              observer.error(new Error(`Error ${code} ${message}`));
+            }
+          },
+        });
+        observer.add(() => client.close());
+      };
+      upStream();
+    }).pipe(share());
   }
 }
 
