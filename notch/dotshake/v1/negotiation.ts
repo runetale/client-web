@@ -418,7 +418,7 @@ export const HandshakeRequest = {
   },
 };
 
-export interface Negotiation {
+export interface NegotiationService {
   Offer(
     request: DeepPartial<HandshakeRequest>,
     metadata?: grpc.Metadata
@@ -437,7 +437,7 @@ export interface Negotiation {
   ): Observable<NegotiationResponse>;
 }
 
-export class NegotiationClientImpl implements Negotiation {
+export class NegotiationServiceClientImpl implements NegotiationService {
   private readonly rpc: Rpc;
 
   constructor(rpc: Rpc) {
@@ -453,7 +453,7 @@ export class NegotiationClientImpl implements Negotiation {
     metadata?: grpc.Metadata
   ): Promise<NegotiationResponse> {
     return this.rpc.unary(
-      NegotiationOfferDesc,
+      NegotiationServiceOfferDesc,
       HandshakeRequest.fromPartial(request),
       metadata
     );
@@ -464,7 +464,7 @@ export class NegotiationClientImpl implements Negotiation {
     metadata?: grpc.Metadata
   ): Promise<NegotiationResponse> {
     return this.rpc.unary(
-      NegotiationAnswerDesc,
+      NegotiationServiceAnswerDesc,
       HandshakeRequest.fromPartial(request),
       metadata
     );
@@ -475,7 +475,7 @@ export class NegotiationClientImpl implements Negotiation {
     metadata?: grpc.Metadata
   ): Promise<NegotiationResponse> {
     return this.rpc.unary(
-      NegotiationCandidateDesc,
+      NegotiationServiceCandidateDesc,
       HandshakeRequest.fromPartial(request),
       metadata
     );
@@ -489,13 +489,13 @@ export class NegotiationClientImpl implements Negotiation {
   }
 }
 
-export const NegotiationDesc = {
-  serviceName: "protos.Negotiation",
+export const NegotiationServiceDesc = {
+  serviceName: "protos.NegotiationService",
 };
 
-export const NegotiationOfferDesc: UnaryMethodDefinitionish = {
+export const NegotiationServiceOfferDesc: UnaryMethodDefinitionish = {
   methodName: "Offer",
-  service: NegotiationDesc,
+  service: NegotiationServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
@@ -515,9 +515,9 @@ export const NegotiationOfferDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const NegotiationAnswerDesc: UnaryMethodDefinitionish = {
+export const NegotiationServiceAnswerDesc: UnaryMethodDefinitionish = {
   methodName: "Answer",
-  service: NegotiationDesc,
+  service: NegotiationServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
@@ -537,9 +537,9 @@ export const NegotiationAnswerDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const NegotiationCandidateDesc: UnaryMethodDefinitionish = {
+export const NegotiationServiceCandidateDesc: UnaryMethodDefinitionish = {
   methodName: "Candidate",
-  service: NegotiationDesc,
+  service: NegotiationServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
