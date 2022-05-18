@@ -403,12 +403,14 @@ export interface SessionService {
     request: DeepPartial<SignUpRequest>,
     metadata?: grpc.Metadata
   ): Promise<SignUpResponse>;
-  /**
-   * dotshakeのpeerの立ち上げが完了した時に叩くdotshake側で叩くRPC
-   * webでStream接続しておいて立ち上げ完了を受け取る
-   */
-  PeerUpComplete(
+  /** dotshakeのpeerの立ち上げが完了した時に叩くdotshake側で叩くRPC */
+  CompletePeerUp(
     request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Promise<PeerUpCompleteResponse>;
+  /** webでStream接続しておいて立ち上げ完了を受け取る */
+  StreamCompleteUp(
+    request: Observable<DeepPartial<Empty>>,
     metadata?: grpc.Metadata
   ): Observable<PeerUpCompleteResponse>;
 }
@@ -420,7 +422,8 @@ export class SessionServiceClientImpl implements SessionService {
     this.rpc = rpc;
     this.SignIn = this.SignIn.bind(this);
     this.SignUp = this.SignUp.bind(this);
-    this.PeerUpComplete = this.PeerUpComplete.bind(this);
+    this.CompletePeerUp = this.CompletePeerUp.bind(this);
+    this.StreamCompleteUp = this.StreamCompleteUp.bind(this);
   }
 
   SignIn(
@@ -445,15 +448,22 @@ export class SessionServiceClientImpl implements SessionService {
     );
   }
 
-  PeerUpComplete(
+  CompletePeerUp(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
-  ): Observable<PeerUpCompleteResponse> {
-    return this.rpc.invoke(
-      SessionServicePeerUpCompleteDesc,
+  ): Promise<PeerUpCompleteResponse> {
+    return this.rpc.unary(
+      SessionServiceCompletePeerUpDesc,
       Empty.fromPartial(request),
       metadata
     );
+  }
+
+  StreamCompleteUp(
+    request: Observable<DeepPartial<Empty>>,
+    metadata?: grpc.Metadata
+  ): Observable<PeerUpCompleteResponse> {
+    throw new Error("ts-proto does not yet support client streaming!");
   }
 }
 
@@ -505,11 +515,11 @@ export const SessionServiceSignUpDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const SessionServicePeerUpCompleteDesc: UnaryMethodDefinitionish = {
-  methodName: "PeerUpComplete",
+export const SessionServiceCompletePeerUpDesc: UnaryMethodDefinitionish = {
+  methodName: "CompletePeerUp",
   service: SessionServiceDesc,
   requestStream: false,
-  responseStream: true,
+  responseStream: false,
   requestType: {
     serializeBinary() {
       return Empty.encode(this).finish();
