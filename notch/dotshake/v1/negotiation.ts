@@ -41,8 +41,9 @@ export function negotiationTypeToJSON(object: NegotiationType): string {
       return "ANSWER";
     case NegotiationType.CANDIDATE:
       return "CANDIDATE";
+    case NegotiationType.UNRECOGNIZED:
     default:
-      return "UNKNOWN";
+      return "UNRECOGNIZED";
   }
 }
 

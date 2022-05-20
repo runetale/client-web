@@ -3,9 +3,9 @@ import Long from "long";
 import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
-import { Empty } from "../../../google/protobuf/empty";
 import { BrowserHeaders } from "browser-headers";
 import { share } from "rxjs/operators";
+import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
@@ -38,7 +38,14 @@ export interface SignUpResponse {
   signalServerPort: number;
 }
 
-export interface PeerUpCompleteResponse {
+export interface VerifyPeerLoginSessionRequest {
+  /** auth0のuserID */
+  userID: string;
+  /** jwtの中に入っているユニークなid */
+  uuid: string;
+}
+
+export interface PeerLoginSessionResponse {
   /** 使用するwireguardのIPアドレス */
   ip: string;
   /** 端末の名前 */
@@ -314,13 +321,79 @@ export const SignUpResponse = {
   },
 };
 
-function createBasePeerUpCompleteResponse(): PeerUpCompleteResponse {
+function createBaseVerifyPeerLoginSessionRequest(): VerifyPeerLoginSessionRequest {
+  return { userID: "", uuid: "" };
+}
+
+export const VerifyPeerLoginSessionRequest = {
+  encode(
+    message: VerifyPeerLoginSessionRequest,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.userID !== "") {
+      writer.uint32(10).string(message.userID);
+    }
+    if (message.uuid !== "") {
+      writer.uint32(18).string(message.uuid);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): VerifyPeerLoginSessionRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyPeerLoginSessionRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.userID = reader.string();
+          break;
+        case 2:
+          message.uuid = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VerifyPeerLoginSessionRequest {
+    return {
+      userID: isSet(object.userID) ? String(object.userID) : "",
+      uuid: isSet(object.uuid) ? String(object.uuid) : "",
+    };
+  },
+
+  toJSON(message: VerifyPeerLoginSessionRequest): unknown {
+    const obj: any = {};
+    message.userID !== undefined && (obj.userID = message.userID);
+    message.uuid !== undefined && (obj.uuid = message.uuid);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<VerifyPeerLoginSessionRequest>, I>>(
+    object: I
+  ): VerifyPeerLoginSessionRequest {
+    const message = createBaseVerifyPeerLoginSessionRequest();
+    message.userID = object.userID ?? "";
+    message.uuid = object.uuid ?? "";
+    return message;
+  },
+};
+
+function createBasePeerLoginSessionResponse(): PeerLoginSessionResponse {
   return { ip: "", host: "", os: "" };
 }
 
-export const PeerUpCompleteResponse = {
+export const PeerLoginSessionResponse = {
   encode(
-    message: PeerUpCompleteResponse,
+    message: PeerLoginSessionResponse,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.ip !== "") {
@@ -338,10 +411,10 @@ export const PeerUpCompleteResponse = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number
-  ): PeerUpCompleteResponse {
+  ): PeerLoginSessionResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePeerUpCompleteResponse();
+    const message = createBasePeerLoginSessionResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -362,7 +435,7 @@ export const PeerUpCompleteResponse = {
     return message;
   },
 
-  fromJSON(object: any): PeerUpCompleteResponse {
+  fromJSON(object: any): PeerLoginSessionResponse {
     return {
       ip: isSet(object.ip) ? String(object.ip) : "",
       host: isSet(object.host) ? String(object.host) : "",
@@ -370,7 +443,7 @@ export const PeerUpCompleteResponse = {
     };
   },
 
-  toJSON(message: PeerUpCompleteResponse): unknown {
+  toJSON(message: PeerLoginSessionResponse): unknown {
     const obj: any = {};
     message.ip !== undefined && (obj.ip = message.ip);
     message.host !== undefined && (obj.host = message.host);
@@ -378,10 +451,10 @@ export const PeerUpCompleteResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<PeerUpCompleteResponse>, I>>(
+  fromPartial<I extends Exact<DeepPartial<PeerLoginSessionResponse>, I>>(
     object: I
-  ): PeerUpCompleteResponse {
-    const message = createBasePeerUpCompleteResponse();
+  ): PeerLoginSessionResponse {
+    const message = createBasePeerLoginSessionResponse();
     message.ip = object.ip ?? "";
     message.host = object.host ?? "";
     message.os = object.os ?? "";
@@ -403,16 +476,19 @@ export interface SessionService {
     request: DeepPartial<SignUpRequest>,
     metadata?: grpc.Metadata
   ): Promise<SignUpResponse>;
-  /** dotshakeのpeerの立ち上げが完了した時に叩くdotshake側で叩くRPC */
-  CompletePeerUp(
-    request: DeepPartial<Empty>,
+  /**
+   * dotshakeのクライアントからログインするときに発行されたURLを踏んだ時に叩かれるRPC
+   * クライアント側でTokenの検証を行った後に叩く
+   */
+  VerifyPeerLoginSession(
+    request: DeepPartial<VerifyPeerLoginSessionRequest>,
     metadata?: grpc.Metadata
-  ): Promise<PeerUpCompleteResponse>;
-  /** webでStream接続しておいて立ち上げ完了を受け取る */
-  StreamCompletePeerUp(
+  ): Promise<PeerLoginSessionResponse>;
+  /** dotshakeクライアントからStream接続を行い立ち上げ完了を受け取る */
+  StreamPeerLoginSession(
     request: Observable<DeepPartial<Empty>>,
     metadata?: grpc.Metadata
-  ): Observable<PeerUpCompleteResponse>;
+  ): Observable<PeerLoginSessionResponse>;
 }
 
 export class SessionServiceClientImpl implements SessionService {
@@ -422,8 +498,8 @@ export class SessionServiceClientImpl implements SessionService {
     this.rpc = rpc;
     this.SignIn = this.SignIn.bind(this);
     this.SignUp = this.SignUp.bind(this);
-    this.CompletePeerUp = this.CompletePeerUp.bind(this);
-    this.StreamCompletePeerUp = this.StreamCompletePeerUp.bind(this);
+    this.VerifyPeerLoginSession = this.VerifyPeerLoginSession.bind(this);
+    this.StreamPeerLoginSession = this.StreamPeerLoginSession.bind(this);
   }
 
   SignIn(
@@ -448,21 +524,21 @@ export class SessionServiceClientImpl implements SessionService {
     );
   }
 
-  CompletePeerUp(
-    request: DeepPartial<Empty>,
+  VerifyPeerLoginSession(
+    request: DeepPartial<VerifyPeerLoginSessionRequest>,
     metadata?: grpc.Metadata
-  ): Promise<PeerUpCompleteResponse> {
+  ): Promise<PeerLoginSessionResponse> {
     return this.rpc.unary(
-      SessionServiceCompletePeerUpDesc,
-      Empty.fromPartial(request),
+      SessionServiceVerifyPeerLoginSessionDesc,
+      VerifyPeerLoginSessionRequest.fromPartial(request),
       metadata
     );
   }
 
-  StreamCompletePeerUp(
+  StreamPeerLoginSession(
     request: Observable<DeepPartial<Empty>>,
     metadata?: grpc.Metadata
-  ): Observable<PeerUpCompleteResponse> {
+  ): Observable<PeerLoginSessionResponse> {
     throw new Error("ts-proto does not yet support client streaming!");
   }
 }
@@ -515,27 +591,28 @@ export const SessionServiceSignUpDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const SessionServiceCompletePeerUpDesc: UnaryMethodDefinitionish = {
-  methodName: "CompletePeerUp",
-  service: SessionServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return Empty.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      return {
-        ...PeerUpCompleteResponse.decode(data),
-        toObject() {
-          return this;
-        },
-      };
-    },
-  } as any,
-};
+export const SessionServiceVerifyPeerLoginSessionDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "VerifyPeerLoginSession",
+    service: SessionServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return VerifyPeerLoginSessionRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...PeerLoginSessionResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
 
 interface UnaryMethodDefinitionishR
   extends grpc.UnaryMethodDefinition<any, any> {
