@@ -2,6 +2,7 @@
 import Long from "long";
 import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
+import { PeerLoginSessionResponse } from "../../../notch/dotshake/v1/login_session";
 import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "protos";
@@ -33,6 +34,13 @@ export interface SignUpResponse {
   /** UDP Hole Punchingするために必要なSignalServerのホストURL */
   signalServerHost: string;
   signalServerPort: number;
+}
+
+export interface VerifyPeerLoginSessionRequest {
+  /** auth0のuserID */
+  userID: string;
+  /** jwtの中に入っているユニークなid */
+  uuid: string;
 }
 
 function createBaseSignInRequest(): SignInRequest {
@@ -302,6 +310,72 @@ export const SignUpResponse = {
   },
 };
 
+function createBaseVerifyPeerLoginSessionRequest(): VerifyPeerLoginSessionRequest {
+  return { userID: "", uuid: "" };
+}
+
+export const VerifyPeerLoginSessionRequest = {
+  encode(
+    message: VerifyPeerLoginSessionRequest,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.userID !== "") {
+      writer.uint32(10).string(message.userID);
+    }
+    if (message.uuid !== "") {
+      writer.uint32(18).string(message.uuid);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): VerifyPeerLoginSessionRequest {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyPeerLoginSessionRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.userID = reader.string();
+          break;
+        case 2:
+          message.uuid = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VerifyPeerLoginSessionRequest {
+    return {
+      userID: isSet(object.userID) ? String(object.userID) : "",
+      uuid: isSet(object.uuid) ? String(object.uuid) : "",
+    };
+  },
+
+  toJSON(message: VerifyPeerLoginSessionRequest): unknown {
+    const obj: any = {};
+    message.userID !== undefined && (obj.userID = message.userID);
+    message.uuid !== undefined && (obj.uuid = message.uuid);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<VerifyPeerLoginSessionRequest>, I>>(
+    object: I
+  ): VerifyPeerLoginSessionRequest {
+    const message = createBaseVerifyPeerLoginSessionRequest();
+    message.userID = object.userID ?? "";
+    message.uuid = object.uuid ?? "";
+    return message;
+  },
+};
+
 export interface SessionService {
   /** Auth0ログイン後、/adminにリダイレクトした時に叩かれる */
   SignIn(
@@ -316,6 +390,14 @@ export interface SessionService {
     request: DeepPartial<SignUpRequest>,
     metadata?: grpc.Metadata
   ): Promise<SignUpResponse>;
+  /**
+   * dotshakeのクライアントからログインするときに発行されたURLを踏んだ時に叩かれるRPC
+   * クライアント側でTokenの検証を行った後に叩く
+   */
+  VerifyPeerLoginSession(
+    request: DeepPartial<VerifyPeerLoginSessionRequest>,
+    metadata?: grpc.Metadata
+  ): Promise<PeerLoginSessionResponse>;
 }
 
 export class SessionServiceClientImpl implements SessionService {
@@ -325,6 +407,7 @@ export class SessionServiceClientImpl implements SessionService {
     this.rpc = rpc;
     this.SignIn = this.SignIn.bind(this);
     this.SignUp = this.SignUp.bind(this);
+    this.VerifyPeerLoginSession = this.VerifyPeerLoginSession.bind(this);
   }
 
   SignIn(
@@ -345,6 +428,17 @@ export class SessionServiceClientImpl implements SessionService {
     return this.rpc.unary(
       SessionServiceSignUpDesc,
       SignUpRequest.fromPartial(request),
+      metadata
+    );
+  }
+
+  VerifyPeerLoginSession(
+    request: DeepPartial<VerifyPeerLoginSessionRequest>,
+    metadata?: grpc.Metadata
+  ): Promise<PeerLoginSessionResponse> {
+    return this.rpc.unary(
+      SessionServiceVerifyPeerLoginSessionDesc,
+      VerifyPeerLoginSessionRequest.fromPartial(request),
       metadata
     );
   }
@@ -397,6 +491,29 @@ export const SessionServiceSignUpDesc: UnaryMethodDefinitionish = {
     },
   } as any,
 };
+
+export const SessionServiceVerifyPeerLoginSessionDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "VerifyPeerLoginSession",
+    service: SessionServiceDesc,
+    requestStream: false,
+    responseStream: false,
+    requestType: {
+      serializeBinary() {
+        return VerifyPeerLoginSessionRequest.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...PeerLoginSessionResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
 
 interface UnaryMethodDefinitionishR
   extends grpc.UnaryMethodDefinition<any, any> {
