@@ -2,7 +2,6 @@
 import Long from "long";
 import { grpc } from "@improbable-eng/grpc-web";
 import * as _m0 from "protobufjs/minimal";
-import { PeerLoginSessionResponse } from "../../../notch/dotshake/v1/login_session";
 import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "protos";
@@ -39,6 +38,15 @@ export interface SignUpResponse {
 export interface VerifyPeerLoginSessionRequest {
   /** jwtの中に入っているユニークなid */
   uuid: string;
+}
+
+export interface VerifyPeerLoginSessionResponse {
+  /** 使用するwireguardのIPアドレス */
+  ip: string;
+  /** 端末の名前 */
+  host: string;
+  /** 端末のOS */
+  os: string;
 }
 
 function createBaseSignInRequest(): SignInRequest {
@@ -365,6 +373,81 @@ export const VerifyPeerLoginSessionRequest = {
   },
 };
 
+function createBaseVerifyPeerLoginSessionResponse(): VerifyPeerLoginSessionResponse {
+  return { ip: "", host: "", os: "" };
+}
+
+export const VerifyPeerLoginSessionResponse = {
+  encode(
+    message: VerifyPeerLoginSessionResponse,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.ip !== "") {
+      writer.uint32(10).string(message.ip);
+    }
+    if (message.host !== "") {
+      writer.uint32(18).string(message.host);
+    }
+    if (message.os !== "") {
+      writer.uint32(26).string(message.os);
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): VerifyPeerLoginSessionResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseVerifyPeerLoginSessionResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.ip = reader.string();
+          break;
+        case 2:
+          message.host = reader.string();
+          break;
+        case 3:
+          message.os = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): VerifyPeerLoginSessionResponse {
+    return {
+      ip: isSet(object.ip) ? String(object.ip) : "",
+      host: isSet(object.host) ? String(object.host) : "",
+      os: isSet(object.os) ? String(object.os) : "",
+    };
+  },
+
+  toJSON(message: VerifyPeerLoginSessionResponse): unknown {
+    const obj: any = {};
+    message.ip !== undefined && (obj.ip = message.ip);
+    message.host !== undefined && (obj.host = message.host);
+    message.os !== undefined && (obj.os = message.os);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<VerifyPeerLoginSessionResponse>, I>>(
+    object: I
+  ): VerifyPeerLoginSessionResponse {
+    const message = createBaseVerifyPeerLoginSessionResponse();
+    message.ip = object.ip ?? "";
+    message.host = object.host ?? "";
+    message.os = object.os ?? "";
+    return message;
+  },
+};
+
 export interface SessionService {
   /** Auth0ログイン後、/adminにリダイレクトした時に叩かれる */
   SignIn(
@@ -386,7 +469,7 @@ export interface SessionService {
   VerifyPeerLoginSession(
     request: DeepPartial<VerifyPeerLoginSessionRequest>,
     metadata?: grpc.Metadata
-  ): Promise<PeerLoginSessionResponse>;
+  ): Promise<VerifyPeerLoginSessionResponse>;
 }
 
 export class SessionServiceClientImpl implements SessionService {
@@ -424,7 +507,7 @@ export class SessionServiceClientImpl implements SessionService {
   VerifyPeerLoginSession(
     request: DeepPartial<VerifyPeerLoginSessionRequest>,
     metadata?: grpc.Metadata
-  ): Promise<PeerLoginSessionResponse> {
+  ): Promise<VerifyPeerLoginSessionResponse> {
     return this.rpc.unary(
       SessionServiceVerifyPeerLoginSessionDesc,
       VerifyPeerLoginSessionRequest.fromPartial(request),
@@ -495,7 +578,7 @@ export const SessionServiceVerifyPeerLoginSessionDesc: UnaryMethodDefinitionish 
     responseType: {
       deserializeBinary(data: Uint8Array) {
         return {
-          ...PeerLoginSessionResponse.decode(data),
+          ...VerifyPeerLoginSessionResponse.decode(data),
           toObject() {
             return this;
           },
