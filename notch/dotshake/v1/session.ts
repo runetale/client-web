@@ -37,7 +37,7 @@ export interface SignUpResponse {
 
 export interface VerifyPeerLoginSessionRequest {
   /** jwtの中に入っているユニークなid */
-  uuid: string;
+  sessionID: string;
 }
 
 export interface VerifyPeerLoginSessionResponse {
@@ -317,7 +317,7 @@ export const SignUpResponse = {
 };
 
 function createBaseVerifyPeerLoginSessionRequest(): VerifyPeerLoginSessionRequest {
-  return { uuid: "" };
+  return { sessionID: "" };
 }
 
 export const VerifyPeerLoginSessionRequest = {
@@ -325,8 +325,8 @@ export const VerifyPeerLoginSessionRequest = {
     message: VerifyPeerLoginSessionRequest,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.uuid !== "") {
-      writer.uint32(10).string(message.uuid);
+    if (message.sessionID !== "") {
+      writer.uint32(10).string(message.sessionID);
     }
     return writer;
   },
@@ -342,7 +342,7 @@ export const VerifyPeerLoginSessionRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.uuid = reader.string();
+          message.sessionID = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -354,13 +354,13 @@ export const VerifyPeerLoginSessionRequest = {
 
   fromJSON(object: any): VerifyPeerLoginSessionRequest {
     return {
-      uuid: isSet(object.uuid) ? String(object.uuid) : "",
+      sessionID: isSet(object.sessionID) ? String(object.sessionID) : "",
     };
   },
 
   toJSON(message: VerifyPeerLoginSessionRequest): unknown {
     const obj: any = {};
-    message.uuid !== undefined && (obj.uuid = message.uuid);
+    message.sessionID !== undefined && (obj.sessionID = message.sessionID);
     return obj;
   },
 
@@ -368,7 +368,7 @@ export const VerifyPeerLoginSessionRequest = {
     object: I
   ): VerifyPeerLoginSessionRequest {
     const message = createBaseVerifyPeerLoginSessionRequest();
-    message.uuid = object.uuid ?? "";
+    message.sessionID = object.sessionID ?? "";
     return message;
   },
 };
