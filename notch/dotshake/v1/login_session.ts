@@ -12,14 +12,25 @@ export const protobufPackage = "protos";
 export interface PeerLoginSessionResponse {
   /** 使用するwireguardのIPアドレス */
   ip: string;
+  /** 使用するwireguardのIP CIDR */
+  cidr: string;
   /** 端末の名前 */
   host: string;
   /** 端末のOS */
   os: string;
+  signalServerHost: string;
+  signalServerPort: number;
 }
 
 function createBasePeerLoginSessionResponse(): PeerLoginSessionResponse {
-  return { ip: "", host: "", os: "" };
+  return {
+    ip: "",
+    cidr: "",
+    host: "",
+    os: "",
+    signalServerHost: "",
+    signalServerPort: 0,
+  };
 }
 
 export const PeerLoginSessionResponse = {
@@ -30,11 +41,20 @@ export const PeerLoginSessionResponse = {
     if (message.ip !== "") {
       writer.uint32(10).string(message.ip);
     }
+    if (message.cidr !== "") {
+      writer.uint32(18).string(message.cidr);
+    }
     if (message.host !== "") {
-      writer.uint32(18).string(message.host);
+      writer.uint32(26).string(message.host);
     }
     if (message.os !== "") {
-      writer.uint32(26).string(message.os);
+      writer.uint32(34).string(message.os);
+    }
+    if (message.signalServerHost !== "") {
+      writer.uint32(42).string(message.signalServerHost);
+    }
+    if (message.signalServerPort !== 0) {
+      writer.uint32(48).uint64(message.signalServerPort);
     }
     return writer;
   },
@@ -53,10 +73,19 @@ export const PeerLoginSessionResponse = {
           message.ip = reader.string();
           break;
         case 2:
-          message.host = reader.string();
+          message.cidr = reader.string();
           break;
         case 3:
+          message.host = reader.string();
+          break;
+        case 4:
           message.os = reader.string();
+          break;
+        case 5:
+          message.signalServerHost = reader.string();
+          break;
+        case 6:
+          message.signalServerPort = longToNumber(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -69,16 +98,28 @@ export const PeerLoginSessionResponse = {
   fromJSON(object: any): PeerLoginSessionResponse {
     return {
       ip: isSet(object.ip) ? String(object.ip) : "",
+      cidr: isSet(object.cidr) ? String(object.cidr) : "",
       host: isSet(object.host) ? String(object.host) : "",
       os: isSet(object.os) ? String(object.os) : "",
+      signalServerHost: isSet(object.signalServerHost)
+        ? String(object.signalServerHost)
+        : "",
+      signalServerPort: isSet(object.signalServerPort)
+        ? Number(object.signalServerPort)
+        : 0,
     };
   },
 
   toJSON(message: PeerLoginSessionResponse): unknown {
     const obj: any = {};
     message.ip !== undefined && (obj.ip = message.ip);
+    message.cidr !== undefined && (obj.cidr = message.cidr);
     message.host !== undefined && (obj.host = message.host);
     message.os !== undefined && (obj.os = message.os);
+    message.signalServerHost !== undefined &&
+      (obj.signalServerHost = message.signalServerHost);
+    message.signalServerPort !== undefined &&
+      (obj.signalServerPort = Math.round(message.signalServerPort));
     return obj;
   },
 
@@ -87,8 +128,11 @@ export const PeerLoginSessionResponse = {
   ): PeerLoginSessionResponse {
     const message = createBasePeerLoginSessionResponse();
     message.ip = object.ip ?? "";
+    message.cidr = object.cidr ?? "";
     message.host = object.host ?? "";
     message.os = object.os ?? "";
+    message.signalServerHost = object.signalServerHost ?? "";
+    message.signalServerPort = object.signalServerPort ?? 0;
     return message;
   },
 };
@@ -240,6 +284,17 @@ export class GrpcWebImpl {
   }
 }
 
+declare var self: any | undefined;
+declare var window: any | undefined;
+declare var global: any | undefined;
+var globalThis: any = (() => {
+  if (typeof globalThis !== "undefined") return globalThis;
+  if (typeof self !== "undefined") return self;
+  if (typeof window !== "undefined") return window;
+  if (typeof global !== "undefined") return global;
+  throw "Unable to locate global object";
+})();
+
 type Builtin =
   | Date
   | Function
@@ -266,6 +321,13 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
+
+function longToNumber(long: Long): number {
+  if (long.gt(Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  return long.toNumber();
+}
 
 if (_m0.util.Long !== Long) {
   _m0.util.Long = Long as any;
