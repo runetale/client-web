@@ -25,6 +25,8 @@ export interface RemotePeer {
 
 export interface StunHost {
   url: string;
+  username: string;
+  password: string;
 }
 
 export interface TurnHost {
@@ -260,7 +262,7 @@ export const RemotePeer = {
 };
 
 function createBaseStunHost(): StunHost {
-  return { url: "" };
+  return { url: "", username: "", password: "" };
 }
 
 export const StunHost = {
@@ -270,6 +272,12 @@ export const StunHost = {
   ): _m0.Writer {
     if (message.url !== "") {
       writer.uint32(10).string(message.url);
+    }
+    if (message.username !== "") {
+      writer.uint32(18).string(message.username);
+    }
+    if (message.password !== "") {
+      writer.uint32(26).string(message.password);
     }
     return writer;
   },
@@ -284,6 +292,12 @@ export const StunHost = {
         case 1:
           message.url = reader.string();
           break;
+        case 2:
+          message.username = reader.string();
+          break;
+        case 3:
+          message.password = reader.string();
+          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -295,18 +309,24 @@ export const StunHost = {
   fromJSON(object: any): StunHost {
     return {
       url: isSet(object.url) ? String(object.url) : "",
+      username: isSet(object.username) ? String(object.username) : "",
+      password: isSet(object.password) ? String(object.password) : "",
     };
   },
 
   toJSON(message: StunHost): unknown {
     const obj: any = {};
     message.url !== undefined && (obj.url = message.url);
+    message.username !== undefined && (obj.username = message.username);
+    message.password !== undefined && (obj.password = message.password);
     return obj;
   },
 
   fromPartial<I extends Exact<DeepPartial<StunHost>, I>>(object: I): StunHost {
     const message = createBaseStunHost();
     message.url = object.url ?? "";
+    message.username = object.username ?? "";
+    message.password = object.password ?? "";
     return message;
   },
 };
