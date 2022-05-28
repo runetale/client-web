@@ -18,10 +18,6 @@ export interface GetMachineResponse {
   signalPort: number;
 }
 
-export interface SyncMachinesRequest {
-  clientMachineKey: string;
-}
-
 export interface SyncMachinesResponse {
   rtcConfig: RtcConfig | undefined;
   isEmpty: boolean;
@@ -159,63 +155,6 @@ export const GetMachineResponse = {
     message.cidr = object.cidr ?? "";
     message.signalHost = object.signalHost ?? "";
     message.signalPort = object.signalPort ?? 0;
-    return message;
-  },
-};
-
-function createBaseSyncMachinesRequest(): SyncMachinesRequest {
-  return { clientMachineKey: "" };
-}
-
-export const SyncMachinesRequest = {
-  encode(
-    message: SyncMachinesRequest,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.clientMachineKey !== "") {
-      writer.uint32(10).string(message.clientMachineKey);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): SyncMachinesRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSyncMachinesRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.clientMachineKey = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): SyncMachinesRequest {
-    return {
-      clientMachineKey: isSet(object.clientMachineKey)
-        ? String(object.clientMachineKey)
-        : "",
-    };
-  },
-
-  toJSON(message: SyncMachinesRequest): unknown {
-    const obj: any = {};
-    message.clientMachineKey !== undefined &&
-      (obj.clientMachineKey = message.clientMachineKey);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<SyncMachinesRequest>, I>>(
-    object: I
-  ): SyncMachinesRequest {
-    const message = createBaseSyncMachinesRequest();
-    message.clientMachineKey = object.clientMachineKey ?? "";
     return message;
   },
 };
@@ -649,7 +588,7 @@ export interface MachineService {
     metadata?: grpc.Metadata
   ): Promise<GetMachineResponse>;
   SyncMachines(
-    request: DeepPartial<SyncMachinesRequest>,
+    request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
   ): Observable<SyncMachinesResponse>;
 }
@@ -675,12 +614,12 @@ export class MachineServiceClientImpl implements MachineService {
   }
 
   SyncMachines(
-    request: DeepPartial<SyncMachinesRequest>,
+    request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
   ): Observable<SyncMachinesResponse> {
     return this.rpc.invoke(
       MachineServiceSyncMachinesDesc,
-      SyncMachinesRequest.fromPartial(request),
+      Empty.fromPartial(request),
       metadata
     );
   }
@@ -719,7 +658,7 @@ export const MachineServiceSyncMachinesDesc: UnaryMethodDefinitionish = {
   responseStream: true,
   requestType: {
     serializeBinary() {
-      return SyncMachinesRequest.encode(this).finish();
+      return Empty.encode(this).finish();
     },
   } as any,
   responseType: {
