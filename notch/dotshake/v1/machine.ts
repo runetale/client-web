@@ -19,7 +19,6 @@ export interface GetMachineResponse {
 }
 
 export interface SyncMachinesResponse {
-  rtcConfig: RtcConfig | undefined;
   isEmpty: boolean;
   remotePeers: RemotePeer[];
 }
@@ -27,26 +26,6 @@ export interface SyncMachinesResponse {
 export interface RemotePeer {
   clientMachineKey: string;
   allowedIPs: string[];
-}
-
-export interface StunHost {
-  url: string;
-  username: string;
-  password: string;
-}
-
-export interface TurnHost {
-  url: string;
-  username: string;
-  password: string;
-  credentialsTTL: string;
-  secret: string;
-  timeBasedCredentials: boolean;
-}
-
-export interface RtcConfig {
-  turnHost: TurnHost | undefined;
-  stunHost: StunHost | undefined;
 }
 
 function createBaseGetMachineResponse(): GetMachineResponse {
@@ -160,7 +139,7 @@ export const GetMachineResponse = {
 };
 
 function createBaseSyncMachinesResponse(): SyncMachinesResponse {
-  return { rtcConfig: undefined, isEmpty: false, remotePeers: [] };
+  return { isEmpty: false, remotePeers: [] };
 }
 
 export const SyncMachinesResponse = {
@@ -168,9 +147,6 @@ export const SyncMachinesResponse = {
     message: SyncMachinesResponse,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.rtcConfig !== undefined) {
-      RtcConfig.encode(message.rtcConfig, writer.uint32(10).fork()).ldelim();
-    }
     if (message.isEmpty === true) {
       writer.uint32(16).bool(message.isEmpty);
     }
@@ -190,9 +166,6 @@ export const SyncMachinesResponse = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 1:
-          message.rtcConfig = RtcConfig.decode(reader, reader.uint32());
-          break;
         case 2:
           message.isEmpty = reader.bool();
           break;
@@ -209,9 +182,6 @@ export const SyncMachinesResponse = {
 
   fromJSON(object: any): SyncMachinesResponse {
     return {
-      rtcConfig: isSet(object.rtcConfig)
-        ? RtcConfig.fromJSON(object.rtcConfig)
-        : undefined,
       isEmpty: isSet(object.isEmpty) ? Boolean(object.isEmpty) : false,
       remotePeers: Array.isArray(object?.remotePeers)
         ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e))
@@ -221,10 +191,6 @@ export const SyncMachinesResponse = {
 
   toJSON(message: SyncMachinesResponse): unknown {
     const obj: any = {};
-    message.rtcConfig !== undefined &&
-      (obj.rtcConfig = message.rtcConfig
-        ? RtcConfig.toJSON(message.rtcConfig)
-        : undefined);
     message.isEmpty !== undefined && (obj.isEmpty = message.isEmpty);
     if (message.remotePeers) {
       obj.remotePeers = message.remotePeers.map((e) =>
@@ -240,10 +206,6 @@ export const SyncMachinesResponse = {
     object: I
   ): SyncMachinesResponse {
     const message = createBaseSyncMachinesResponse();
-    message.rtcConfig =
-      object.rtcConfig !== undefined && object.rtcConfig !== null
-        ? RtcConfig.fromPartial(object.rtcConfig)
-        : undefined;
     message.isEmpty = object.isEmpty ?? false;
     message.remotePeers =
       object.remotePeers?.map((e) => RemotePeer.fromPartial(e)) || [];
@@ -319,265 +281,6 @@ export const RemotePeer = {
     const message = createBaseRemotePeer();
     message.clientMachineKey = object.clientMachineKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
-    return message;
-  },
-};
-
-function createBaseStunHost(): StunHost {
-  return { url: "", username: "", password: "" };
-}
-
-export const StunHost = {
-  encode(
-    message: StunHost,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.url !== "") {
-      writer.uint32(10).string(message.url);
-    }
-    if (message.username !== "") {
-      writer.uint32(18).string(message.username);
-    }
-    if (message.password !== "") {
-      writer.uint32(26).string(message.password);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): StunHost {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseStunHost();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.url = reader.string();
-          break;
-        case 2:
-          message.username = reader.string();
-          break;
-        case 3:
-          message.password = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): StunHost {
-    return {
-      url: isSet(object.url) ? String(object.url) : "",
-      username: isSet(object.username) ? String(object.username) : "",
-      password: isSet(object.password) ? String(object.password) : "",
-    };
-  },
-
-  toJSON(message: StunHost): unknown {
-    const obj: any = {};
-    message.url !== undefined && (obj.url = message.url);
-    message.username !== undefined && (obj.username = message.username);
-    message.password !== undefined && (obj.password = message.password);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<StunHost>, I>>(object: I): StunHost {
-    const message = createBaseStunHost();
-    message.url = object.url ?? "";
-    message.username = object.username ?? "";
-    message.password = object.password ?? "";
-    return message;
-  },
-};
-
-function createBaseTurnHost(): TurnHost {
-  return {
-    url: "",
-    username: "",
-    password: "",
-    credentialsTTL: "",
-    secret: "",
-    timeBasedCredentials: false,
-  };
-}
-
-export const TurnHost = {
-  encode(
-    message: TurnHost,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.url !== "") {
-      writer.uint32(10).string(message.url);
-    }
-    if (message.username !== "") {
-      writer.uint32(18).string(message.username);
-    }
-    if (message.password !== "") {
-      writer.uint32(26).string(message.password);
-    }
-    if (message.credentialsTTL !== "") {
-      writer.uint32(34).string(message.credentialsTTL);
-    }
-    if (message.secret !== "") {
-      writer.uint32(42).string(message.secret);
-    }
-    if (message.timeBasedCredentials === true) {
-      writer.uint32(48).bool(message.timeBasedCredentials);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): TurnHost {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseTurnHost();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.url = reader.string();
-          break;
-        case 2:
-          message.username = reader.string();
-          break;
-        case 3:
-          message.password = reader.string();
-          break;
-        case 4:
-          message.credentialsTTL = reader.string();
-          break;
-        case 5:
-          message.secret = reader.string();
-          break;
-        case 6:
-          message.timeBasedCredentials = reader.bool();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): TurnHost {
-    return {
-      url: isSet(object.url) ? String(object.url) : "",
-      username: isSet(object.username) ? String(object.username) : "",
-      password: isSet(object.password) ? String(object.password) : "",
-      credentialsTTL: isSet(object.credentialsTTL)
-        ? String(object.credentialsTTL)
-        : "",
-      secret: isSet(object.secret) ? String(object.secret) : "",
-      timeBasedCredentials: isSet(object.timeBasedCredentials)
-        ? Boolean(object.timeBasedCredentials)
-        : false,
-    };
-  },
-
-  toJSON(message: TurnHost): unknown {
-    const obj: any = {};
-    message.url !== undefined && (obj.url = message.url);
-    message.username !== undefined && (obj.username = message.username);
-    message.password !== undefined && (obj.password = message.password);
-    message.credentialsTTL !== undefined &&
-      (obj.credentialsTTL = message.credentialsTTL);
-    message.secret !== undefined && (obj.secret = message.secret);
-    message.timeBasedCredentials !== undefined &&
-      (obj.timeBasedCredentials = message.timeBasedCredentials);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<TurnHost>, I>>(object: I): TurnHost {
-    const message = createBaseTurnHost();
-    message.url = object.url ?? "";
-    message.username = object.username ?? "";
-    message.password = object.password ?? "";
-    message.credentialsTTL = object.credentialsTTL ?? "";
-    message.secret = object.secret ?? "";
-    message.timeBasedCredentials = object.timeBasedCredentials ?? false;
-    return message;
-  },
-};
-
-function createBaseRtcConfig(): RtcConfig {
-  return { turnHost: undefined, stunHost: undefined };
-}
-
-export const RtcConfig = {
-  encode(
-    message: RtcConfig,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.turnHost !== undefined) {
-      TurnHost.encode(message.turnHost, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.stunHost !== undefined) {
-      StunHost.encode(message.stunHost, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): RtcConfig {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseRtcConfig();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.turnHost = TurnHost.decode(reader, reader.uint32());
-          break;
-        case 2:
-          message.stunHost = StunHost.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): RtcConfig {
-    return {
-      turnHost: isSet(object.turnHost)
-        ? TurnHost.fromJSON(object.turnHost)
-        : undefined,
-      stunHost: isSet(object.stunHost)
-        ? StunHost.fromJSON(object.stunHost)
-        : undefined,
-    };
-  },
-
-  toJSON(message: RtcConfig): unknown {
-    const obj: any = {};
-    message.turnHost !== undefined &&
-      (obj.turnHost = message.turnHost
-        ? TurnHost.toJSON(message.turnHost)
-        : undefined);
-    message.stunHost !== undefined &&
-      (obj.stunHost = message.stunHost
-        ? StunHost.toJSON(message.stunHost)
-        : undefined);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<RtcConfig>, I>>(
-    object: I
-  ): RtcConfig {
-    const message = createBaseRtcConfig();
-    message.turnHost =
-      object.turnHost !== undefined && object.turnHost !== null
-        ? TurnHost.fromPartial(object.turnHost)
-        : undefined;
-    message.stunHost =
-      object.stunHost !== undefined && object.stunHost !== null
-        ? StunHost.fromPartial(object.stunHost)
-        : undefined;
     return message;
   },
 };
