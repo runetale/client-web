@@ -17,9 +17,6 @@ export interface TurnHost {
   url: string;
   username: string;
   password: string;
-  credentialsTTL: string;
-  secret: string;
-  timeBasedCredentials: boolean;
 }
 
 export interface RtcConfig {
@@ -102,14 +99,7 @@ export const StunHost = {
 };
 
 function createBaseTurnHost(): TurnHost {
-  return {
-    url: "",
-    username: "",
-    password: "",
-    credentialsTTL: "",
-    secret: "",
-    timeBasedCredentials: false,
-  };
+  return { url: "", username: "", password: "" };
 }
 
 export const TurnHost = {
@@ -125,15 +115,6 @@ export const TurnHost = {
     }
     if (message.password !== "") {
       writer.uint32(26).string(message.password);
-    }
-    if (message.credentialsTTL !== "") {
-      writer.uint32(34).string(message.credentialsTTL);
-    }
-    if (message.secret !== "") {
-      writer.uint32(42).string(message.secret);
-    }
-    if (message.timeBasedCredentials === true) {
-      writer.uint32(48).bool(message.timeBasedCredentials);
     }
     return writer;
   },
@@ -154,15 +135,6 @@ export const TurnHost = {
         case 3:
           message.password = reader.string();
           break;
-        case 4:
-          message.credentialsTTL = reader.string();
-          break;
-        case 5:
-          message.secret = reader.string();
-          break;
-        case 6:
-          message.timeBasedCredentials = reader.bool();
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -176,13 +148,6 @@ export const TurnHost = {
       url: isSet(object.url) ? String(object.url) : "",
       username: isSet(object.username) ? String(object.username) : "",
       password: isSet(object.password) ? String(object.password) : "",
-      credentialsTTL: isSet(object.credentialsTTL)
-        ? String(object.credentialsTTL)
-        : "",
-      secret: isSet(object.secret) ? String(object.secret) : "",
-      timeBasedCredentials: isSet(object.timeBasedCredentials)
-        ? Boolean(object.timeBasedCredentials)
-        : false,
     };
   },
 
@@ -191,11 +156,6 @@ export const TurnHost = {
     message.url !== undefined && (obj.url = message.url);
     message.username !== undefined && (obj.username = message.username);
     message.password !== undefined && (obj.password = message.password);
-    message.credentialsTTL !== undefined &&
-      (obj.credentialsTTL = message.credentialsTTL);
-    message.secret !== undefined && (obj.secret = message.secret);
-    message.timeBasedCredentials !== undefined &&
-      (obj.timeBasedCredentials = message.timeBasedCredentials);
     return obj;
   },
 
@@ -204,9 +164,6 @@ export const TurnHost = {
     message.url = object.url ?? "";
     message.username = object.username ?? "";
     message.password = object.password ?? "";
-    message.credentialsTTL = object.credentialsTTL ?? "";
-    message.secret = object.secret ?? "";
-    message.timeBasedCredentials = object.timeBasedCredentials ?? false;
     return message;
   },
 };
