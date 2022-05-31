@@ -74,8 +74,6 @@ export interface HandshakeRequest {
   dstPeerMachineKey: string;
   /** machine key of the originating peer to be sent to the remote peer */
   srcPeerMachineKey: string;
-  /** wireguard pub key of the originating peer to be sent to the remote peer */
-  srcWgPubKey: string;
   uFlag: string;
   pwd: string;
   payload: string;
@@ -310,7 +308,6 @@ function createBaseHandshakeRequest(): HandshakeRequest {
   return {
     dstPeerMachineKey: "",
     srcPeerMachineKey: "",
-    srcWgPubKey: "",
     uFlag: "",
     pwd: "",
     payload: "",
@@ -328,17 +325,14 @@ export const HandshakeRequest = {
     if (message.srcPeerMachineKey !== "") {
       writer.uint32(18).string(message.srcPeerMachineKey);
     }
-    if (message.srcWgPubKey !== "") {
-      writer.uint32(26).string(message.srcWgPubKey);
-    }
     if (message.uFlag !== "") {
-      writer.uint32(34).string(message.uFlag);
+      writer.uint32(26).string(message.uFlag);
     }
     if (message.pwd !== "") {
-      writer.uint32(42).string(message.pwd);
+      writer.uint32(34).string(message.pwd);
     }
     if (message.payload !== "") {
-      writer.uint32(50).string(message.payload);
+      writer.uint32(42).string(message.payload);
     }
     return writer;
   },
@@ -357,15 +351,12 @@ export const HandshakeRequest = {
           message.srcPeerMachineKey = reader.string();
           break;
         case 3:
-          message.srcWgPubKey = reader.string();
-          break;
-        case 4:
           message.uFlag = reader.string();
           break;
-        case 5:
+        case 4:
           message.pwd = reader.string();
           break;
-        case 6:
+        case 5:
           message.payload = reader.string();
           break;
         default:
@@ -384,7 +375,6 @@ export const HandshakeRequest = {
       srcPeerMachineKey: isSet(object.srcPeerMachineKey)
         ? String(object.srcPeerMachineKey)
         : "",
-      srcWgPubKey: isSet(object.srcWgPubKey) ? String(object.srcWgPubKey) : "",
       uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? String(object.pwd) : "",
       payload: isSet(object.payload) ? String(object.payload) : "",
@@ -397,8 +387,6 @@ export const HandshakeRequest = {
       (obj.dstPeerMachineKey = message.dstPeerMachineKey);
     message.srcPeerMachineKey !== undefined &&
       (obj.srcPeerMachineKey = message.srcPeerMachineKey);
-    message.srcWgPubKey !== undefined &&
-      (obj.srcWgPubKey = message.srcWgPubKey);
     message.uFlag !== undefined && (obj.uFlag = message.uFlag);
     message.pwd !== undefined && (obj.pwd = message.pwd);
     message.payload !== undefined && (obj.payload = message.payload);
@@ -411,7 +399,6 @@ export const HandshakeRequest = {
     const message = createBaseHandshakeRequest();
     message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
     message.srcPeerMachineKey = object.srcPeerMachineKey ?? "";
-    message.srcWgPubKey = object.srcWgPubKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
     message.payload = object.payload ?? "";
