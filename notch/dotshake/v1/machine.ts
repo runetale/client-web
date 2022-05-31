@@ -25,6 +25,7 @@ export interface SyncMachinesResponse {
 
 export interface RemotePeer {
   clientMachineKey: string;
+  wgPubKey: string;
   allowedIPs: string[];
 }
 
@@ -214,7 +215,7 @@ export const SyncMachinesResponse = {
 };
 
 function createBaseRemotePeer(): RemotePeer {
-  return { clientMachineKey: "", allowedIPs: [] };
+  return { clientMachineKey: "", wgPubKey: "", allowedIPs: [] };
 }
 
 export const RemotePeer = {
@@ -225,8 +226,11 @@ export const RemotePeer = {
     if (message.clientMachineKey !== "") {
       writer.uint32(10).string(message.clientMachineKey);
     }
+    if (message.wgPubKey !== "") {
+      writer.uint32(18).string(message.wgPubKey);
+    }
     for (const v of message.allowedIPs) {
-      writer.uint32(18).string(v!);
+      writer.uint32(26).string(v!);
     }
     return writer;
   },
@@ -242,6 +246,9 @@ export const RemotePeer = {
           message.clientMachineKey = reader.string();
           break;
         case 2:
+          message.wgPubKey = reader.string();
+          break;
+        case 3:
           message.allowedIPs.push(reader.string());
           break;
         default:
@@ -257,6 +264,7 @@ export const RemotePeer = {
       clientMachineKey: isSet(object.clientMachineKey)
         ? String(object.clientMachineKey)
         : "",
+      wgPubKey: isSet(object.wgPubKey) ? String(object.wgPubKey) : "",
       allowedIPs: Array.isArray(object?.allowedIPs)
         ? object.allowedIPs.map((e: any) => String(e))
         : [],
@@ -267,6 +275,7 @@ export const RemotePeer = {
     const obj: any = {};
     message.clientMachineKey !== undefined &&
       (obj.clientMachineKey = message.clientMachineKey);
+    message.wgPubKey !== undefined && (obj.wgPubKey = message.wgPubKey);
     if (message.allowedIPs) {
       obj.allowedIPs = message.allowedIPs.map((e) => e);
     } else {
@@ -280,6 +289,7 @@ export const RemotePeer = {
   ): RemotePeer {
     const message = createBaseRemotePeer();
     message.clientMachineKey = object.clientMachineKey ?? "";
+    message.wgPubKey = object.wgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
     return message;
   },
