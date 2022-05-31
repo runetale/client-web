@@ -24,9 +24,13 @@ export interface SyncMachinesResponse {
 }
 
 export interface RemotePeer {
-  clientMachineKey: string;
-  wgPubKey: string;
+  remoteClientMachineKey: string;
+  remoteWgPubKey: string;
   allowedIPs: string[];
+  /** for local */
+  ip: string;
+  /** for local */
+  cidr: number;
 }
 
 function createBaseGetMachineResponse(): GetMachineResponse {
@@ -215,7 +219,13 @@ export const SyncMachinesResponse = {
 };
 
 function createBaseRemotePeer(): RemotePeer {
-  return { clientMachineKey: "", wgPubKey: "", allowedIPs: [] };
+  return {
+    remoteClientMachineKey: "",
+    remoteWgPubKey: "",
+    allowedIPs: [],
+    ip: "",
+    cidr: 0,
+  };
 }
 
 export const RemotePeer = {
@@ -223,14 +233,20 @@ export const RemotePeer = {
     message: RemotePeer,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.clientMachineKey !== "") {
-      writer.uint32(10).string(message.clientMachineKey);
+    if (message.remoteClientMachineKey !== "") {
+      writer.uint32(10).string(message.remoteClientMachineKey);
     }
-    if (message.wgPubKey !== "") {
-      writer.uint32(18).string(message.wgPubKey);
+    if (message.remoteWgPubKey !== "") {
+      writer.uint32(18).string(message.remoteWgPubKey);
     }
     for (const v of message.allowedIPs) {
       writer.uint32(26).string(v!);
+    }
+    if (message.ip !== "") {
+      writer.uint32(34).string(message.ip);
+    }
+    if (message.cidr !== 0) {
+      writer.uint32(40).uint64(message.cidr);
     }
     return writer;
   },
@@ -243,13 +259,19 @@ export const RemotePeer = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.clientMachineKey = reader.string();
+          message.remoteClientMachineKey = reader.string();
           break;
         case 2:
-          message.wgPubKey = reader.string();
+          message.remoteWgPubKey = reader.string();
           break;
         case 3:
           message.allowedIPs.push(reader.string());
+          break;
+        case 4:
+          message.ip = reader.string();
+          break;
+        case 5:
+          message.cidr = longToNumber(reader.uint64() as Long);
           break;
         default:
           reader.skipType(tag & 7);
@@ -261,26 +283,33 @@ export const RemotePeer = {
 
   fromJSON(object: any): RemotePeer {
     return {
-      clientMachineKey: isSet(object.clientMachineKey)
-        ? String(object.clientMachineKey)
+      remoteClientMachineKey: isSet(object.remoteClientMachineKey)
+        ? String(object.remoteClientMachineKey)
         : "",
-      wgPubKey: isSet(object.wgPubKey) ? String(object.wgPubKey) : "",
+      remoteWgPubKey: isSet(object.remoteWgPubKey)
+        ? String(object.remoteWgPubKey)
+        : "",
       allowedIPs: Array.isArray(object?.allowedIPs)
         ? object.allowedIPs.map((e: any) => String(e))
         : [],
+      ip: isSet(object.ip) ? String(object.ip) : "",
+      cidr: isSet(object.cidr) ? Number(object.cidr) : 0,
     };
   },
 
   toJSON(message: RemotePeer): unknown {
     const obj: any = {};
-    message.clientMachineKey !== undefined &&
-      (obj.clientMachineKey = message.clientMachineKey);
-    message.wgPubKey !== undefined && (obj.wgPubKey = message.wgPubKey);
+    message.remoteClientMachineKey !== undefined &&
+      (obj.remoteClientMachineKey = message.remoteClientMachineKey);
+    message.remoteWgPubKey !== undefined &&
+      (obj.remoteWgPubKey = message.remoteWgPubKey);
     if (message.allowedIPs) {
       obj.allowedIPs = message.allowedIPs.map((e) => e);
     } else {
       obj.allowedIPs = [];
     }
+    message.ip !== undefined && (obj.ip = message.ip);
+    message.cidr !== undefined && (obj.cidr = Math.round(message.cidr));
     return obj;
   },
 
@@ -288,9 +317,11 @@ export const RemotePeer = {
     object: I
   ): RemotePeer {
     const message = createBaseRemotePeer();
-    message.clientMachineKey = object.clientMachineKey ?? "";
-    message.wgPubKey = object.wgPubKey ?? "";
+    message.remoteClientMachineKey = object.remoteClientMachineKey ?? "";
+    message.remoteWgPubKey = object.remoteWgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
+    message.ip = object.ip ?? "";
+    message.cidr = object.cidr ?? 0;
     return message;
   },
 };
