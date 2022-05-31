@@ -21,16 +21,16 @@ export interface GetMachineResponse {
 export interface SyncMachinesResponse {
   isEmpty: boolean;
   remotePeers: RemotePeer[];
+  /** your ip */
+  ip: string;
+  /** your cidr */
+  cidr: string;
 }
 
 export interface RemotePeer {
   remoteClientMachineKey: string;
   remoteWgPubKey: string;
   allowedIPs: string[];
-  /** for local */
-  ip: string;
-  /** for local */
-  cidr: string;
 }
 
 function createBaseGetMachineResponse(): GetMachineResponse {
@@ -144,7 +144,7 @@ export const GetMachineResponse = {
 };
 
 function createBaseSyncMachinesResponse(): SyncMachinesResponse {
-  return { isEmpty: false, remotePeers: [] };
+  return { isEmpty: false, remotePeers: [], ip: "", cidr: "" };
 }
 
 export const SyncMachinesResponse = {
@@ -153,10 +153,16 @@ export const SyncMachinesResponse = {
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.isEmpty === true) {
-      writer.uint32(16).bool(message.isEmpty);
+      writer.uint32(8).bool(message.isEmpty);
     }
     for (const v of message.remotePeers) {
-      RemotePeer.encode(v!, writer.uint32(26).fork()).ldelim();
+      RemotePeer.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.ip !== "") {
+      writer.uint32(26).string(message.ip);
+    }
+    if (message.cidr !== "") {
+      writer.uint32(34).string(message.cidr);
     }
     return writer;
   },
@@ -171,11 +177,17 @@ export const SyncMachinesResponse = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
-        case 2:
+        case 1:
           message.isEmpty = reader.bool();
           break;
-        case 3:
+        case 2:
           message.remotePeers.push(RemotePeer.decode(reader, reader.uint32()));
+          break;
+        case 3:
+          message.ip = reader.string();
+          break;
+        case 4:
+          message.cidr = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -191,6 +203,8 @@ export const SyncMachinesResponse = {
       remotePeers: Array.isArray(object?.remotePeers)
         ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e))
         : [],
+      ip: isSet(object.ip) ? String(object.ip) : "",
+      cidr: isSet(object.cidr) ? String(object.cidr) : "",
     };
   },
 
@@ -204,6 +218,8 @@ export const SyncMachinesResponse = {
     } else {
       obj.remotePeers = [];
     }
+    message.ip !== undefined && (obj.ip = message.ip);
+    message.cidr !== undefined && (obj.cidr = message.cidr);
     return obj;
   },
 
@@ -214,18 +230,14 @@ export const SyncMachinesResponse = {
     message.isEmpty = object.isEmpty ?? false;
     message.remotePeers =
       object.remotePeers?.map((e) => RemotePeer.fromPartial(e)) || [];
+    message.ip = object.ip ?? "";
+    message.cidr = object.cidr ?? "";
     return message;
   },
 };
 
 function createBaseRemotePeer(): RemotePeer {
-  return {
-    remoteClientMachineKey: "",
-    remoteWgPubKey: "",
-    allowedIPs: [],
-    ip: "",
-    cidr: "",
-  };
+  return { remoteClientMachineKey: "", remoteWgPubKey: "", allowedIPs: [] };
 }
 
 export const RemotePeer = {
@@ -241,12 +253,6 @@ export const RemotePeer = {
     }
     for (const v of message.allowedIPs) {
       writer.uint32(26).string(v!);
-    }
-    if (message.ip !== "") {
-      writer.uint32(34).string(message.ip);
-    }
-    if (message.cidr !== "") {
-      writer.uint32(42).string(message.cidr);
     }
     return writer;
   },
@@ -267,12 +273,6 @@ export const RemotePeer = {
         case 3:
           message.allowedIPs.push(reader.string());
           break;
-        case 4:
-          message.ip = reader.string();
-          break;
-        case 5:
-          message.cidr = reader.string();
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -292,8 +292,6 @@ export const RemotePeer = {
       allowedIPs: Array.isArray(object?.allowedIPs)
         ? object.allowedIPs.map((e: any) => String(e))
         : [],
-      ip: isSet(object.ip) ? String(object.ip) : "",
-      cidr: isSet(object.cidr) ? String(object.cidr) : "",
     };
   },
 
@@ -308,8 +306,6 @@ export const RemotePeer = {
     } else {
       obj.allowedIPs = [];
     }
-    message.ip !== undefined && (obj.ip = message.ip);
-    message.cidr !== undefined && (obj.cidr = message.cidr);
     return obj;
   },
 
@@ -320,8 +316,6 @@ export const RemotePeer = {
     message.remoteClientMachineKey = object.remoteClientMachineKey ?? "";
     message.remoteWgPubKey = object.remoteWgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
-    message.ip = object.ip ?? "";
-    message.cidr = object.cidr ?? "";
     return message;
   },
 };
