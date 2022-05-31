@@ -75,7 +75,6 @@ export interface HandshakeRequest {
   srcPeerMachineKey: string;
   uFlag: string;
   pwd: string;
-  candidate: string;
 }
 
 export interface CandidateRequest {
@@ -292,13 +291,7 @@ export const NegotiationResponse = {
 };
 
 function createBaseHandshakeRequest(): HandshakeRequest {
-  return {
-    dstPeerMachineKey: "",
-    srcPeerMachineKey: "",
-    uFlag: "",
-    pwd: "",
-    candidate: "",
-  };
+  return { dstPeerMachineKey: "", srcPeerMachineKey: "", uFlag: "", pwd: "" };
 }
 
 export const HandshakeRequest = {
@@ -317,9 +310,6 @@ export const HandshakeRequest = {
     }
     if (message.pwd !== "") {
       writer.uint32(34).string(message.pwd);
-    }
-    if (message.candidate !== "") {
-      writer.uint32(42).string(message.candidate);
     }
     return writer;
   },
@@ -343,9 +333,6 @@ export const HandshakeRequest = {
         case 4:
           message.pwd = reader.string();
           break;
-        case 5:
-          message.candidate = reader.string();
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -364,7 +351,6 @@ export const HandshakeRequest = {
         : "",
       uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? String(object.pwd) : "",
-      candidate: isSet(object.candidate) ? String(object.candidate) : "",
     };
   },
 
@@ -376,7 +362,6 @@ export const HandshakeRequest = {
       (obj.srcPeerMachineKey = message.srcPeerMachineKey);
     message.uFlag !== undefined && (obj.uFlag = message.uFlag);
     message.pwd !== undefined && (obj.pwd = message.pwd);
-    message.candidate !== undefined && (obj.candidate = message.candidate);
     return obj;
   },
 
@@ -388,7 +373,6 @@ export const HandshakeRequest = {
     message.srcPeerMachineKey = object.srcPeerMachineKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
-    message.candidate = object.candidate ?? "";
     return message;
   },
 };
