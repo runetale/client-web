@@ -33,6 +33,12 @@ export interface RemotePeer {
   allowedIPs: string[];
 }
 
+export interface ConnectToHangoutMachineResponse {}
+
+export interface JoinHangOutMachinesResponse {
+  remotePeers: RemotePeer[];
+}
+
 function createBaseGetMachineResponse(): GetMachineResponse {
   return {
     isRegistered: false,
@@ -320,15 +326,136 @@ export const RemotePeer = {
   },
 };
 
+function createBaseConnectToHangoutMachineResponse(): ConnectToHangoutMachineResponse {
+  return {};
+}
+
+export const ConnectToHangoutMachineResponse = {
+  encode(
+    _: ConnectToHangoutMachineResponse,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): ConnectToHangoutMachineResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseConnectToHangoutMachineResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(_: any): ConnectToHangoutMachineResponse {
+    return {};
+  },
+
+  toJSON(_: ConnectToHangoutMachineResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<ConnectToHangoutMachineResponse>, I>>(
+    _: I
+  ): ConnectToHangoutMachineResponse {
+    const message = createBaseConnectToHangoutMachineResponse();
+    return message;
+  },
+};
+
+function createBaseJoinHangOutMachinesResponse(): JoinHangOutMachinesResponse {
+  return { remotePeers: [] };
+}
+
+export const JoinHangOutMachinesResponse = {
+  encode(
+    message: JoinHangOutMachinesResponse,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    for (const v of message.remotePeers) {
+      RemotePeer.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(
+    input: _m0.Reader | Uint8Array,
+    length?: number
+  ): JoinHangOutMachinesResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseJoinHangOutMachinesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.remotePeers.push(RemotePeer.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): JoinHangOutMachinesResponse {
+    return {
+      remotePeers: Array.isArray(object?.remotePeers)
+        ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: JoinHangOutMachinesResponse): unknown {
+    const obj: any = {};
+    if (message.remotePeers) {
+      obj.remotePeers = message.remotePeers.map((e) =>
+        e ? RemotePeer.toJSON(e) : undefined
+      );
+    } else {
+      obj.remotePeers = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<JoinHangOutMachinesResponse>, I>>(
+    object: I
+  ): JoinHangOutMachinesResponse {
+    const message = createBaseJoinHangOutMachinesResponse();
+    message.remotePeers =
+      object.remotePeers?.map((e) => RemotePeer.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 export interface MachineService {
   GetMachine(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
   ): Promise<GetMachineResponse>;
-  SyncMachines(
+  SyncRemoteMachinesConfig(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
   ): Observable<SyncMachinesResponse>;
+  ConnectToHangoutMachines(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Observable<ConnectToHangoutMachineResponse>;
+  JoinHangOutMachines(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Promise<JoinHangOutMachinesResponse>;
 }
 
 export class MachineServiceClientImpl implements MachineService {
@@ -337,7 +464,9 @@ export class MachineServiceClientImpl implements MachineService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.GetMachine = this.GetMachine.bind(this);
-    this.SyncMachines = this.SyncMachines.bind(this);
+    this.SyncRemoteMachinesConfig = this.SyncRemoteMachinesConfig.bind(this);
+    this.ConnectToHangoutMachines = this.ConnectToHangoutMachines.bind(this);
+    this.JoinHangOutMachines = this.JoinHangOutMachines.bind(this);
   }
 
   GetMachine(
@@ -351,12 +480,34 @@ export class MachineServiceClientImpl implements MachineService {
     );
   }
 
-  SyncMachines(
+  SyncRemoteMachinesConfig(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
   ): Observable<SyncMachinesResponse> {
     return this.rpc.invoke(
-      MachineServiceSyncMachinesDesc,
+      MachineServiceSyncRemoteMachinesConfigDesc,
+      Empty.fromPartial(request),
+      metadata
+    );
+  }
+
+  ConnectToHangoutMachines(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Observable<ConnectToHangoutMachineResponse> {
+    return this.rpc.invoke(
+      MachineServiceConnectToHangoutMachinesDesc,
+      Empty.fromPartial(request),
+      metadata
+    );
+  }
+
+  JoinHangOutMachines(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Promise<JoinHangOutMachinesResponse> {
+    return this.rpc.unary(
+      MachineServiceJoinHangOutMachinesDesc,
       Empty.fromPartial(request),
       metadata
     );
@@ -389,11 +540,57 @@ export const MachineServiceGetMachineDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const MachineServiceSyncMachinesDesc: UnaryMethodDefinitionish = {
-  methodName: "SyncMachines",
+export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "SyncRemoteMachinesConfig",
+    service: MachineServiceDesc,
+    requestStream: false,
+    responseStream: true,
+    requestType: {
+      serializeBinary() {
+        return Empty.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...SyncMachinesResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+export const MachineServiceConnectToHangoutMachinesDesc: UnaryMethodDefinitionish =
+  {
+    methodName: "ConnectToHangoutMachines",
+    service: MachineServiceDesc,
+    requestStream: false,
+    responseStream: true,
+    requestType: {
+      serializeBinary() {
+        return Empty.encode(this).finish();
+      },
+    } as any,
+    responseType: {
+      deserializeBinary(data: Uint8Array) {
+        return {
+          ...ConnectToHangoutMachineResponse.decode(data),
+          toObject() {
+            return this;
+          },
+        };
+      },
+    } as any,
+  };
+
+export const MachineServiceJoinHangOutMachinesDesc: UnaryMethodDefinitionish = {
+  methodName: "JoinHangOutMachines",
   service: MachineServiceDesc,
   requestStream: false,
-  responseStream: true,
+  responseStream: false,
   requestType: {
     serializeBinary() {
       return Empty.encode(this).finish();
@@ -402,7 +599,7 @@ export const MachineServiceSyncMachinesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       return {
-        ...SyncMachinesResponse.decode(data),
+        ...JoinHangOutMachinesResponse.decode(data),
         toObject() {
           return this;
         },
