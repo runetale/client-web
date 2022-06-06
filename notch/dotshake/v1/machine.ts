@@ -447,7 +447,7 @@ export interface MachineService {
   SyncRemoteMachinesConfig(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
-  ): Observable<SyncMachinesResponse>;
+  ): Promise<SyncMachinesResponse>;
   ConnectToHangoutMachines(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
@@ -483,8 +483,8 @@ export class MachineServiceClientImpl implements MachineService {
   SyncRemoteMachinesConfig(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
-  ): Observable<SyncMachinesResponse> {
-    return this.rpc.invoke(
+  ): Promise<SyncMachinesResponse> {
+    return this.rpc.unary(
       MachineServiceSyncRemoteMachinesConfigDesc,
       Empty.fromPartial(request),
       metadata
@@ -545,7 +545,7 @@ export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionis
     methodName: "SyncRemoteMachinesConfig",
     service: MachineServiceDesc,
     requestStream: false,
-    responseStream: true,
+    responseStream: false,
     requestType: {
       serializeBinary() {
         return Empty.encode(this).finish();
