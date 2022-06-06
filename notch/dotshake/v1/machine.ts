@@ -451,7 +451,7 @@ export interface MachineService {
   ConnectToHangoutMachines(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
-  ): Observable<ConnectToHangoutMachineResponse>;
+  ): Observable<JoinHangOutMachinesResponse>;
   JoinHangOutMachines(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
@@ -494,7 +494,7 @@ export class MachineServiceClientImpl implements MachineService {
   ConnectToHangoutMachines(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
-  ): Observable<ConnectToHangoutMachineResponse> {
+  ): Observable<JoinHangOutMachinesResponse> {
     return this.rpc.invoke(
       MachineServiceConnectToHangoutMachinesDesc,
       Empty.fromPartial(request),
@@ -577,7 +577,7 @@ export const MachineServiceConnectToHangoutMachinesDesc: UnaryMethodDefinitionis
     responseType: {
       deserializeBinary(data: Uint8Array) {
         return {
-          ...ConnectToHangoutMachineResponse.decode(data),
+          ...JoinHangOutMachinesResponse.decode(data),
           toObject() {
             return this;
           },
