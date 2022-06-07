@@ -471,7 +471,7 @@ export interface NegotiationService {
   StartConnect(
     request: Observable<DeepPartial<NegotiationRequest>>,
     metadata?: grpc.Metadata
-  ): Observable<NegotiationResponse>;
+  ): Observable<NegotiationRequest>;
 }
 
 export class NegotiationServiceClientImpl implements NegotiationService {
@@ -521,7 +521,7 @@ export class NegotiationServiceClientImpl implements NegotiationService {
   StartConnect(
     request: Observable<DeepPartial<NegotiationRequest>>,
     metadata?: grpc.Metadata
-  ): Observable<NegotiationResponse> {
+  ): Observable<NegotiationRequest> {
     throw new Error("ts-proto does not yet support client streaming!");
   }
 }
