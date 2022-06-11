@@ -67,7 +67,7 @@ export interface RemotePeer {
 }
 
 export interface HangOutMachinesResponse {
-  remotePeers: RemotePeer[];
+  targetMachineKey: string;
   /** your ip */
   ip: string;
   /** your cidr */
@@ -363,7 +363,7 @@ export const RemotePeer = {
 };
 
 function createBaseHangOutMachinesResponse(): HangOutMachinesResponse {
-  return { remotePeers: [], ip: "", cidr: "", hangOutType: 0 };
+  return { targetMachineKey: "", ip: "", cidr: "", hangOutType: 0 };
 }
 
 export const HangOutMachinesResponse = {
@@ -371,8 +371,8 @@ export const HangOutMachinesResponse = {
     message: HangOutMachinesResponse,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    for (const v of message.remotePeers) {
-      RemotePeer.encode(v!, writer.uint32(10).fork()).ldelim();
+    if (message.targetMachineKey !== "") {
+      writer.uint32(10).string(message.targetMachineKey);
     }
     if (message.ip !== "") {
       writer.uint32(18).string(message.ip);
@@ -397,7 +397,7 @@ export const HangOutMachinesResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.remotePeers.push(RemotePeer.decode(reader, reader.uint32()));
+          message.targetMachineKey = reader.string();
           break;
         case 2:
           message.ip = reader.string();
@@ -418,9 +418,9 @@ export const HangOutMachinesResponse = {
 
   fromJSON(object: any): HangOutMachinesResponse {
     return {
-      remotePeers: Array.isArray(object?.remotePeers)
-        ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e))
-        : [],
+      targetMachineKey: isSet(object.targetMachineKey)
+        ? String(object.targetMachineKey)
+        : "",
       ip: isSet(object.ip) ? String(object.ip) : "",
       cidr: isSet(object.cidr) ? String(object.cidr) : "",
       hangOutType: isSet(object.hangOutType)
@@ -431,13 +431,8 @@ export const HangOutMachinesResponse = {
 
   toJSON(message: HangOutMachinesResponse): unknown {
     const obj: any = {};
-    if (message.remotePeers) {
-      obj.remotePeers = message.remotePeers.map((e) =>
-        e ? RemotePeer.toJSON(e) : undefined
-      );
-    } else {
-      obj.remotePeers = [];
-    }
+    message.targetMachineKey !== undefined &&
+      (obj.targetMachineKey = message.targetMachineKey);
     message.ip !== undefined && (obj.ip = message.ip);
     message.cidr !== undefined && (obj.cidr = message.cidr);
     message.hangOutType !== undefined &&
@@ -449,8 +444,7 @@ export const HangOutMachinesResponse = {
     object: I
   ): HangOutMachinesResponse {
     const message = createBaseHangOutMachinesResponse();
-    message.remotePeers =
-      object.remotePeers?.map((e) => RemotePeer.fromPartial(e)) || [];
+    message.targetMachineKey = object.targetMachineKey ?? "";
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
     message.hangOutType = object.hangOutType ?? 0;
