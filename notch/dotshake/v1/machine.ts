@@ -9,6 +9,39 @@ import { share } from "rxjs/operators";
 
 export const protobufPackage = "protos";
 
+export enum HangOutType {
+  CONNECT = 0,
+  DISCONNECT = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function hangOutTypeFromJSON(object: any): HangOutType {
+  switch (object) {
+    case 0:
+    case "CONNECT":
+      return HangOutType.CONNECT;
+    case 1:
+    case "DISCONNECT":
+      return HangOutType.DISCONNECT;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return HangOutType.UNRECOGNIZED;
+  }
+}
+
+export function hangOutTypeToJSON(object: HangOutType): string {
+  switch (object) {
+    case HangOutType.CONNECT:
+      return "CONNECT";
+    case HangOutType.DISCONNECT:
+      return "DISCONNECT";
+    case HangOutType.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface GetMachineResponse {
   isRegistered: boolean;
   loginUrl: string;
@@ -33,15 +66,13 @@ export interface RemotePeer {
   allowedIPs: string[];
 }
 
-export interface ConnectToHangoutMachineResponse {}
-
-export interface JoinHangOutMachinesResponse {
-  isEmpty: boolean;
+export interface HangOutMachinesResponse {
   remotePeers: RemotePeer[];
   /** your ip */
   ip: string;
   /** your cidr */
   cidr: string;
+  hangOutType: HangOutType;
 }
 
 function createBaseGetMachineResponse(): GetMachineResponse {
@@ -331,73 +362,26 @@ export const RemotePeer = {
   },
 };
 
-function createBaseConnectToHangoutMachineResponse(): ConnectToHangoutMachineResponse {
-  return {};
+function createBaseHangOutMachinesResponse(): HangOutMachinesResponse {
+  return { remotePeers: [], ip: "", cidr: "", hangOutType: 0 };
 }
 
-export const ConnectToHangoutMachineResponse = {
+export const HangOutMachinesResponse = {
   encode(
-    _: ConnectToHangoutMachineResponse,
+    message: HangOutMachinesResponse,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    return writer;
-  },
-
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): ConnectToHangoutMachineResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseConnectToHangoutMachineResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(_: any): ConnectToHangoutMachineResponse {
-    return {};
-  },
-
-  toJSON(_: ConnectToHangoutMachineResponse): unknown {
-    const obj: any = {};
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<ConnectToHangoutMachineResponse>, I>>(
-    _: I
-  ): ConnectToHangoutMachineResponse {
-    const message = createBaseConnectToHangoutMachineResponse();
-    return message;
-  },
-};
-
-function createBaseJoinHangOutMachinesResponse(): JoinHangOutMachinesResponse {
-  return { isEmpty: false, remotePeers: [], ip: "", cidr: "" };
-}
-
-export const JoinHangOutMachinesResponse = {
-  encode(
-    message: JoinHangOutMachinesResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    if (message.isEmpty === true) {
-      writer.uint32(8).bool(message.isEmpty);
-    }
     for (const v of message.remotePeers) {
-      RemotePeer.encode(v!, writer.uint32(18).fork()).ldelim();
+      RemotePeer.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     if (message.ip !== "") {
-      writer.uint32(26).string(message.ip);
+      writer.uint32(18).string(message.ip);
     }
     if (message.cidr !== "") {
-      writer.uint32(34).string(message.cidr);
+      writer.uint32(26).string(message.cidr);
+    }
+    if (message.hangOutType !== 0) {
+      writer.uint32(32).int32(message.hangOutType);
     }
     return writer;
   },
@@ -405,24 +389,24 @@ export const JoinHangOutMachinesResponse = {
   decode(
     input: _m0.Reader | Uint8Array,
     length?: number
-  ): JoinHangOutMachinesResponse {
+  ): HangOutMachinesResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseJoinHangOutMachinesResponse();
+    const message = createBaseHangOutMachinesResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.isEmpty = reader.bool();
-          break;
-        case 2:
           message.remotePeers.push(RemotePeer.decode(reader, reader.uint32()));
           break;
-        case 3:
+        case 2:
           message.ip = reader.string();
           break;
-        case 4:
+        case 3:
           message.cidr = reader.string();
+          break;
+        case 4:
+          message.hangOutType = reader.int32() as any;
           break;
         default:
           reader.skipType(tag & 7);
@@ -432,20 +416,21 @@ export const JoinHangOutMachinesResponse = {
     return message;
   },
 
-  fromJSON(object: any): JoinHangOutMachinesResponse {
+  fromJSON(object: any): HangOutMachinesResponse {
     return {
-      isEmpty: isSet(object.isEmpty) ? Boolean(object.isEmpty) : false,
       remotePeers: Array.isArray(object?.remotePeers)
         ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e))
         : [],
       ip: isSet(object.ip) ? String(object.ip) : "",
       cidr: isSet(object.cidr) ? String(object.cidr) : "",
+      hangOutType: isSet(object.hangOutType)
+        ? hangOutTypeFromJSON(object.hangOutType)
+        : 0,
     };
   },
 
-  toJSON(message: JoinHangOutMachinesResponse): unknown {
+  toJSON(message: HangOutMachinesResponse): unknown {
     const obj: any = {};
-    message.isEmpty !== undefined && (obj.isEmpty = message.isEmpty);
     if (message.remotePeers) {
       obj.remotePeers = message.remotePeers.map((e) =>
         e ? RemotePeer.toJSON(e) : undefined
@@ -455,18 +440,20 @@ export const JoinHangOutMachinesResponse = {
     }
     message.ip !== undefined && (obj.ip = message.ip);
     message.cidr !== undefined && (obj.cidr = message.cidr);
+    message.hangOutType !== undefined &&
+      (obj.hangOutType = hangOutTypeToJSON(message.hangOutType));
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<JoinHangOutMachinesResponse>, I>>(
+  fromPartial<I extends Exact<DeepPartial<HangOutMachinesResponse>, I>>(
     object: I
-  ): JoinHangOutMachinesResponse {
-    const message = createBaseJoinHangOutMachinesResponse();
-    message.isEmpty = object.isEmpty ?? false;
+  ): HangOutMachinesResponse {
+    const message = createBaseHangOutMachinesResponse();
     message.remotePeers =
       object.remotePeers?.map((e) => RemotePeer.fromPartial(e)) || [];
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
+    message.hangOutType = object.hangOutType ?? 0;
     return message;
   },
 };
@@ -483,11 +470,11 @@ export interface MachineService {
   ConnectToHangoutMachines(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
-  ): Observable<JoinHangOutMachinesResponse>;
+  ): Observable<HangOutMachinesResponse>;
   JoinHangOutMachines(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
-  ): Promise<JoinHangOutMachinesResponse>;
+  ): Promise<HangOutMachinesResponse>;
 }
 
 export class MachineServiceClientImpl implements MachineService {
@@ -526,7 +513,7 @@ export class MachineServiceClientImpl implements MachineService {
   ConnectToHangoutMachines(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
-  ): Observable<JoinHangOutMachinesResponse> {
+  ): Observable<HangOutMachinesResponse> {
     return this.rpc.invoke(
       MachineServiceConnectToHangoutMachinesDesc,
       Empty.fromPartial(request),
@@ -537,7 +524,7 @@ export class MachineServiceClientImpl implements MachineService {
   JoinHangOutMachines(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
-  ): Promise<JoinHangOutMachinesResponse> {
+  ): Promise<HangOutMachinesResponse> {
     return this.rpc.unary(
       MachineServiceJoinHangOutMachinesDesc,
       Empty.fromPartial(request),
@@ -609,7 +596,7 @@ export const MachineServiceConnectToHangoutMachinesDesc: UnaryMethodDefinitionis
     responseType: {
       deserializeBinary(data: Uint8Array) {
         return {
-          ...JoinHangOutMachinesResponse.decode(data),
+          ...HangOutMachinesResponse.decode(data),
           toObject() {
             return this;
           },
@@ -631,7 +618,7 @@ export const MachineServiceJoinHangOutMachinesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       return {
-        ...JoinHangOutMachinesResponse.decode(data),
+        ...HangOutMachinesResponse.decode(data),
         toObject() {
           return this;
         },
