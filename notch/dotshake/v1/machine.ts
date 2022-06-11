@@ -67,12 +67,13 @@ export interface RemotePeer {
 }
 
 export interface HangOutMachinesResponse {
-  targetMachineKey: string;
+  remotePeers: RemotePeer[];
   /** your ip */
   ip: string;
   /** your cidr */
   cidr: string;
   hangOutType: HangOutType;
+  targetMachineKey: string;
 }
 
 function createBaseGetMachineResponse(): GetMachineResponse {
@@ -363,7 +364,13 @@ export const RemotePeer = {
 };
 
 function createBaseHangOutMachinesResponse(): HangOutMachinesResponse {
-  return { targetMachineKey: "", ip: "", cidr: "", hangOutType: 0 };
+  return {
+    remotePeers: [],
+    ip: "",
+    cidr: "",
+    hangOutType: 0,
+    targetMachineKey: "",
+  };
 }
 
 export const HangOutMachinesResponse = {
@@ -371,8 +378,8 @@ export const HangOutMachinesResponse = {
     message: HangOutMachinesResponse,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.targetMachineKey !== "") {
-      writer.uint32(10).string(message.targetMachineKey);
+    for (const v of message.remotePeers) {
+      RemotePeer.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     if (message.ip !== "") {
       writer.uint32(18).string(message.ip);
@@ -382,6 +389,9 @@ export const HangOutMachinesResponse = {
     }
     if (message.hangOutType !== 0) {
       writer.uint32(32).int32(message.hangOutType);
+    }
+    if (message.targetMachineKey !== "") {
+      writer.uint32(42).string(message.targetMachineKey);
     }
     return writer;
   },
@@ -397,7 +407,7 @@ export const HangOutMachinesResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.targetMachineKey = reader.string();
+          message.remotePeers.push(RemotePeer.decode(reader, reader.uint32()));
           break;
         case 2:
           message.ip = reader.string();
@@ -407,6 +417,9 @@ export const HangOutMachinesResponse = {
           break;
         case 4:
           message.hangOutType = reader.int32() as any;
+          break;
+        case 5:
+          message.targetMachineKey = reader.string();
           break;
         default:
           reader.skipType(tag & 7);
@@ -418,25 +431,35 @@ export const HangOutMachinesResponse = {
 
   fromJSON(object: any): HangOutMachinesResponse {
     return {
-      targetMachineKey: isSet(object.targetMachineKey)
-        ? String(object.targetMachineKey)
-        : "",
+      remotePeers: Array.isArray(object?.remotePeers)
+        ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e))
+        : [],
       ip: isSet(object.ip) ? String(object.ip) : "",
       cidr: isSet(object.cidr) ? String(object.cidr) : "",
       hangOutType: isSet(object.hangOutType)
         ? hangOutTypeFromJSON(object.hangOutType)
         : 0,
+      targetMachineKey: isSet(object.targetMachineKey)
+        ? String(object.targetMachineKey)
+        : "",
     };
   },
 
   toJSON(message: HangOutMachinesResponse): unknown {
     const obj: any = {};
-    message.targetMachineKey !== undefined &&
-      (obj.targetMachineKey = message.targetMachineKey);
+    if (message.remotePeers) {
+      obj.remotePeers = message.remotePeers.map((e) =>
+        e ? RemotePeer.toJSON(e) : undefined
+      );
+    } else {
+      obj.remotePeers = [];
+    }
     message.ip !== undefined && (obj.ip = message.ip);
     message.cidr !== undefined && (obj.cidr = message.cidr);
     message.hangOutType !== undefined &&
       (obj.hangOutType = hangOutTypeToJSON(message.hangOutType));
+    message.targetMachineKey !== undefined &&
+      (obj.targetMachineKey = message.targetMachineKey);
     return obj;
   },
 
@@ -444,10 +467,12 @@ export const HangOutMachinesResponse = {
     object: I
   ): HangOutMachinesResponse {
     const message = createBaseHangOutMachinesResponse();
-    message.targetMachineKey = object.targetMachineKey ?? "";
+    message.remotePeers =
+      object.remotePeers?.map((e) => RemotePeer.fromPartial(e)) || [];
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
     message.hangOutType = object.hangOutType ?? 0;
+    message.targetMachineKey = object.targetMachineKey ?? "";
     return message;
   },
 };
