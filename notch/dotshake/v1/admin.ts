@@ -7,7 +7,7 @@ import { BrowserHeaders } from "browser-headers";
 
 export const protobufPackage = "protos";
 
-export interface GetMachinesResponse {
+export interface Machine {
   domain: string;
   ip: string;
   cidr: string;
@@ -16,13 +16,17 @@ export interface GetMachinesResponse {
   isConnect: boolean;
 }
 
-function createBaseGetMachinesResponse(): GetMachinesResponse {
+export interface GetMachinesResponse {
+  machines: Machine[];
+}
+
+function createBaseMachine(): Machine {
   return { domain: "", ip: "", cidr: "", host: "", os: "", isConnect: false };
 }
 
-export const GetMachinesResponse = {
+export const Machine = {
   encode(
-    message: GetMachinesResponse,
+    message: Machine,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
     if (message.domain !== "") {
@@ -46,10 +50,10 @@ export const GetMachinesResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetMachinesResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Machine {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetMachinesResponse();
+    const message = createBaseMachine();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -79,7 +83,7 @@ export const GetMachinesResponse = {
     return message;
   },
 
-  fromJSON(object: any): GetMachinesResponse {
+  fromJSON(object: any): Machine {
     return {
       domain: isSet(object.domain) ? String(object.domain) : "",
       ip: isSet(object.ip) ? String(object.ip) : "",
@@ -90,7 +94,7 @@ export const GetMachinesResponse = {
     };
   },
 
-  toJSON(message: GetMachinesResponse): unknown {
+  toJSON(message: Machine): unknown {
     const obj: any = {};
     message.domain !== undefined && (obj.domain = message.domain);
     message.ip !== undefined && (obj.ip = message.ip);
@@ -101,16 +105,77 @@ export const GetMachinesResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetMachinesResponse>, I>>(
-    object: I
-  ): GetMachinesResponse {
-    const message = createBaseGetMachinesResponse();
+  fromPartial<I extends Exact<DeepPartial<Machine>, I>>(object: I): Machine {
+    const message = createBaseMachine();
     message.domain = object.domain ?? "";
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
     message.host = object.host ?? "";
     message.os = object.os ?? "";
     message.isConnect = object.isConnect ?? false;
+    return message;
+  },
+};
+
+function createBaseGetMachinesResponse(): GetMachinesResponse {
+  return { machines: [] };
+}
+
+export const GetMachinesResponse = {
+  encode(
+    message: GetMachinesResponse,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    for (const v of message.machines) {
+      Machine.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetMachinesResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetMachinesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.machines.push(Machine.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetMachinesResponse {
+    return {
+      machines: Array.isArray(object?.machines)
+        ? object.machines.map((e: any) => Machine.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: GetMachinesResponse): unknown {
+    const obj: any = {};
+    if (message.machines) {
+      obj.machines = message.machines.map((e) =>
+        e ? Machine.toJSON(e) : undefined
+      );
+    } else {
+      obj.machines = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<GetMachinesResponse>, I>>(
+    object: I
+  ): GetMachinesResponse {
+    const message = createBaseGetMachinesResponse();
+    message.machines =
+      object.machines?.map((e) => Machine.fromPartial(e)) || [];
     return message;
   },
 };
