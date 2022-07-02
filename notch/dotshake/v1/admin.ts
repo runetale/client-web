@@ -1,9 +1,8 @@
 /* eslint-disable */
-import Long from "long";
 import { grpc } from "@improbable-eng/grpc-web";
-import * as _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
 import { BrowserHeaders } from "browser-headers";
+import * as _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "protos";
 
@@ -18,6 +17,11 @@ export interface Machine {
 
 export interface GetMachinesResponse {
   machines: Machine[];
+}
+
+export interface GetMeResponse {
+  username: string;
+  email: string;
 }
 
 function createBaseMachine(): Machine {
@@ -180,11 +184,78 @@ export const GetMachinesResponse = {
   },
 };
 
+function createBaseGetMeResponse(): GetMeResponse {
+  return { username: "", email: "" };
+}
+
+export const GetMeResponse = {
+  encode(
+    message: GetMeResponse,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    if (message.username !== "") {
+      writer.uint32(10).string(message.username);
+    }
+    if (message.email !== "") {
+      writer.uint32(18).string(message.email);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetMeResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetMeResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.username = reader.string();
+          break;
+        case 2:
+          message.email = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetMeResponse {
+    return {
+      username: isSet(object.username) ? String(object.username) : "",
+      email: isSet(object.email) ? String(object.email) : "",
+    };
+  },
+
+  toJSON(message: GetMeResponse): unknown {
+    const obj: any = {};
+    message.username !== undefined && (obj.username = message.username);
+    message.email !== undefined && (obj.email = message.email);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<GetMeResponse>, I>>(
+    object: I
+  ): GetMeResponse {
+    const message = createBaseGetMeResponse();
+    message.username = object.username ?? "";
+    message.email = object.email ?? "";
+    return message;
+  },
+};
+
 export interface AdminService {
   GetMachines(
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
   ): Promise<GetMachinesResponse>;
+  GetMe(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Promise<GetMeResponse>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -193,6 +264,7 @@ export class AdminServiceClientImpl implements AdminService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.GetMachines = this.GetMachines.bind(this);
+    this.GetMe = this.GetMe.bind(this);
   }
 
   GetMachines(
@@ -201,6 +273,17 @@ export class AdminServiceClientImpl implements AdminService {
   ): Promise<GetMachinesResponse> {
     return this.rpc.unary(
       AdminServiceGetMachinesDesc,
+      Empty.fromPartial(request),
+      metadata
+    );
+  }
+
+  GetMe(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Promise<GetMeResponse> {
+    return this.rpc.unary(
+      AdminServiceGetMeDesc,
       Empty.fromPartial(request),
       metadata
     );
@@ -225,6 +308,28 @@ export const AdminServiceGetMachinesDesc: UnaryMethodDefinitionish = {
     deserializeBinary(data: Uint8Array) {
       return {
         ...GetMachinesResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGetMeDesc: UnaryMethodDefinitionish = {
+  methodName: "GetMe",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...GetMeResponse.decode(data),
         toObject() {
           return this;
         },
@@ -332,11 +437,6 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

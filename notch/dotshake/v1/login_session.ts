@@ -1,22 +1,22 @@
 /* eslint-disable */
-import Long from "long";
 import { grpc } from "@improbable-eng/grpc-web";
-import * as _m0 from "protobufjs/minimal";
-import { Observable } from "rxjs";
 import { BrowserHeaders } from "browser-headers";
 import { share } from "rxjs/operators";
+import Long from "long";
+import { Observable } from "rxjs";
+import * as _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
 export interface PeerLoginSessionResponse {
-  /** 使用するwireguardのIPアドレス */
+  /** host ip */
   ip: string;
-  /** 使用するwireguardのIP CIDR */
+  /** host wireguard cidr */
   cidr: string;
-  /** 端末の名前 */
+  /** host name */
   host: string;
-  /** 端末のOS */
+  /** host os */
   os: string;
   signalServerHost: string;
   signalServerPort: number;
@@ -138,7 +138,6 @@ export const PeerLoginSessionResponse = {
 };
 
 export interface LoginSessionService {
-  /** dotshakeクライアントからStream接続を行い立ち上げ完了を受け取る */
   StreamPeerLoginSession(
     request: Observable<DeepPartial<Empty>>,
     metadata?: grpc.Metadata
