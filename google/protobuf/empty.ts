@@ -1,5 +1,4 @@
 /* eslint-disable */
-import Long from "long";
 import * as _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "google.protobuf";
@@ -80,8 +79,3 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
-}

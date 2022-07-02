@@ -1,9 +1,8 @@
 /* eslint-disable */
-import Long from "long";
 import { grpc } from "@improbable-eng/grpc-web";
-import * as _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
 import { BrowserHeaders } from "browser-headers";
+import * as _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "protos";
 
@@ -217,11 +216,6 @@ export type Exact<P, I extends P> = P extends Builtin
         Exclude<keyof I, KeysOfUnion<P>>,
         never
       >;
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

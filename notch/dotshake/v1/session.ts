@@ -1,51 +1,50 @@
 /* eslint-disable */
-import Long from "long";
 import { grpc } from "@improbable-eng/grpc-web";
-import * as _m0 from "protobufjs/minimal";
 import { BrowserHeaders } from "browser-headers";
+import Long from "long";
+import * as _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "protos";
 
 export interface SignInRequest {
-  /** auth0で登録したメールアドレス */
+  /** auth0 email address */
   email: string;
 }
 
 export interface SignInResponse {
   /** 初回ログインがどうかを判断するフラグ */
-  isFirst: boolean;
+  isFirstLogin: boolean;
 }
 
 export interface SignUpRequest {
-  /** auth0のuserID */
+  /** auth0 userID */
   userID: string;
-  /** 端末の名前 */
+  /** host name */
   host: string;
-  /** 端末のOS */
+  /** host os */
   os: string;
 }
 
 export interface SignUpResponse {
-  /** 使用するwireguardのIPアドレス */
+  /** host wireguard ip */
   ip: string;
-  /** 使用するwireguardのIPアドレスのCIDR。今は/24がデフォルトで返ってくる */
+  /** host wireguard cidr */
   cidr: string;
-  /** UDP Hole Punchingするために必要なSignalServerのホストURL */
   signalServerHost: string;
   signalServerPort: number;
 }
 
 export interface VerifyPeerLoginSessionRequest {
-  /** jwtの中に入っているユニークなid */
+  /** jwt session id for etcd */
   sessionID: string;
 }
 
 export interface VerifyPeerLoginSessionResponse {
-  /** 使用するwireguardのIPアドレス */
+  /** host ip */
   ip: string;
-  /** 端末の名前 */
+  /** host name */
   host: string;
-  /** 端末のOS */
+  /** host os */
   os: string;
 }
 
@@ -104,7 +103,7 @@ export const SignInRequest = {
 };
 
 function createBaseSignInResponse(): SignInResponse {
-  return { isFirst: false };
+  return { isFirstLogin: false };
 }
 
 export const SignInResponse = {
@@ -112,8 +111,8 @@ export const SignInResponse = {
     message: SignInResponse,
     writer: _m0.Writer = _m0.Writer.create()
   ): _m0.Writer {
-    if (message.isFirst === true) {
-      writer.uint32(8).bool(message.isFirst);
+    if (message.isFirstLogin === true) {
+      writer.uint32(8).bool(message.isFirstLogin);
     }
     return writer;
   },
@@ -126,7 +125,7 @@ export const SignInResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          message.isFirst = reader.bool();
+          message.isFirstLogin = reader.bool();
           break;
         default:
           reader.skipType(tag & 7);
@@ -138,13 +137,16 @@ export const SignInResponse = {
 
   fromJSON(object: any): SignInResponse {
     return {
-      isFirst: isSet(object.isFirst) ? Boolean(object.isFirst) : false,
+      isFirstLogin: isSet(object.isFirstLogin)
+        ? Boolean(object.isFirstLogin)
+        : false,
     };
   },
 
   toJSON(message: SignInResponse): unknown {
     const obj: any = {};
-    message.isFirst !== undefined && (obj.isFirst = message.isFirst);
+    message.isFirstLogin !== undefined &&
+      (obj.isFirstLogin = message.isFirstLogin);
     return obj;
   },
 
@@ -152,7 +154,7 @@ export const SignInResponse = {
     object: I
   ): SignInResponse {
     const message = createBaseSignInResponse();
-    message.isFirst = object.isFirst ?? false;
+    message.isFirstLogin = object.isFirstLogin ?? false;
     return message;
   },
 };
@@ -449,23 +451,14 @@ export const VerifyPeerLoginSessionResponse = {
 };
 
 export interface SessionService {
-  /** Auth0ログイン後、/adminにリダイレクトした時に叩かれる */
   SignIn(
     request: DeepPartial<SignInRequest>,
     metadata?: grpc.Metadata
   ): Promise<SignInResponse>;
-  /**
-   * /adminにリダイレクトし、SignInのRPCを叩いた後にdotshake側で叩くRPC
-   * Webからログインせずにdotshakeから直接叩く場合(ユーザーがまだ作られていない場合)はユーザーの作成、つまりSignInを行う
-   */
   SignUp(
     request: DeepPartial<SignUpRequest>,
     metadata?: grpc.Metadata
   ): Promise<SignUpResponse>;
-  /**
-   * dotshakeのクライアントからログインするときに発行されたURLを踏んだ時に叩かれるRPC
-   * クライアント側でTokenの検証を行った後に叩く
-   */
   VerifyPeerLoginSession(
     request: DeepPartial<VerifyPeerLoginSessionRequest>,
     metadata?: grpc.Metadata
