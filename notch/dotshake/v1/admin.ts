@@ -24,6 +24,17 @@ export interface GetMeResponse {
   email: string;
 }
 
+export interface User {
+  username: string;
+  email: string;
+  joined: string;
+  picture: string;
+}
+
+export interface GetUsersResponse {
+  users: User[];
+}
+
 function createBaseMachine(): Machine {
   return { domain: "", ip: "", cidr: "", host: "", os: "", isConnect: false };
 }
@@ -247,6 +258,142 @@ export const GetMeResponse = {
   },
 };
 
+function createBaseUser(): User {
+  return { username: "", email: "", joined: "", picture: "" };
+}
+
+export const User = {
+  encode(message: User, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.username !== "") {
+      writer.uint32(10).string(message.username);
+    }
+    if (message.email !== "") {
+      writer.uint32(18).string(message.email);
+    }
+    if (message.joined !== "") {
+      writer.uint32(26).string(message.joined);
+    }
+    if (message.picture !== "") {
+      writer.uint32(34).string(message.picture);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): User {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUser();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.username = reader.string();
+          break;
+        case 2:
+          message.email = reader.string();
+          break;
+        case 3:
+          message.joined = reader.string();
+          break;
+        case 4:
+          message.picture = reader.string();
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): User {
+    return {
+      username: isSet(object.username) ? String(object.username) : "",
+      email: isSet(object.email) ? String(object.email) : "",
+      joined: isSet(object.joined) ? String(object.joined) : "",
+      picture: isSet(object.picture) ? String(object.picture) : "",
+    };
+  },
+
+  toJSON(message: User): unknown {
+    const obj: any = {};
+    message.username !== undefined && (obj.username = message.username);
+    message.email !== undefined && (obj.email = message.email);
+    message.joined !== undefined && (obj.joined = message.joined);
+    message.picture !== undefined && (obj.picture = message.picture);
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
+    const message = createBaseUser();
+    message.username = object.username ?? "";
+    message.email = object.email ?? "";
+    message.joined = object.joined ?? "";
+    message.picture = object.picture ?? "";
+    return message;
+  },
+};
+
+function createBaseGetUsersResponse(): GetUsersResponse {
+  return { users: [] };
+}
+
+export const GetUsersResponse = {
+  encode(
+    message: GetUsersResponse,
+    writer: _m0.Writer = _m0.Writer.create()
+  ): _m0.Writer {
+    for (const v of message.users) {
+      User.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetUsersResponse {
+    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUsersResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          message.users.push(User.decode(reader, reader.uint32()));
+          break;
+        default:
+          reader.skipType(tag & 7);
+          break;
+      }
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetUsersResponse {
+    return {
+      users: Array.isArray(object?.users)
+        ? object.users.map((e: any) => User.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: GetUsersResponse): unknown {
+    const obj: any = {};
+    if (message.users) {
+      obj.users = message.users.map((e) => (e ? User.toJSON(e) : undefined));
+    } else {
+      obj.users = [];
+    }
+    return obj;
+  },
+
+  fromPartial<I extends Exact<DeepPartial<GetUsersResponse>, I>>(
+    object: I
+  ): GetUsersResponse {
+    const message = createBaseGetUsersResponse();
+    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 export interface AdminService {
   GetMachines(
     request: DeepPartial<Empty>,
@@ -256,6 +403,10 @@ export interface AdminService {
     request: DeepPartial<Empty>,
     metadata?: grpc.Metadata
   ): Promise<GetMeResponse>;
+  GetUsers(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Promise<GetUsersResponse>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -265,6 +416,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.rpc = rpc;
     this.GetMachines = this.GetMachines.bind(this);
     this.GetMe = this.GetMe.bind(this);
+    this.GetUsers = this.GetUsers.bind(this);
   }
 
   GetMachines(
@@ -284,6 +436,17 @@ export class AdminServiceClientImpl implements AdminService {
   ): Promise<GetMeResponse> {
     return this.rpc.unary(
       AdminServiceGetMeDesc,
+      Empty.fromPartial(request),
+      metadata
+    );
+  }
+
+  GetUsers(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata
+  ): Promise<GetUsersResponse> {
+    return this.rpc.unary(
+      AdminServiceGetUsersDesc,
       Empty.fromPartial(request),
       metadata
     );
@@ -330,6 +493,28 @@ export const AdminServiceGetMeDesc: UnaryMethodDefinitionish = {
     deserializeBinary(data: Uint8Array) {
       return {
         ...GetMeResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGetUsersDesc: UnaryMethodDefinitionish = {
+  methodName: "GetUsers",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...GetUsersResponse.decode(data),
         toObject() {
           return this;
         },
