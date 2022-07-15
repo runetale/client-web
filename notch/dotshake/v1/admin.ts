@@ -28,6 +28,7 @@ export interface User {
   username: string;
   email: string;
   joined: string;
+  lastSeen: string;
   picture: string;
 }
 
@@ -259,7 +260,7 @@ export const GetMeResponse = {
 };
 
 function createBaseUser(): User {
-  return { username: "", email: "", joined: "", picture: "" };
+  return { username: "", email: "", joined: "", lastSeen: "", picture: "" };
 }
 
 export const User = {
@@ -273,8 +274,11 @@ export const User = {
     if (message.joined !== "") {
       writer.uint32(26).string(message.joined);
     }
+    if (message.lastSeen !== "") {
+      writer.uint32(34).string(message.lastSeen);
+    }
     if (message.picture !== "") {
-      writer.uint32(34).string(message.picture);
+      writer.uint32(42).string(message.picture);
     }
     return writer;
   },
@@ -296,6 +300,9 @@ export const User = {
           message.joined = reader.string();
           break;
         case 4:
+          message.lastSeen = reader.string();
+          break;
+        case 5:
           message.picture = reader.string();
           break;
         default:
@@ -311,6 +318,7 @@ export const User = {
       username: isSet(object.username) ? String(object.username) : "",
       email: isSet(object.email) ? String(object.email) : "",
       joined: isSet(object.joined) ? String(object.joined) : "",
+      lastSeen: isSet(object.lastSeen) ? String(object.lastSeen) : "",
       picture: isSet(object.picture) ? String(object.picture) : "",
     };
   },
@@ -320,6 +328,7 @@ export const User = {
     message.username !== undefined && (obj.username = message.username);
     message.email !== undefined && (obj.email = message.email);
     message.joined !== undefined && (obj.joined = message.joined);
+    message.lastSeen !== undefined && (obj.lastSeen = message.lastSeen);
     message.picture !== undefined && (obj.picture = message.picture);
     return obj;
   },
@@ -329,6 +338,7 @@ export const User = {
     message.username = object.username ?? "";
     message.email = object.email ?? "";
     message.joined = object.joined ?? "";
+    message.lastSeen = object.lastSeen ?? "";
     message.picture = object.picture ?? "";
     return message;
   },
