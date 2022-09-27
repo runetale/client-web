@@ -1,10 +1,10 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
-import { share } from "rxjs/operators";
 import Long from "long";
+import _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
-import * as _m0 from "protobufjs/minimal";
+import { share } from "rxjs/operators";
 import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
@@ -23,21 +23,11 @@ export interface PeerLoginSessionResponse {
 }
 
 function createBasePeerLoginSessionResponse(): PeerLoginSessionResponse {
-  return {
-    ip: "",
-    cidr: "",
-    host: "",
-    os: "",
-    signalServerHost: "",
-    signalServerPort: 0,
-  };
+  return { ip: "", cidr: "", host: "", os: "", signalServerHost: "", signalServerPort: 0 };
 }
 
 export const PeerLoginSessionResponse = {
-  encode(
-    message: PeerLoginSessionResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: PeerLoginSessionResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.ip !== "") {
       writer.uint32(10).string(message.ip);
     }
@@ -59,10 +49,7 @@ export const PeerLoginSessionResponse = {
     return writer;
   },
 
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): PeerLoginSessionResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): PeerLoginSessionResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePeerLoginSessionResponse();
@@ -101,12 +88,8 @@ export const PeerLoginSessionResponse = {
       cidr: isSet(object.cidr) ? String(object.cidr) : "",
       host: isSet(object.host) ? String(object.host) : "",
       os: isSet(object.os) ? String(object.os) : "",
-      signalServerHost: isSet(object.signalServerHost)
-        ? String(object.signalServerHost)
-        : "",
-      signalServerPort: isSet(object.signalServerPort)
-        ? Number(object.signalServerPort)
-        : 0,
+      signalServerHost: isSet(object.signalServerHost) ? String(object.signalServerHost) : "",
+      signalServerPort: isSet(object.signalServerPort) ? Number(object.signalServerPort) : 0,
     };
   },
 
@@ -116,16 +99,12 @@ export const PeerLoginSessionResponse = {
     message.cidr !== undefined && (obj.cidr = message.cidr);
     message.host !== undefined && (obj.host = message.host);
     message.os !== undefined && (obj.os = message.os);
-    message.signalServerHost !== undefined &&
-      (obj.signalServerHost = message.signalServerHost);
-    message.signalServerPort !== undefined &&
-      (obj.signalServerPort = Math.round(message.signalServerPort));
+    message.signalServerHost !== undefined && (obj.signalServerHost = message.signalServerHost);
+    message.signalServerPort !== undefined && (obj.signalServerPort = Math.round(message.signalServerPort));
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<PeerLoginSessionResponse>, I>>(
-    object: I
-  ): PeerLoginSessionResponse {
+  fromPartial<I extends Exact<DeepPartial<PeerLoginSessionResponse>, I>>(object: I): PeerLoginSessionResponse {
     const message = createBasePeerLoginSessionResponse();
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
@@ -140,7 +119,7 @@ export const PeerLoginSessionResponse = {
 export interface LoginSessionService {
   StreamPeerLoginSession(
     request: Observable<DeepPartial<Empty>>,
-    metadata?: grpc.Metadata
+    metadata?: grpc.Metadata,
   ): Observable<PeerLoginSessionResponse>;
 }
 
@@ -154,18 +133,15 @@ export class LoginSessionServiceClientImpl implements LoginSessionService {
 
   StreamPeerLoginSession(
     request: Observable<DeepPartial<Empty>>,
-    metadata?: grpc.Metadata
+    metadata?: grpc.Metadata,
   ): Observable<PeerLoginSessionResponse> {
     throw new Error("ts-proto does not yet support client streaming!");
   }
 }
 
-export const LoginSessionServiceDesc = {
-  serviceName: "protos.LoginSessionService",
-};
+export const LoginSessionServiceDesc = { serviceName: "protos.LoginSessionService" };
 
-interface UnaryMethodDefinitionishR
-  extends grpc.UnaryMethodDefinition<any, any> {
+interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
 }
@@ -176,12 +152,12 @@ interface Rpc {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any>;
   invoke<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Observable<any>;
 }
 
@@ -192,6 +168,7 @@ export class GrpcWebImpl {
     streamingTransport?: grpc.TransportFactory;
     debug?: boolean;
     metadata?: grpc.Metadata;
+    upStreamRetryCodes?: number[];
   };
 
   constructor(
@@ -201,7 +178,8 @@ export class GrpcWebImpl {
       streamingTransport?: grpc.TransportFactory;
       debug?: boolean;
       metadata?: grpc.Metadata;
-    }
+      upStreamRetryCodes?: number[];
+    },
   ) {
     this.host = host;
     this.options = options;
@@ -210,16 +188,12 @@ export class GrpcWebImpl {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     _request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({
-            ...this.options?.metadata.headersMap,
-            ...metadata?.headersMap,
-          })
-        : metadata || this.options.metadata;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata || this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -231,9 +205,7 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message);
           } else {
-            const err = new Error(response.statusMessage) as any;
-            err.code = response.status;
-            err.metadata = response.trailers;
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
@@ -244,21 +216,16 @@ export class GrpcWebImpl {
   invoke<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     _request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Observable<any> {
-    // Status Response Codes (https://developers.google.com/maps-booking/reference/grpc-api/status_codes)
-    const upStreamCodes = [2, 4, 8, 9, 10, 13, 14, 15];
+    const upStreamCodes = this.options.upStreamRetryCodes || [];
     const DEFAULT_TIMEOUT_TIME: number = 3_000;
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({
-            ...this.options?.metadata.headersMap,
-            ...metadata?.headersMap,
-          })
-        : metadata || this.options.metadata;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata || this.options.metadata;
     return new Observable((observer) => {
-      const upStream = () => {
+      const upStream = (() => {
         const client = grpc.invoke(methodDesc, {
           host: this.host,
           request,
@@ -266,18 +233,21 @@ export class GrpcWebImpl {
           metadata: maybeCombinedMetadata,
           debug: this.options.debug,
           onMessage: (next) => observer.next(next),
-          onEnd: (code: grpc.Code, message: string) => {
+          onEnd: (code: grpc.Code, message: string, trailers: grpc.Metadata) => {
             if (code === 0) {
               observer.complete();
             } else if (upStreamCodes.includes(code)) {
               setTimeout(upStream, DEFAULT_TIMEOUT_TIME);
             } else {
-              observer.error(new Error(`Error ${code} ${message}`));
+              const err = new Error(message) as any;
+              err.code = code;
+              err.metadata = trailers;
+              observer.error(err);
             }
           },
         });
         observer.add(() => client.close());
-      };
+      });
       upStream();
     }).pipe(share());
   }
@@ -287,39 +257,31 @@ declare var self: any | undefined;
 declare var window: any | undefined;
 declare var global: any | undefined;
 var globalThis: any = (() => {
-  if (typeof globalThis !== "undefined") return globalThis;
-  if (typeof self !== "undefined") return self;
-  if (typeof window !== "undefined") return window;
-  if (typeof global !== "undefined") return global;
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
   throw "Unable to locate global object";
 })();
 
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
@@ -335,4 +297,10 @@ if (_m0.util.Long !== Long) {
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
+}
+
+export class GrpcWebError extends Error {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+    super(message);
+  }
 }

@@ -1,10 +1,10 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
-import { Empty } from "../../../google/protobuf/empty";
 import { BrowserHeaders } from "browser-headers";
-import { share } from "rxjs/operators";
+import _m0 from "protobufjs/minimal";
 import { Observable } from "rxjs";
-import * as _m0 from "protobufjs/minimal";
+import { share } from "rxjs/operators";
+import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
@@ -85,21 +85,11 @@ export interface CandidateRequest {
 }
 
 function createBaseNegotiationRequest(): NegotiationRequest {
-  return {
-    type: 0,
-    dstPeerMachineKey: "",
-    srcWgPubKey: "",
-    uFlag: "",
-    pwd: "",
-    candidate: "",
-  };
+  return { type: 0, dstPeerMachineKey: "", srcWgPubKey: "", uFlag: "", pwd: "", candidate: "" };
 }
 
 export const NegotiationRequest = {
-  encode(
-    message: NegotiationRequest,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: NegotiationRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
@@ -157,9 +147,7 @@ export const NegotiationRequest = {
   fromJSON(object: any): NegotiationRequest {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey)
-        ? String(object.dstPeerMachineKey)
-        : "",
+      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? String(object.dstPeerMachineKey) : "",
       srcWgPubKey: isSet(object.srcWgPubKey) ? String(object.srcWgPubKey) : "",
       uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? String(object.pwd) : "",
@@ -169,21 +157,16 @@ export const NegotiationRequest = {
 
   toJSON(message: NegotiationRequest): unknown {
     const obj: any = {};
-    message.type !== undefined &&
-      (obj.type = negotiationTypeToJSON(message.type));
-    message.dstPeerMachineKey !== undefined &&
-      (obj.dstPeerMachineKey = message.dstPeerMachineKey);
-    message.srcWgPubKey !== undefined &&
-      (obj.srcWgPubKey = message.srcWgPubKey);
+    message.type !== undefined && (obj.type = negotiationTypeToJSON(message.type));
+    message.dstPeerMachineKey !== undefined && (obj.dstPeerMachineKey = message.dstPeerMachineKey);
+    message.srcWgPubKey !== undefined && (obj.srcWgPubKey = message.srcWgPubKey);
     message.uFlag !== undefined && (obj.uFlag = message.uFlag);
     message.pwd !== undefined && (obj.pwd = message.pwd);
     message.candidate !== undefined && (obj.candidate = message.candidate);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<NegotiationRequest>, I>>(
-    object: I
-  ): NegotiationRequest {
+  fromPartial<I extends Exact<DeepPartial<NegotiationRequest>, I>>(object: I): NegotiationRequest {
     const message = createBaseNegotiationRequest();
     message.type = object.type ?? 0;
     message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
@@ -200,10 +183,7 @@ function createBaseNegotiationResponse(): NegotiationResponse {
 }
 
 export const NegotiationResponse = {
-  encode(
-    message: NegotiationResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: NegotiationResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
@@ -255,9 +235,7 @@ export const NegotiationResponse = {
   fromJSON(object: any): NegotiationResponse {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey)
-        ? String(object.dstPeerMachineKey)
-        : "",
+      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? String(object.dstPeerMachineKey) : "",
       uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? String(object.pwd) : "",
       candidate: isSet(object.candidate) ? String(object.candidate) : "",
@@ -266,19 +244,15 @@ export const NegotiationResponse = {
 
   toJSON(message: NegotiationResponse): unknown {
     const obj: any = {};
-    message.type !== undefined &&
-      (obj.type = negotiationTypeToJSON(message.type));
-    message.dstPeerMachineKey !== undefined &&
-      (obj.dstPeerMachineKey = message.dstPeerMachineKey);
+    message.type !== undefined && (obj.type = negotiationTypeToJSON(message.type));
+    message.dstPeerMachineKey !== undefined && (obj.dstPeerMachineKey = message.dstPeerMachineKey);
     message.uFlag !== undefined && (obj.uFlag = message.uFlag);
     message.pwd !== undefined && (obj.pwd = message.pwd);
     message.candidate !== undefined && (obj.candidate = message.candidate);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<NegotiationResponse>, I>>(
-    object: I
-  ): NegotiationResponse {
+  fromPartial<I extends Exact<DeepPartial<NegotiationResponse>, I>>(object: I): NegotiationResponse {
     const message = createBaseNegotiationResponse();
     message.type = object.type ?? 0;
     message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
@@ -294,10 +268,7 @@ function createBaseHandshakeRequest(): HandshakeRequest {
 }
 
 export const HandshakeRequest = {
-  encode(
-    message: HandshakeRequest,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: HandshakeRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.dstPeerMachineKey !== "") {
       writer.uint32(10).string(message.dstPeerMachineKey);
     }
@@ -342,12 +313,8 @@ export const HandshakeRequest = {
 
   fromJSON(object: any): HandshakeRequest {
     return {
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey)
-        ? String(object.dstPeerMachineKey)
-        : "",
-      srcPeerMachineKey: isSet(object.srcPeerMachineKey)
-        ? String(object.srcPeerMachineKey)
-        : "",
+      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? String(object.dstPeerMachineKey) : "",
+      srcPeerMachineKey: isSet(object.srcPeerMachineKey) ? String(object.srcPeerMachineKey) : "",
       uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? String(object.pwd) : "",
     };
@@ -355,18 +322,14 @@ export const HandshakeRequest = {
 
   toJSON(message: HandshakeRequest): unknown {
     const obj: any = {};
-    message.dstPeerMachineKey !== undefined &&
-      (obj.dstPeerMachineKey = message.dstPeerMachineKey);
-    message.srcPeerMachineKey !== undefined &&
-      (obj.srcPeerMachineKey = message.srcPeerMachineKey);
+    message.dstPeerMachineKey !== undefined && (obj.dstPeerMachineKey = message.dstPeerMachineKey);
+    message.srcPeerMachineKey !== undefined && (obj.srcPeerMachineKey = message.srcPeerMachineKey);
     message.uFlag !== undefined && (obj.uFlag = message.uFlag);
     message.pwd !== undefined && (obj.pwd = message.pwd);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<HandshakeRequest>, I>>(
-    object: I
-  ): HandshakeRequest {
+  fromPartial<I extends Exact<DeepPartial<HandshakeRequest>, I>>(object: I): HandshakeRequest {
     const message = createBaseHandshakeRequest();
     message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
     message.srcPeerMachineKey = object.srcPeerMachineKey ?? "";
@@ -381,10 +344,7 @@ function createBaseCandidateRequest(): CandidateRequest {
 }
 
 export const CandidateRequest = {
-  encode(
-    message: CandidateRequest,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: CandidateRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.dstPeerMachineKey !== "") {
       writer.uint32(10).string(message.dstPeerMachineKey);
     }
@@ -423,29 +383,21 @@ export const CandidateRequest = {
 
   fromJSON(object: any): CandidateRequest {
     return {
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey)
-        ? String(object.dstPeerMachineKey)
-        : "",
-      srcPeerMachineKey: isSet(object.srcPeerMachineKey)
-        ? String(object.srcPeerMachineKey)
-        : "",
+      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? String(object.dstPeerMachineKey) : "",
+      srcPeerMachineKey: isSet(object.srcPeerMachineKey) ? String(object.srcPeerMachineKey) : "",
       candidate: isSet(object.candidate) ? String(object.candidate) : "",
     };
   },
 
   toJSON(message: CandidateRequest): unknown {
     const obj: any = {};
-    message.dstPeerMachineKey !== undefined &&
-      (obj.dstPeerMachineKey = message.dstPeerMachineKey);
-    message.srcPeerMachineKey !== undefined &&
-      (obj.srcPeerMachineKey = message.srcPeerMachineKey);
+    message.dstPeerMachineKey !== undefined && (obj.dstPeerMachineKey = message.dstPeerMachineKey);
+    message.srcPeerMachineKey !== undefined && (obj.srcPeerMachineKey = message.srcPeerMachineKey);
     message.candidate !== undefined && (obj.candidate = message.candidate);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<CandidateRequest>, I>>(
-    object: I
-  ): CandidateRequest {
+  fromPartial<I extends Exact<DeepPartial<CandidateRequest>, I>>(object: I): CandidateRequest {
     const message = createBaseCandidateRequest();
     message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
     message.srcPeerMachineKey = object.srcPeerMachineKey ?? "";
@@ -455,21 +407,12 @@ export const CandidateRequest = {
 };
 
 export interface NegotiationService {
-  Offer(
-    request: DeepPartial<HandshakeRequest>,
-    metadata?: grpc.Metadata
-  ): Promise<Empty>;
-  Answer(
-    request: DeepPartial<HandshakeRequest>,
-    metadata?: grpc.Metadata
-  ): Promise<Empty>;
-  Candidate(
-    request: DeepPartial<CandidateRequest>,
-    metadata?: grpc.Metadata
-  ): Promise<Empty>;
+  Offer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+  Answer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+  Candidate(request: DeepPartial<CandidateRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   StartConnect(
     request: Observable<DeepPartial<NegotiationRequest>>,
-    metadata?: grpc.Metadata
+    metadata?: grpc.Metadata,
   ): Observable<NegotiationRequest>;
 }
 
@@ -484,50 +427,27 @@ export class NegotiationServiceClientImpl implements NegotiationService {
     this.StartConnect = this.StartConnect.bind(this);
   }
 
-  Offer(
-    request: DeepPartial<HandshakeRequest>,
-    metadata?: grpc.Metadata
-  ): Promise<Empty> {
-    return this.rpc.unary(
-      NegotiationServiceOfferDesc,
-      HandshakeRequest.fromPartial(request),
-      metadata
-    );
+  Offer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(NegotiationServiceOfferDesc, HandshakeRequest.fromPartial(request), metadata);
   }
 
-  Answer(
-    request: DeepPartial<HandshakeRequest>,
-    metadata?: grpc.Metadata
-  ): Promise<Empty> {
-    return this.rpc.unary(
-      NegotiationServiceAnswerDesc,
-      HandshakeRequest.fromPartial(request),
-      metadata
-    );
+  Answer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(NegotiationServiceAnswerDesc, HandshakeRequest.fromPartial(request), metadata);
   }
 
-  Candidate(
-    request: DeepPartial<CandidateRequest>,
-    metadata?: grpc.Metadata
-  ): Promise<Empty> {
-    return this.rpc.unary(
-      NegotiationServiceCandidateDesc,
-      CandidateRequest.fromPartial(request),
-      metadata
-    );
+  Candidate(request: DeepPartial<CandidateRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(NegotiationServiceCandidateDesc, CandidateRequest.fromPartial(request), metadata);
   }
 
   StartConnect(
     request: Observable<DeepPartial<NegotiationRequest>>,
-    metadata?: grpc.Metadata
+    metadata?: grpc.Metadata,
   ): Observable<NegotiationRequest> {
     throw new Error("ts-proto does not yet support client streaming!");
   }
 }
 
-export const NegotiationServiceDesc = {
-  serviceName: "protos.NegotiationService",
-};
+export const NegotiationServiceDesc = { serviceName: "protos.NegotiationService" };
 
 export const NegotiationServiceOfferDesc: UnaryMethodDefinitionish = {
   methodName: "Offer",
@@ -595,8 +515,7 @@ export const NegotiationServiceCandidateDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-interface UnaryMethodDefinitionishR
-  extends grpc.UnaryMethodDefinition<any, any> {
+interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
 }
@@ -607,12 +526,12 @@ interface Rpc {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any>;
   invoke<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Observable<any>;
 }
 
@@ -623,6 +542,7 @@ export class GrpcWebImpl {
     streamingTransport?: grpc.TransportFactory;
     debug?: boolean;
     metadata?: grpc.Metadata;
+    upStreamRetryCodes?: number[];
   };
 
   constructor(
@@ -632,7 +552,8 @@ export class GrpcWebImpl {
       streamingTransport?: grpc.TransportFactory;
       debug?: boolean;
       metadata?: grpc.Metadata;
-    }
+      upStreamRetryCodes?: number[];
+    },
   ) {
     this.host = host;
     this.options = options;
@@ -641,16 +562,12 @@ export class GrpcWebImpl {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     _request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({
-            ...this.options?.metadata.headersMap,
-            ...metadata?.headersMap,
-          })
-        : metadata || this.options.metadata;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata || this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -662,9 +579,7 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message);
           } else {
-            const err = new Error(response.statusMessage) as any;
-            err.code = response.status;
-            err.metadata = response.trailers;
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
@@ -675,21 +590,16 @@ export class GrpcWebImpl {
   invoke<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     _request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Observable<any> {
-    // Status Response Codes (https://developers.google.com/maps-booking/reference/grpc-api/status_codes)
-    const upStreamCodes = [2, 4, 8, 9, 10, 13, 14, 15];
+    const upStreamCodes = this.options.upStreamRetryCodes || [];
     const DEFAULT_TIMEOUT_TIME: number = 3_000;
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({
-            ...this.options?.metadata.headersMap,
-            ...metadata?.headersMap,
-          })
-        : metadata || this.options.metadata;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata || this.options.metadata;
     return new Observable((observer) => {
-      const upStream = () => {
+      const upStream = (() => {
         const client = grpc.invoke(methodDesc, {
           host: this.host,
           request,
@@ -697,50 +607,43 @@ export class GrpcWebImpl {
           metadata: maybeCombinedMetadata,
           debug: this.options.debug,
           onMessage: (next) => observer.next(next),
-          onEnd: (code: grpc.Code, message: string) => {
+          onEnd: (code: grpc.Code, message: string, trailers: grpc.Metadata) => {
             if (code === 0) {
               observer.complete();
             } else if (upStreamCodes.includes(code)) {
               setTimeout(upStream, DEFAULT_TIMEOUT_TIME);
             } else {
-              observer.error(new Error(`Error ${code} ${message}`));
+              const err = new Error(message) as any;
+              err.code = code;
+              err.metadata = trailers;
+              observer.error(err);
             }
           },
         });
         observer.add(() => client.close());
-      };
+      });
       upStream();
     }).pipe(share());
   }
 }
 
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
+}
+
+export class GrpcWebError extends Error {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+    super(message);
+  }
 }

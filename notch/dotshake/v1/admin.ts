@@ -1,8 +1,8 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
-import { Empty } from "../../../google/protobuf/empty";
 import { BrowserHeaders } from "browser-headers";
-import * as _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
+import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
@@ -41,10 +41,7 @@ function createBaseMachine(): Machine {
 }
 
 export const Machine = {
-  encode(
-    message: Machine,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: Machine, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.domain !== "") {
       writer.uint32(10).string(message.domain);
     }
@@ -138,10 +135,7 @@ function createBaseGetMachinesResponse(): GetMachinesResponse {
 }
 
 export const GetMachinesResponse = {
-  encode(
-    message: GetMachinesResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: GetMachinesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.machines) {
       Machine.encode(v!, writer.uint32(10).fork()).ldelim();
     }
@@ -167,31 +161,22 @@ export const GetMachinesResponse = {
   },
 
   fromJSON(object: any): GetMachinesResponse {
-    return {
-      machines: Array.isArray(object?.machines)
-        ? object.machines.map((e: any) => Machine.fromJSON(e))
-        : [],
-    };
+    return { machines: Array.isArray(object?.machines) ? object.machines.map((e: any) => Machine.fromJSON(e)) : [] };
   },
 
   toJSON(message: GetMachinesResponse): unknown {
     const obj: any = {};
     if (message.machines) {
-      obj.machines = message.machines.map((e) =>
-        e ? Machine.toJSON(e) : undefined
-      );
+      obj.machines = message.machines.map((e) => e ? Machine.toJSON(e) : undefined);
     } else {
       obj.machines = [];
     }
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetMachinesResponse>, I>>(
-    object: I
-  ): GetMachinesResponse {
+  fromPartial<I extends Exact<DeepPartial<GetMachinesResponse>, I>>(object: I): GetMachinesResponse {
     const message = createBaseGetMachinesResponse();
-    message.machines =
-      object.machines?.map((e) => Machine.fromPartial(e)) || [];
+    message.machines = object.machines?.map((e) => Machine.fromPartial(e)) || [];
     return message;
   },
 };
@@ -201,10 +186,7 @@ function createBaseGetMeResponse(): GetMeResponse {
 }
 
 export const GetMeResponse = {
-  encode(
-    message: GetMeResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: GetMeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.username !== "") {
       writer.uint32(10).string(message.username);
     }
@@ -249,9 +231,7 @@ export const GetMeResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetMeResponse>, I>>(
-    object: I
-  ): GetMeResponse {
+  fromPartial<I extends Exact<DeepPartial<GetMeResponse>, I>>(object: I): GetMeResponse {
     const message = createBaseGetMeResponse();
     message.username = object.username ?? "";
     message.email = object.email ?? "";
@@ -349,10 +329,7 @@ function createBaseGetUsersResponse(): GetUsersResponse {
 }
 
 export const GetUsersResponse = {
-  encode(
-    message: GetUsersResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: GetUsersResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.users) {
       User.encode(v!, writer.uint32(10).fork()).ldelim();
     }
@@ -378,26 +355,20 @@ export const GetUsersResponse = {
   },
 
   fromJSON(object: any): GetUsersResponse {
-    return {
-      users: Array.isArray(object?.users)
-        ? object.users.map((e: any) => User.fromJSON(e))
-        : [],
-    };
+    return { users: Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [] };
   },
 
   toJSON(message: GetUsersResponse): unknown {
     const obj: any = {};
     if (message.users) {
-      obj.users = message.users.map((e) => (e ? User.toJSON(e) : undefined));
+      obj.users = message.users.map((e) => e ? User.toJSON(e) : undefined);
     } else {
       obj.users = [];
     }
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetUsersResponse>, I>>(
-    object: I
-  ): GetUsersResponse {
+  fromPartial<I extends Exact<DeepPartial<GetUsersResponse>, I>>(object: I): GetUsersResponse {
     const message = createBaseGetUsersResponse();
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
     return message;
@@ -405,18 +376,9 @@ export const GetUsersResponse = {
 };
 
 export interface AdminService {
-  GetMachines(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<GetMachinesResponse>;
-  GetMe(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<GetMeResponse>;
-  GetUsers(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<GetUsersResponse>;
+  GetMachines(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachinesResponse>;
+  GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse>;
+  GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetUsersResponse>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -429,43 +391,20 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetUsers = this.GetUsers.bind(this);
   }
 
-  GetMachines(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<GetMachinesResponse> {
-    return this.rpc.unary(
-      AdminServiceGetMachinesDesc,
-      Empty.fromPartial(request),
-      metadata
-    );
+  GetMachines(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachinesResponse> {
+    return this.rpc.unary(AdminServiceGetMachinesDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetMe(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<GetMeResponse> {
-    return this.rpc.unary(
-      AdminServiceGetMeDesc,
-      Empty.fromPartial(request),
-      metadata
-    );
+  GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse> {
+    return this.rpc.unary(AdminServiceGetMeDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetUsers(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<GetUsersResponse> {
-    return this.rpc.unary(
-      AdminServiceGetUsersDesc,
-      Empty.fromPartial(request),
-      metadata
-    );
+  GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetUsersResponse> {
+    return this.rpc.unary(AdminServiceGetUsersDesc, Empty.fromPartial(request), metadata);
   }
 }
 
-export const AdminServiceDesc = {
-  serviceName: "protos.AdminService",
-};
+export const AdminServiceDesc = { serviceName: "protos.AdminService" };
 
 export const AdminServiceGetMachinesDesc: UnaryMethodDefinitionish = {
   methodName: "GetMachines",
@@ -533,8 +472,7 @@ export const AdminServiceGetUsersDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-interface UnaryMethodDefinitionishR
-  extends grpc.UnaryMethodDefinition<any, any> {
+interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
 }
@@ -545,7 +483,7 @@ interface Rpc {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any>;
 }
 
@@ -556,6 +494,7 @@ export class GrpcWebImpl {
 
     debug?: boolean;
     metadata?: grpc.Metadata;
+    upStreamRetryCodes?: number[];
   };
 
   constructor(
@@ -565,7 +504,8 @@ export class GrpcWebImpl {
 
       debug?: boolean;
       metadata?: grpc.Metadata;
-    }
+      upStreamRetryCodes?: number[];
+    },
   ) {
     this.host = host;
     this.options = options;
@@ -574,16 +514,12 @@ export class GrpcWebImpl {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     _request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({
-            ...this.options?.metadata.headersMap,
-            ...metadata?.headersMap,
-          })
-        : metadata || this.options.metadata;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata || this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -595,9 +531,7 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message);
           } else {
-            const err = new Error(response.statusMessage) as any;
-            err.code = response.status;
-            err.metadata = response.trailers;
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
@@ -606,33 +540,23 @@ export class GrpcWebImpl {
   }
 }
 
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
+}
+
+export class GrpcWebError extends Error {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+    super(message);
+  }
 }

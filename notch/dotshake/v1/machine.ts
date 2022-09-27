@@ -1,11 +1,9 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
-import { Empty } from "../../../google/protobuf/empty";
 import { BrowserHeaders } from "browser-headers";
-import { share } from "rxjs/operators";
 import Long from "long";
-import { Observable } from "rxjs";
-import * as _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
+import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
@@ -66,32 +64,12 @@ export interface RemotePeer {
   allowedIPs: string[];
 }
 
-export interface HangOutMachinesResponse {
-  remotePeers: RemotePeer[];
-  /** your ip */
-  ip: string;
-  /** your cidr */
-  cidr: string;
-  hangOutType: HangOutType;
-  targetMachineKey: string;
-}
-
 function createBaseGetMachineResponse(): GetMachineResponse {
-  return {
-    isRegistered: false,
-    loginUrl: "",
-    ip: "",
-    cidr: "",
-    signalHost: "",
-    signalPort: 0,
-  };
+  return { isRegistered: false, loginUrl: "", ip: "", cidr: "", signalHost: "", signalPort: 0 };
 }
 
 export const GetMachineResponse = {
-  encode(
-    message: GetMachineResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: GetMachineResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.isRegistered === true) {
       writer.uint32(8).bool(message.isRegistered);
     }
@@ -148,9 +126,7 @@ export const GetMachineResponse = {
 
   fromJSON(object: any): GetMachineResponse {
     return {
-      isRegistered: isSet(object.isRegistered)
-        ? Boolean(object.isRegistered)
-        : false,
+      isRegistered: isSet(object.isRegistered) ? Boolean(object.isRegistered) : false,
       loginUrl: isSet(object.loginUrl) ? String(object.loginUrl) : "",
       ip: isSet(object.ip) ? String(object.ip) : "",
       cidr: isSet(object.cidr) ? String(object.cidr) : "",
@@ -161,20 +137,16 @@ export const GetMachineResponse = {
 
   toJSON(message: GetMachineResponse): unknown {
     const obj: any = {};
-    message.isRegistered !== undefined &&
-      (obj.isRegistered = message.isRegistered);
+    message.isRegistered !== undefined && (obj.isRegistered = message.isRegistered);
     message.loginUrl !== undefined && (obj.loginUrl = message.loginUrl);
     message.ip !== undefined && (obj.ip = message.ip);
     message.cidr !== undefined && (obj.cidr = message.cidr);
     message.signalHost !== undefined && (obj.signalHost = message.signalHost);
-    message.signalPort !== undefined &&
-      (obj.signalPort = Math.round(message.signalPort));
+    message.signalPort !== undefined && (obj.signalPort = Math.round(message.signalPort));
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetMachineResponse>, I>>(
-    object: I
-  ): GetMachineResponse {
+  fromPartial<I extends Exact<DeepPartial<GetMachineResponse>, I>>(object: I): GetMachineResponse {
     const message = createBaseGetMachineResponse();
     message.isRegistered = object.isRegistered ?? false;
     message.loginUrl = object.loginUrl ?? "";
@@ -191,10 +163,7 @@ function createBaseSyncMachinesResponse(): SyncMachinesResponse {
 }
 
 export const SyncMachinesResponse = {
-  encode(
-    message: SyncMachinesResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: SyncMachinesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.isEmpty === true) {
       writer.uint32(8).bool(message.isEmpty);
     }
@@ -210,10 +179,7 @@ export const SyncMachinesResponse = {
     return writer;
   },
 
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): SyncMachinesResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): SyncMachinesResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSyncMachinesResponse();
@@ -243,9 +209,7 @@ export const SyncMachinesResponse = {
   fromJSON(object: any): SyncMachinesResponse {
     return {
       isEmpty: isSet(object.isEmpty) ? Boolean(object.isEmpty) : false,
-      remotePeers: Array.isArray(object?.remotePeers)
-        ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e))
-        : [],
+      remotePeers: Array.isArray(object?.remotePeers) ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e)) : [],
       ip: isSet(object.ip) ? String(object.ip) : "",
       cidr: isSet(object.cidr) ? String(object.cidr) : "",
     };
@@ -255,9 +219,7 @@ export const SyncMachinesResponse = {
     const obj: any = {};
     message.isEmpty !== undefined && (obj.isEmpty = message.isEmpty);
     if (message.remotePeers) {
-      obj.remotePeers = message.remotePeers.map((e) =>
-        e ? RemotePeer.toJSON(e) : undefined
-      );
+      obj.remotePeers = message.remotePeers.map((e) => e ? RemotePeer.toJSON(e) : undefined);
     } else {
       obj.remotePeers = [];
     }
@@ -266,13 +228,10 @@ export const SyncMachinesResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<SyncMachinesResponse>, I>>(
-    object: I
-  ): SyncMachinesResponse {
+  fromPartial<I extends Exact<DeepPartial<SyncMachinesResponse>, I>>(object: I): SyncMachinesResponse {
     const message = createBaseSyncMachinesResponse();
     message.isEmpty = object.isEmpty ?? false;
-    message.remotePeers =
-      object.remotePeers?.map((e) => RemotePeer.fromPartial(e)) || [];
+    message.remotePeers = object.remotePeers?.map((e) => RemotePeer.fromPartial(e)) || [];
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
     return message;
@@ -284,10 +243,7 @@ function createBaseRemotePeer(): RemotePeer {
 }
 
 export const RemotePeer = {
-  encode(
-    message: RemotePeer,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: RemotePeer, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.remoteClientMachineKey !== "") {
       writer.uint32(10).string(message.remoteClientMachineKey);
     }
@@ -326,24 +282,16 @@ export const RemotePeer = {
 
   fromJSON(object: any): RemotePeer {
     return {
-      remoteClientMachineKey: isSet(object.remoteClientMachineKey)
-        ? String(object.remoteClientMachineKey)
-        : "",
-      remoteWgPubKey: isSet(object.remoteWgPubKey)
-        ? String(object.remoteWgPubKey)
-        : "",
-      allowedIPs: Array.isArray(object?.allowedIPs)
-        ? object.allowedIPs.map((e: any) => String(e))
-        : [],
+      remoteClientMachineKey: isSet(object.remoteClientMachineKey) ? String(object.remoteClientMachineKey) : "",
+      remoteWgPubKey: isSet(object.remoteWgPubKey) ? String(object.remoteWgPubKey) : "",
+      allowedIPs: Array.isArray(object?.allowedIPs) ? object.allowedIPs.map((e: any) => String(e)) : [],
     };
   },
 
   toJSON(message: RemotePeer): unknown {
     const obj: any = {};
-    message.remoteClientMachineKey !== undefined &&
-      (obj.remoteClientMachineKey = message.remoteClientMachineKey);
-    message.remoteWgPubKey !== undefined &&
-      (obj.remoteWgPubKey = message.remoteWgPubKey);
+    message.remoteClientMachineKey !== undefined && (obj.remoteClientMachineKey = message.remoteClientMachineKey);
+    message.remoteWgPubKey !== undefined && (obj.remoteWgPubKey = message.remoteWgPubKey);
     if (message.allowedIPs) {
       obj.allowedIPs = message.allowedIPs.map((e) => e);
     } else {
@@ -352,9 +300,7 @@ export const RemotePeer = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RemotePeer>, I>>(
-    object: I
-  ): RemotePeer {
+  fromPartial<I extends Exact<DeepPartial<RemotePeer>, I>>(object: I): RemotePeer {
     const message = createBaseRemotePeer();
     message.remoteClientMachineKey = object.remoteClientMachineKey ?? "";
     message.remoteWgPubKey = object.remoteWgPubKey ?? "";
@@ -363,137 +309,9 @@ export const RemotePeer = {
   },
 };
 
-function createBaseHangOutMachinesResponse(): HangOutMachinesResponse {
-  return {
-    remotePeers: [],
-    ip: "",
-    cidr: "",
-    hangOutType: 0,
-    targetMachineKey: "",
-  };
-}
-
-export const HangOutMachinesResponse = {
-  encode(
-    message: HangOutMachinesResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
-    for (const v of message.remotePeers) {
-      RemotePeer.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    if (message.ip !== "") {
-      writer.uint32(18).string(message.ip);
-    }
-    if (message.cidr !== "") {
-      writer.uint32(26).string(message.cidr);
-    }
-    if (message.hangOutType !== 0) {
-      writer.uint32(32).int32(message.hangOutType);
-    }
-    if (message.targetMachineKey !== "") {
-      writer.uint32(42).string(message.targetMachineKey);
-    }
-    return writer;
-  },
-
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): HangOutMachinesResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHangOutMachinesResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.remotePeers.push(RemotePeer.decode(reader, reader.uint32()));
-          break;
-        case 2:
-          message.ip = reader.string();
-          break;
-        case 3:
-          message.cidr = reader.string();
-          break;
-        case 4:
-          message.hangOutType = reader.int32() as any;
-          break;
-        case 5:
-          message.targetMachineKey = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): HangOutMachinesResponse {
-    return {
-      remotePeers: Array.isArray(object?.remotePeers)
-        ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e))
-        : [],
-      ip: isSet(object.ip) ? String(object.ip) : "",
-      cidr: isSet(object.cidr) ? String(object.cidr) : "",
-      hangOutType: isSet(object.hangOutType)
-        ? hangOutTypeFromJSON(object.hangOutType)
-        : 0,
-      targetMachineKey: isSet(object.targetMachineKey)
-        ? String(object.targetMachineKey)
-        : "",
-    };
-  },
-
-  toJSON(message: HangOutMachinesResponse): unknown {
-    const obj: any = {};
-    if (message.remotePeers) {
-      obj.remotePeers = message.remotePeers.map((e) =>
-        e ? RemotePeer.toJSON(e) : undefined
-      );
-    } else {
-      obj.remotePeers = [];
-    }
-    message.ip !== undefined && (obj.ip = message.ip);
-    message.cidr !== undefined && (obj.cidr = message.cidr);
-    message.hangOutType !== undefined &&
-      (obj.hangOutType = hangOutTypeToJSON(message.hangOutType));
-    message.targetMachineKey !== undefined &&
-      (obj.targetMachineKey = message.targetMachineKey);
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<HangOutMachinesResponse>, I>>(
-    object: I
-  ): HangOutMachinesResponse {
-    const message = createBaseHangOutMachinesResponse();
-    message.remotePeers =
-      object.remotePeers?.map((e) => RemotePeer.fromPartial(e)) || [];
-    message.ip = object.ip ?? "";
-    message.cidr = object.cidr ?? "";
-    message.hangOutType = object.hangOutType ?? 0;
-    message.targetMachineKey = object.targetMachineKey ?? "";
-    return message;
-  },
-};
-
 export interface MachineService {
-  GetMachine(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<GetMachineResponse>;
-  SyncRemoteMachinesConfig(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<SyncMachinesResponse>;
-  ConnectToHangoutMachines(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Observable<HangOutMachinesResponse>;
-  JoinHangOutMachines(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<HangOutMachinesResponse>;
+  GetMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachineResponse>;
+  SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse>;
 }
 
 export class MachineServiceClientImpl implements MachineService {
@@ -503,58 +321,18 @@ export class MachineServiceClientImpl implements MachineService {
     this.rpc = rpc;
     this.GetMachine = this.GetMachine.bind(this);
     this.SyncRemoteMachinesConfig = this.SyncRemoteMachinesConfig.bind(this);
-    this.ConnectToHangoutMachines = this.ConnectToHangoutMachines.bind(this);
-    this.JoinHangOutMachines = this.JoinHangOutMachines.bind(this);
   }
 
-  GetMachine(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<GetMachineResponse> {
-    return this.rpc.unary(
-      MachineServiceGetMachineDesc,
-      Empty.fromPartial(request),
-      metadata
-    );
+  GetMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachineResponse> {
+    return this.rpc.unary(MachineServiceGetMachineDesc, Empty.fromPartial(request), metadata);
   }
 
-  SyncRemoteMachinesConfig(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<SyncMachinesResponse> {
-    return this.rpc.unary(
-      MachineServiceSyncRemoteMachinesConfigDesc,
-      Empty.fromPartial(request),
-      metadata
-    );
-  }
-
-  ConnectToHangoutMachines(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Observable<HangOutMachinesResponse> {
-    return this.rpc.invoke(
-      MachineServiceConnectToHangoutMachinesDesc,
-      Empty.fromPartial(request),
-      metadata
-    );
-  }
-
-  JoinHangOutMachines(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<HangOutMachinesResponse> {
-    return this.rpc.unary(
-      MachineServiceJoinHangOutMachinesDesc,
-      Empty.fromPartial(request),
-      metadata
-    );
+  SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse> {
+    return this.rpc.unary(MachineServiceSyncRemoteMachinesConfigDesc, Empty.fromPartial(request), metadata);
   }
 }
 
-export const MachineServiceDesc = {
-  serviceName: "protos.MachineService",
-};
+export const MachineServiceDesc = { serviceName: "protos.MachineService" };
 
 export const MachineServiceGetMachineDesc: UnaryMethodDefinitionish = {
   methodName: "GetMachine",
@@ -578,54 +356,8 @@ export const MachineServiceGetMachineDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionish =
-  {
-    methodName: "SyncRemoteMachinesConfig",
-    service: MachineServiceDesc,
-    requestStream: false,
-    responseStream: false,
-    requestType: {
-      serializeBinary() {
-        return Empty.encode(this).finish();
-      },
-    } as any,
-    responseType: {
-      deserializeBinary(data: Uint8Array) {
-        return {
-          ...SyncMachinesResponse.decode(data),
-          toObject() {
-            return this;
-          },
-        };
-      },
-    } as any,
-  };
-
-export const MachineServiceConnectToHangoutMachinesDesc: UnaryMethodDefinitionish =
-  {
-    methodName: "ConnectToHangoutMachines",
-    service: MachineServiceDesc,
-    requestStream: false,
-    responseStream: true,
-    requestType: {
-      serializeBinary() {
-        return Empty.encode(this).finish();
-      },
-    } as any,
-    responseType: {
-      deserializeBinary(data: Uint8Array) {
-        return {
-          ...HangOutMachinesResponse.decode(data),
-          toObject() {
-            return this;
-          },
-        };
-      },
-    } as any,
-  };
-
-export const MachineServiceJoinHangOutMachinesDesc: UnaryMethodDefinitionish = {
-  methodName: "JoinHangOutMachines",
+export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionish = {
+  methodName: "SyncRemoteMachinesConfig",
   service: MachineServiceDesc,
   requestStream: false,
   responseStream: false,
@@ -637,7 +369,7 @@ export const MachineServiceJoinHangOutMachinesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       return {
-        ...HangOutMachinesResponse.decode(data),
+        ...SyncMachinesResponse.decode(data),
         toObject() {
           return this;
         },
@@ -646,8 +378,7 @@ export const MachineServiceJoinHangOutMachinesDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-interface UnaryMethodDefinitionishR
-  extends grpc.UnaryMethodDefinition<any, any> {
+interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
 }
@@ -658,32 +389,29 @@ interface Rpc {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any>;
-  invoke<T extends UnaryMethodDefinitionish>(
-    methodDesc: T,
-    request: any,
-    metadata: grpc.Metadata | undefined
-  ): Observable<any>;
 }
 
 export class GrpcWebImpl {
   private host: string;
   private options: {
     transport?: grpc.TransportFactory;
-    streamingTransport?: grpc.TransportFactory;
+
     debug?: boolean;
     metadata?: grpc.Metadata;
+    upStreamRetryCodes?: number[];
   };
 
   constructor(
     host: string,
     options: {
       transport?: grpc.TransportFactory;
-      streamingTransport?: grpc.TransportFactory;
+
       debug?: boolean;
       metadata?: grpc.Metadata;
-    }
+      upStreamRetryCodes?: number[];
+    },
   ) {
     this.host = host;
     this.options = options;
@@ -692,16 +420,12 @@ export class GrpcWebImpl {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     _request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({
-            ...this.options?.metadata.headersMap,
-            ...metadata?.headersMap,
-          })
-        : metadata || this.options.metadata;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata || this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -713,55 +437,12 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message);
           } else {
-            const err = new Error(response.statusMessage) as any;
-            err.code = response.status;
-            err.metadata = response.trailers;
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
       });
     });
-  }
-
-  invoke<T extends UnaryMethodDefinitionish>(
-    methodDesc: T,
-    _request: any,
-    metadata: grpc.Metadata | undefined
-  ): Observable<any> {
-    // Status Response Codes (https://developers.google.com/maps-booking/reference/grpc-api/status_codes)
-    const upStreamCodes = [2, 4, 8, 9, 10, 13, 14, 15];
-    const DEFAULT_TIMEOUT_TIME: number = 3_000;
-    const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({
-            ...this.options?.metadata.headersMap,
-            ...metadata?.headersMap,
-          })
-        : metadata || this.options.metadata;
-    return new Observable((observer) => {
-      const upStream = () => {
-        const client = grpc.invoke(methodDesc, {
-          host: this.host,
-          request,
-          transport: this.options.streamingTransport || this.options.transport,
-          metadata: maybeCombinedMetadata,
-          debug: this.options.debug,
-          onMessage: (next) => observer.next(next),
-          onEnd: (code: grpc.Code, message: string) => {
-            if (code === 0) {
-              observer.complete();
-            } else if (upStreamCodes.includes(code)) {
-              setTimeout(upStream, DEFAULT_TIMEOUT_TIME);
-            } else {
-              observer.error(new Error(`Error ${code} ${message}`));
-            }
-          },
-        });
-        observer.add(() => client.close());
-      };
-      upStream();
-    }).pipe(share());
   }
 }
 
@@ -769,39 +450,31 @@ declare var self: any | undefined;
 declare var window: any | undefined;
 declare var global: any | undefined;
 var globalThis: any = (() => {
-  if (typeof globalThis !== "undefined") return globalThis;
-  if (typeof self !== "undefined") return self;
-  if (typeof window !== "undefined") return window;
-  if (typeof global !== "undefined") return global;
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
   throw "Unable to locate global object";
 })();
 
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
@@ -817,4 +490,10 @@ if (_m0.util.Long !== Long) {
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
+}
+
+export class GrpcWebError extends Error {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+    super(message);
+  }
 }

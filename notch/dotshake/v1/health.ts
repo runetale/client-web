@@ -1,8 +1,8 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
-import { Empty } from "../../../google/protobuf/empty";
 import { BrowserHeaders } from "browser-headers";
-import * as _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
+import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
@@ -15,10 +15,7 @@ function createBaseHealthResponse(): HealthResponse {
 }
 
 export const HealthResponse = {
-  encode(
-    message: HealthResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: HealthResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
@@ -44,9 +41,7 @@ export const HealthResponse = {
   },
 
   fromJSON(object: any): HealthResponse {
-    return {
-      message: isSet(object.message) ? String(object.message) : "",
-    };
+    return { message: isSet(object.message) ? String(object.message) : "" };
   },
 
   toJSON(message: HealthResponse): unknown {
@@ -55,9 +50,7 @@ export const HealthResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<HealthResponse>, I>>(
-    object: I
-  ): HealthResponse {
+  fromPartial<I extends Exact<DeepPartial<HealthResponse>, I>>(object: I): HealthResponse {
     const message = createBaseHealthResponse();
     message.message = object.message ?? "";
     return message;
@@ -65,10 +58,7 @@ export const HealthResponse = {
 };
 
 export interface HealthService {
-  Health(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<HealthResponse>;
+  Health(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HealthResponse>;
 }
 
 export class HealthServiceClientImpl implements HealthService {
@@ -79,21 +69,12 @@ export class HealthServiceClientImpl implements HealthService {
     this.Health = this.Health.bind(this);
   }
 
-  Health(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<HealthResponse> {
-    return this.rpc.unary(
-      HealthServiceHealthDesc,
-      Empty.fromPartial(request),
-      metadata
-    );
+  Health(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HealthResponse> {
+    return this.rpc.unary(HealthServiceHealthDesc, Empty.fromPartial(request), metadata);
   }
 }
 
-export const HealthServiceDesc = {
-  serviceName: "protos.HealthService",
-};
+export const HealthServiceDesc = { serviceName: "protos.HealthService" };
 
 export const HealthServiceHealthDesc: UnaryMethodDefinitionish = {
   methodName: "Health",
@@ -117,8 +98,7 @@ export const HealthServiceHealthDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-interface UnaryMethodDefinitionishR
-  extends grpc.UnaryMethodDefinition<any, any> {
+interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
 }
@@ -129,7 +109,7 @@ interface Rpc {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any>;
 }
 
@@ -140,6 +120,7 @@ export class GrpcWebImpl {
 
     debug?: boolean;
     metadata?: grpc.Metadata;
+    upStreamRetryCodes?: number[];
   };
 
   constructor(
@@ -149,7 +130,8 @@ export class GrpcWebImpl {
 
       debug?: boolean;
       metadata?: grpc.Metadata;
-    }
+      upStreamRetryCodes?: number[];
+    },
   ) {
     this.host = host;
     this.options = options;
@@ -158,16 +140,12 @@ export class GrpcWebImpl {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     _request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({
-            ...this.options?.metadata.headersMap,
-            ...metadata?.headersMap,
-          })
-        : metadata || this.options.metadata;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata || this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -179,9 +157,7 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message);
           } else {
-            const err = new Error(response.statusMessage) as any;
-            err.code = response.status;
-            err.metadata = response.trailers;
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
@@ -190,33 +166,23 @@ export class GrpcWebImpl {
   }
 }
 
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
+}
+
+export class GrpcWebError extends Error {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+    super(message);
+  }
 }

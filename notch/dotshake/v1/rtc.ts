@@ -1,8 +1,8 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
-import { Empty } from "../../../google/protobuf/empty";
 import { BrowserHeaders } from "browser-headers";
-import * as _m0 from "protobufjs/minimal";
+import _m0 from "protobufjs/minimal";
+import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
@@ -32,10 +32,7 @@ function createBaseStunHost(): StunHost {
 }
 
 export const StunHost = {
-  encode(
-    message: StunHost,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: StunHost, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.url !== "") {
       writer.uint32(10).string(message.url);
     }
@@ -102,10 +99,7 @@ function createBaseTurnHost(): TurnHost {
 }
 
 export const TurnHost = {
-  encode(
-    message: TurnHost,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: TurnHost, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.url !== "") {
       writer.uint32(10).string(message.url);
     }
@@ -172,10 +166,7 @@ function createBaseRtcConfig(): RtcConfig {
 }
 
 export const RtcConfig = {
-  encode(
-    message: RtcConfig,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: RtcConfig, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.turnHost !== undefined) {
       TurnHost.encode(message.turnHost, writer.uint32(10).fork()).ldelim();
     }
@@ -208,40 +199,26 @@ export const RtcConfig = {
 
   fromJSON(object: any): RtcConfig {
     return {
-      turnHost: isSet(object.turnHost)
-        ? TurnHost.fromJSON(object.turnHost)
-        : undefined,
-      stunHost: isSet(object.stunHost)
-        ? StunHost.fromJSON(object.stunHost)
-        : undefined,
+      turnHost: isSet(object.turnHost) ? TurnHost.fromJSON(object.turnHost) : undefined,
+      stunHost: isSet(object.stunHost) ? StunHost.fromJSON(object.stunHost) : undefined,
     };
   },
 
   toJSON(message: RtcConfig): unknown {
     const obj: any = {};
-    message.turnHost !== undefined &&
-      (obj.turnHost = message.turnHost
-        ? TurnHost.toJSON(message.turnHost)
-        : undefined);
-    message.stunHost !== undefined &&
-      (obj.stunHost = message.stunHost
-        ? StunHost.toJSON(message.stunHost)
-        : undefined);
+    message.turnHost !== undefined && (obj.turnHost = message.turnHost ? TurnHost.toJSON(message.turnHost) : undefined);
+    message.stunHost !== undefined && (obj.stunHost = message.stunHost ? StunHost.toJSON(message.stunHost) : undefined);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<RtcConfig>, I>>(
-    object: I
-  ): RtcConfig {
+  fromPartial<I extends Exact<DeepPartial<RtcConfig>, I>>(object: I): RtcConfig {
     const message = createBaseRtcConfig();
-    message.turnHost =
-      object.turnHost !== undefined && object.turnHost !== null
-        ? TurnHost.fromPartial(object.turnHost)
-        : undefined;
-    message.stunHost =
-      object.stunHost !== undefined && object.stunHost !== null
-        ? StunHost.fromPartial(object.stunHost)
-        : undefined;
+    message.turnHost = (object.turnHost !== undefined && object.turnHost !== null)
+      ? TurnHost.fromPartial(object.turnHost)
+      : undefined;
+    message.stunHost = (object.stunHost !== undefined && object.stunHost !== null)
+      ? StunHost.fromPartial(object.stunHost)
+      : undefined;
     return message;
   },
 };
@@ -251,20 +228,14 @@ function createBaseGetStunTurnConfigResponse(): GetStunTurnConfigResponse {
 }
 
 export const GetStunTurnConfigResponse = {
-  encode(
-    message: GetStunTurnConfigResponse,
-    writer: _m0.Writer = _m0.Writer.create()
-  ): _m0.Writer {
+  encode(message: GetStunTurnConfigResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.rtcConfig !== undefined) {
       RtcConfig.encode(message.rtcConfig, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(
-    input: _m0.Reader | Uint8Array,
-    length?: number
-  ): GetStunTurnConfigResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetStunTurnConfigResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGetStunTurnConfigResponse();
@@ -283,39 +254,27 @@ export const GetStunTurnConfigResponse = {
   },
 
   fromJSON(object: any): GetStunTurnConfigResponse {
-    return {
-      rtcConfig: isSet(object.rtcConfig)
-        ? RtcConfig.fromJSON(object.rtcConfig)
-        : undefined,
-    };
+    return { rtcConfig: isSet(object.rtcConfig) ? RtcConfig.fromJSON(object.rtcConfig) : undefined };
   },
 
   toJSON(message: GetStunTurnConfigResponse): unknown {
     const obj: any = {};
     message.rtcConfig !== undefined &&
-      (obj.rtcConfig = message.rtcConfig
-        ? RtcConfig.toJSON(message.rtcConfig)
-        : undefined);
+      (obj.rtcConfig = message.rtcConfig ? RtcConfig.toJSON(message.rtcConfig) : undefined);
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetStunTurnConfigResponse>, I>>(
-    object: I
-  ): GetStunTurnConfigResponse {
+  fromPartial<I extends Exact<DeepPartial<GetStunTurnConfigResponse>, I>>(object: I): GetStunTurnConfigResponse {
     const message = createBaseGetStunTurnConfigResponse();
-    message.rtcConfig =
-      object.rtcConfig !== undefined && object.rtcConfig !== null
-        ? RtcConfig.fromPartial(object.rtcConfig)
-        : undefined;
+    message.rtcConfig = (object.rtcConfig !== undefined && object.rtcConfig !== null)
+      ? RtcConfig.fromPartial(object.rtcConfig)
+      : undefined;
     return message;
   },
 };
 
 export interface RtcService {
-  GetStunTurnConfig(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<GetStunTurnConfigResponse>;
+  GetStunTurnConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetStunTurnConfigResponse>;
 }
 
 export class RtcServiceClientImpl implements RtcService {
@@ -326,21 +285,12 @@ export class RtcServiceClientImpl implements RtcService {
     this.GetStunTurnConfig = this.GetStunTurnConfig.bind(this);
   }
 
-  GetStunTurnConfig(
-    request: DeepPartial<Empty>,
-    metadata?: grpc.Metadata
-  ): Promise<GetStunTurnConfigResponse> {
-    return this.rpc.unary(
-      RtcServiceGetStunTurnConfigDesc,
-      Empty.fromPartial(request),
-      metadata
-    );
+  GetStunTurnConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetStunTurnConfigResponse> {
+    return this.rpc.unary(RtcServiceGetStunTurnConfigDesc, Empty.fromPartial(request), metadata);
   }
 }
 
-export const RtcServiceDesc = {
-  serviceName: "protos.RtcService",
-};
+export const RtcServiceDesc = { serviceName: "protos.RtcService" };
 
 export const RtcServiceGetStunTurnConfigDesc: UnaryMethodDefinitionish = {
   methodName: "GetStunTurnConfig",
@@ -364,8 +314,7 @@ export const RtcServiceGetStunTurnConfigDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-interface UnaryMethodDefinitionishR
-  extends grpc.UnaryMethodDefinition<any, any> {
+interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
   responseStream: any;
 }
@@ -376,7 +325,7 @@ interface Rpc {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any>;
 }
 
@@ -387,6 +336,7 @@ export class GrpcWebImpl {
 
     debug?: boolean;
     metadata?: grpc.Metadata;
+    upStreamRetryCodes?: number[];
   };
 
   constructor(
@@ -396,7 +346,8 @@ export class GrpcWebImpl {
 
       debug?: boolean;
       metadata?: grpc.Metadata;
-    }
+      upStreamRetryCodes?: number[];
+    },
   ) {
     this.host = host;
     this.options = options;
@@ -405,16 +356,12 @@ export class GrpcWebImpl {
   unary<T extends UnaryMethodDefinitionish>(
     methodDesc: T,
     _request: any,
-    metadata: grpc.Metadata | undefined
+    metadata: grpc.Metadata | undefined,
   ): Promise<any> {
     const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata =
-      metadata && this.options.metadata
-        ? new BrowserHeaders({
-            ...this.options?.metadata.headersMap,
-            ...metadata?.headersMap,
-          })
-        : metadata || this.options.metadata;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata || this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
@@ -426,9 +373,7 @@ export class GrpcWebImpl {
           if (response.status === grpc.Code.OK) {
             resolve(response.message);
           } else {
-            const err = new Error(response.statusMessage) as any;
-            err.code = response.status;
-            err.metadata = response.trailers;
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
           }
         },
@@ -437,33 +382,23 @@ export class GrpcWebImpl {
   }
 }
 
-type Builtin =
-  | Date
-  | Function
-  | Uint8Array
-  | string
-  | number
-  | boolean
-  | undefined;
+type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
-export type DeepPartial<T> = T extends Builtin
-  ? T
-  : T extends Array<infer U>
-  ? Array<DeepPartial<U>>
-  : T extends ReadonlyArray<infer U>
-  ? ReadonlyArray<DeepPartial<U>>
-  : T extends {}
-  ? { [K in keyof T]?: DeepPartial<T[K]> }
+export type DeepPartial<T> = T extends Builtin ? T
+  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
 type KeysOfUnion<T> = T extends T ? keyof T : never;
-export type Exact<P, I extends P> = P extends Builtin
-  ? P
-  : P & { [K in keyof P]: Exact<P[K], I[K]> } & Record<
-        Exclude<keyof I, KeysOfUnion<P>>,
-        never
-      >;
+export type Exact<P, I extends P> = P extends Builtin ? P
+  : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
+}
+
+export class GrpcWebError extends Error {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+    super(message);
+  }
 }
