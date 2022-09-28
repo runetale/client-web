@@ -12,7 +12,6 @@ export interface Machine {
   cidr: string;
   host: string;
   os: string;
-  isConnect: boolean;
 }
 
 export interface GetMachinesResponse {
@@ -37,7 +36,7 @@ export interface GetUsersResponse {
 }
 
 function createBaseMachine(): Machine {
-  return { domain: "", ip: "", cidr: "", host: "", os: "", isConnect: false };
+  return { domain: "", ip: "", cidr: "", host: "", os: "" };
 }
 
 export const Machine = {
@@ -56,9 +55,6 @@ export const Machine = {
     }
     if (message.os !== "") {
       writer.uint32(42).string(message.os);
-    }
-    if (message.isConnect === true) {
-      writer.uint32(48).bool(message.isConnect);
     }
     return writer;
   },
@@ -85,9 +81,6 @@ export const Machine = {
         case 5:
           message.os = reader.string();
           break;
-        case 6:
-          message.isConnect = reader.bool();
-          break;
         default:
           reader.skipType(tag & 7);
           break;
@@ -103,7 +96,6 @@ export const Machine = {
       cidr: isSet(object.cidr) ? String(object.cidr) : "",
       host: isSet(object.host) ? String(object.host) : "",
       os: isSet(object.os) ? String(object.os) : "",
-      isConnect: isSet(object.isConnect) ? Boolean(object.isConnect) : false,
     };
   },
 
@@ -114,7 +106,6 @@ export const Machine = {
     message.cidr !== undefined && (obj.cidr = message.cidr);
     message.host !== undefined && (obj.host = message.host);
     message.os !== undefined && (obj.os = message.os);
-    message.isConnect !== undefined && (obj.isConnect = message.isConnect);
     return obj;
   },
 
@@ -125,7 +116,6 @@ export const Machine = {
     message.cidr = object.cidr ?? "";
     message.host = object.host ?? "";
     message.os = object.os ?? "";
-    message.isConnect = object.isConnect ?? false;
     return message;
   },
 };
