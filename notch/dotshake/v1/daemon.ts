@@ -2,96 +2,13 @@
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import _m0 from "protobufjs/minimal";
-import { Observable } from "rxjs";
-import { share } from "rxjs/operators";
+import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
-
-export enum DaemonServiceType {
-  /** ConnectionStatus - Get the connection status between the server and Dotshake */
-  ConnectionStatus = 0,
-  UNRECOGNIZED = -1,
-}
-
-export function daemonServiceTypeFromJSON(object: any): DaemonServiceType {
-  switch (object) {
-    case 0:
-    case "ConnectionStatus":
-      return DaemonServiceType.ConnectionStatus;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return DaemonServiceType.UNRECOGNIZED;
-  }
-}
-
-export function daemonServiceTypeToJSON(object: DaemonServiceType): string {
-  switch (object) {
-    case DaemonServiceType.ConnectionStatus:
-      return "ConnectionStatus";
-    case DaemonServiceType.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
-export interface DaemonServiceRequest {
-  daemonServiceType: DaemonServiceType;
-}
 
 export interface GetConnectionStatusResponse {
   IsConnected: boolean;
 }
-
-function createBaseDaemonServiceRequest(): DaemonServiceRequest {
-  return { daemonServiceType: 0 };
-}
-
-export const DaemonServiceRequest = {
-  encode(message: DaemonServiceRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.daemonServiceType !== 0) {
-      writer.uint32(8).int32(message.daemonServiceType);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): DaemonServiceRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDaemonServiceRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          message.daemonServiceType = reader.int32() as any;
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
-      }
-    }
-    return message;
-  },
-
-  fromJSON(object: any): DaemonServiceRequest {
-    return {
-      daemonServiceType: isSet(object.daemonServiceType) ? daemonServiceTypeFromJSON(object.daemonServiceType) : 0,
-    };
-  },
-
-  toJSON(message: DaemonServiceRequest): unknown {
-    const obj: any = {};
-    message.daemonServiceType !== undefined &&
-      (obj.daemonServiceType = daemonServiceTypeToJSON(message.daemonServiceType));
-    return obj;
-  },
-
-  fromPartial<I extends Exact<DeepPartial<DaemonServiceRequest>, I>>(object: I): DaemonServiceRequest {
-    const message = createBaseDaemonServiceRequest();
-    message.daemonServiceType = object.daemonServiceType ?? 0;
-    return message;
-  },
-};
 
 function createBaseGetConnectionStatusResponse(): GetConnectionStatusResponse {
   return { IsConnected: false };
@@ -141,10 +58,10 @@ export const GetConnectionStatusResponse = {
 };
 
 export interface DaemonService {
-  GetConnectionStatus(
-    request: Observable<DeepPartial<DaemonServiceRequest>>,
-    metadata?: grpc.Metadata,
-  ): Observable<GetConnectionStatusResponse>;
+  /** connections */
+  Connect(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse>;
+  Disconnect(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse>;
+  GetConnectionStatus(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse>;
 }
 
 export class DaemonServiceClientImpl implements DaemonService {
@@ -152,18 +69,91 @@ export class DaemonServiceClientImpl implements DaemonService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
+    this.Connect = this.Connect.bind(this);
+    this.Disconnect = this.Disconnect.bind(this);
     this.GetConnectionStatus = this.GetConnectionStatus.bind(this);
   }
 
-  GetConnectionStatus(
-    request: Observable<DeepPartial<DaemonServiceRequest>>,
-    metadata?: grpc.Metadata,
-  ): Observable<GetConnectionStatusResponse> {
-    throw new Error("ts-proto does not yet support client streaming!");
+  Connect(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse> {
+    return this.rpc.unary(DaemonServiceConnectDesc, Empty.fromPartial(request), metadata);
+  }
+
+  Disconnect(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse> {
+    return this.rpc.unary(DaemonServiceDisconnectDesc, Empty.fromPartial(request), metadata);
+  }
+
+  GetConnectionStatus(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse> {
+    return this.rpc.unary(DaemonServiceGetConnectionStatusDesc, Empty.fromPartial(request), metadata);
   }
 }
 
 export const DaemonServiceDesc = { serviceName: "protos.DaemonService" };
+
+export const DaemonServiceConnectDesc: UnaryMethodDefinitionish = {
+  methodName: "Connect",
+  service: DaemonServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...GetConnectionStatusResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const DaemonServiceDisconnectDesc: UnaryMethodDefinitionish = {
+  methodName: "Disconnect",
+  service: DaemonServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...GetConnectionStatusResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
+
+export const DaemonServiceGetConnectionStatusDesc: UnaryMethodDefinitionish = {
+  methodName: "GetConnectionStatus",
+  service: DaemonServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...GetConnectionStatusResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
 
 interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
@@ -178,18 +168,13 @@ interface Rpc {
     request: any,
     metadata: grpc.Metadata | undefined,
   ): Promise<any>;
-  invoke<T extends UnaryMethodDefinitionish>(
-    methodDesc: T,
-    request: any,
-    metadata: grpc.Metadata | undefined,
-  ): Observable<any>;
 }
 
 export class GrpcWebImpl {
   private host: string;
   private options: {
     transport?: grpc.TransportFactory;
-    streamingTransport?: grpc.TransportFactory;
+
     debug?: boolean;
     metadata?: grpc.Metadata;
     upStreamRetryCodes?: number[];
@@ -199,7 +184,7 @@ export class GrpcWebImpl {
     host: string,
     options: {
       transport?: grpc.TransportFactory;
-      streamingTransport?: grpc.TransportFactory;
+
       debug?: boolean;
       metadata?: grpc.Metadata;
       upStreamRetryCodes?: number[];
@@ -235,45 +220,6 @@ export class GrpcWebImpl {
         },
       });
     });
-  }
-
-  invoke<T extends UnaryMethodDefinitionish>(
-    methodDesc: T,
-    _request: any,
-    metadata: grpc.Metadata | undefined,
-  ): Observable<any> {
-    const upStreamCodes = this.options.upStreamRetryCodes || [];
-    const DEFAULT_TIMEOUT_TIME: number = 3_000;
-    const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata = metadata && this.options.metadata
-      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata || this.options.metadata;
-    return new Observable((observer) => {
-      const upStream = (() => {
-        const client = grpc.invoke(methodDesc, {
-          host: this.host,
-          request,
-          transport: this.options.streamingTransport || this.options.transport,
-          metadata: maybeCombinedMetadata,
-          debug: this.options.debug,
-          onMessage: (next) => observer.next(next),
-          onEnd: (code: grpc.Code, message: string, trailers: grpc.Metadata) => {
-            if (code === 0) {
-              observer.complete();
-            } else if (upStreamCodes.includes(code)) {
-              setTimeout(upStream, DEFAULT_TIMEOUT_TIME);
-            } else {
-              const err = new Error(message) as any;
-              err.code = code;
-              err.metadata = trailers;
-              observer.error(err);
-            }
-          },
-        });
-        observer.add(() => client.close());
-      });
-      upStream();
-    }).pipe(share());
   }
 }
 
