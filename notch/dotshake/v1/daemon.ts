@@ -2,8 +2,6 @@
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import _m0 from "protobufjs/minimal";
-import { Observable } from "rxjs";
-import { share } from "rxjs/operators";
 import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
@@ -61,7 +59,7 @@ export const GetConnectionStatusResponse = {
 
 export interface DaemonService {
   /** connections */
-  Connect(request: Observable<DeepPartial<Empty>>, metadata?: grpc.Metadata): Observable<GetConnectionStatusResponse>;
+  Connect(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse>;
   Disconnect(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse>;
   GetConnectionStatus(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse>;
 }
@@ -76,8 +74,8 @@ export class DaemonServiceClientImpl implements DaemonService {
     this.GetConnectionStatus = this.GetConnectionStatus.bind(this);
   }
 
-  Connect(request: Observable<DeepPartial<Empty>>, metadata?: grpc.Metadata): Observable<GetConnectionStatusResponse> {
-    throw new Error("ts-proto does not yet support client streaming!");
+  Connect(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse> {
+    return this.rpc.unary(DaemonServiceConnectDesc, Empty.fromPartial(request), metadata);
   }
 
   Disconnect(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse> {
@@ -90,6 +88,28 @@ export class DaemonServiceClientImpl implements DaemonService {
 }
 
 export const DaemonServiceDesc = { serviceName: "protos.DaemonService" };
+
+export const DaemonServiceConnectDesc: UnaryMethodDefinitionish = {
+  methodName: "Connect",
+  service: DaemonServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      return {
+        ...GetConnectionStatusResponse.decode(data),
+        toObject() {
+          return this;
+        },
+      };
+    },
+  } as any,
+};
 
 export const DaemonServiceDisconnectDesc: UnaryMethodDefinitionish = {
   methodName: "Disconnect",
@@ -148,18 +168,13 @@ interface Rpc {
     request: any,
     metadata: grpc.Metadata | undefined,
   ): Promise<any>;
-  invoke<T extends UnaryMethodDefinitionish>(
-    methodDesc: T,
-    request: any,
-    metadata: grpc.Metadata | undefined,
-  ): Observable<any>;
 }
 
 export class GrpcWebImpl {
   private host: string;
   private options: {
     transport?: grpc.TransportFactory;
-    streamingTransport?: grpc.TransportFactory;
+
     debug?: boolean;
     metadata?: grpc.Metadata;
     upStreamRetryCodes?: number[];
@@ -169,7 +184,7 @@ export class GrpcWebImpl {
     host: string,
     options: {
       transport?: grpc.TransportFactory;
-      streamingTransport?: grpc.TransportFactory;
+
       debug?: boolean;
       metadata?: grpc.Metadata;
       upStreamRetryCodes?: number[];
@@ -205,45 +220,6 @@ export class GrpcWebImpl {
         },
       });
     });
-  }
-
-  invoke<T extends UnaryMethodDefinitionish>(
-    methodDesc: T,
-    _request: any,
-    metadata: grpc.Metadata | undefined,
-  ): Observable<any> {
-    const upStreamCodes = this.options.upStreamRetryCodes || [];
-    const DEFAULT_TIMEOUT_TIME: number = 3_000;
-    const request = { ..._request, ...methodDesc.requestType };
-    const maybeCombinedMetadata = metadata && this.options.metadata
-      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata || this.options.metadata;
-    return new Observable((observer) => {
-      const upStream = (() => {
-        const client = grpc.invoke(methodDesc, {
-          host: this.host,
-          request,
-          transport: this.options.streamingTransport || this.options.transport,
-          metadata: maybeCombinedMetadata,
-          debug: this.options.debug,
-          onMessage: (next) => observer.next(next),
-          onEnd: (code: grpc.Code, message: string, trailers: grpc.Metadata) => {
-            if (code === 0) {
-              observer.complete();
-            } else if (upStreamCodes.includes(code)) {
-              setTimeout(upStream, DEFAULT_TIMEOUT_TIME);
-            } else {
-              const err = new Error(message) as any;
-              err.code = code;
-              err.metadata = trailers;
-              observer.error(err);
-            }
-          },
-        });
-        observer.add(() => client.close());
-      });
-      upStream();
-    }).pipe(share());
   }
 }
 
