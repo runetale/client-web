@@ -40,7 +40,7 @@ export function hangOutTypeToJSON(object: HangOutType): string {
   }
 }
 
-export interface GetMachineResponse {
+export interface LoginResponse {
   isRegistered: boolean;
   loginUrl: string;
   ip: string;
@@ -64,12 +64,12 @@ export interface RemotePeer {
   allowedIPs: string[];
 }
 
-function createBaseGetMachineResponse(): GetMachineResponse {
+function createBaseLoginResponse(): LoginResponse {
   return { isRegistered: false, loginUrl: "", ip: "", cidr: "", signalHost: "", signalPort: 0 };
 }
 
-export const GetMachineResponse = {
-  encode(message: GetMachineResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const LoginResponse = {
+  encode(message: LoginResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.isRegistered === true) {
       writer.uint32(8).bool(message.isRegistered);
     }
@@ -91,10 +91,10 @@ export const GetMachineResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetMachineResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): LoginResponse {
     const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetMachineResponse();
+    const message = createBaseLoginResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -124,7 +124,7 @@ export const GetMachineResponse = {
     return message;
   },
 
-  fromJSON(object: any): GetMachineResponse {
+  fromJSON(object: any): LoginResponse {
     return {
       isRegistered: isSet(object.isRegistered) ? Boolean(object.isRegistered) : false,
       loginUrl: isSet(object.loginUrl) ? String(object.loginUrl) : "",
@@ -135,7 +135,7 @@ export const GetMachineResponse = {
     };
   },
 
-  toJSON(message: GetMachineResponse): unknown {
+  toJSON(message: LoginResponse): unknown {
     const obj: any = {};
     message.isRegistered !== undefined && (obj.isRegistered = message.isRegistered);
     message.loginUrl !== undefined && (obj.loginUrl = message.loginUrl);
@@ -146,8 +146,8 @@ export const GetMachineResponse = {
     return obj;
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetMachineResponse>, I>>(object: I): GetMachineResponse {
-    const message = createBaseGetMachineResponse();
+  fromPartial<I extends Exact<DeepPartial<LoginResponse>, I>>(object: I): LoginResponse {
+    const message = createBaseLoginResponse();
     message.isRegistered = object.isRegistered ?? false;
     message.loginUrl = object.loginUrl ?? "";
     message.ip = object.ip ?? "";
@@ -310,7 +310,7 @@ export const RemotePeer = {
 };
 
 export interface MachineService {
-  GetMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachineResponse>;
+  Login(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginResponse>;
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse>;
 }
 
@@ -319,12 +319,12 @@ export class MachineServiceClientImpl implements MachineService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.GetMachine = this.GetMachine.bind(this);
+    this.Login = this.Login.bind(this);
     this.SyncRemoteMachinesConfig = this.SyncRemoteMachinesConfig.bind(this);
   }
 
-  GetMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachineResponse> {
-    return this.rpc.unary(MachineServiceGetMachineDesc, Empty.fromPartial(request), metadata);
+  Login(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginResponse> {
+    return this.rpc.unary(MachineServiceLoginDesc, Empty.fromPartial(request), metadata);
   }
 
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse> {
@@ -334,8 +334,8 @@ export class MachineServiceClientImpl implements MachineService {
 
 export const MachineServiceDesc = { serviceName: "protos.MachineService" };
 
-export const MachineServiceGetMachineDesc: UnaryMethodDefinitionish = {
-  methodName: "GetMachine",
+export const MachineServiceLoginDesc: UnaryMethodDefinitionish = {
+  methodName: "Login",
   service: MachineServiceDesc,
   requestStream: false,
   responseStream: false,
@@ -347,7 +347,7 @@ export const MachineServiceGetMachineDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       return {
-        ...GetMachineResponse.decode(data),
+        ...LoginResponse.decode(data),
         toObject() {
           return this;
         },
