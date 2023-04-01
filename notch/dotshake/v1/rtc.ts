@@ -46,25 +46,38 @@ export const StunHost = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): StunHost {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseStunHost();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.url = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.username = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.password = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -83,6 +96,10 @@ export const StunHost = {
     message.username !== undefined && (obj.username = message.username);
     message.password !== undefined && (obj.password = message.password);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<StunHost>, I>>(base?: I): StunHost {
+    return StunHost.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<StunHost>, I>>(object: I): StunHost {
@@ -113,25 +130,38 @@ export const TurnHost = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): TurnHost {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseTurnHost();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.url = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.username = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.password = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -150,6 +180,10 @@ export const TurnHost = {
     message.username !== undefined && (obj.username = message.username);
     message.password !== undefined && (obj.password = message.password);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<TurnHost>, I>>(base?: I): TurnHost {
+    return TurnHost.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<TurnHost>, I>>(object: I): TurnHost {
@@ -177,22 +211,31 @@ export const RtcConfig = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): RtcConfig {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseRtcConfig();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.turnHost = TurnHost.decode(reader, reader.uint32());
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.stunHost = StunHost.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -209,6 +252,10 @@ export const RtcConfig = {
     message.turnHost !== undefined && (obj.turnHost = message.turnHost ? TurnHost.toJSON(message.turnHost) : undefined);
     message.stunHost !== undefined && (obj.stunHost = message.stunHost ? StunHost.toJSON(message.stunHost) : undefined);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RtcConfig>, I>>(base?: I): RtcConfig {
+    return RtcConfig.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<RtcConfig>, I>>(object: I): RtcConfig {
@@ -236,19 +283,24 @@ export const GetStunTurnConfigResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): GetStunTurnConfigResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGetStunTurnConfigResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.rtcConfig = RtcConfig.decode(reader, reader.uint32());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -262,6 +314,10 @@ export const GetStunTurnConfigResponse = {
     message.rtcConfig !== undefined &&
       (obj.rtcConfig = message.rtcConfig ? RtcConfig.toJSON(message.rtcConfig) : undefined);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetStunTurnConfigResponse>, I>>(base?: I): GetStunTurnConfigResponse {
+    return GetStunTurnConfigResponse.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<GetStunTurnConfigResponse>, I>>(object: I): GetStunTurnConfigResponse {
@@ -304,10 +360,11 @@ export const RtcServiceGetStunTurnConfigDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
+      const value = GetStunTurnConfigResponse.decode(data);
       return {
-        ...GetStunTurnConfigResponse.decode(data),
+        ...value,
         toObject() {
-          return this;
+          return value;
         },
       };
     },
@@ -371,7 +428,7 @@ export class GrpcWebImpl {
         debug: this.options.debug,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
-            resolve(response.message);
+            resolve(response.message!.toObject());
           } else {
             const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
@@ -381,6 +438,25 @@ export class GrpcWebImpl {
     });
   }
 }
+
+declare var self: any | undefined;
+declare var window: any | undefined;
+declare var global: any | undefined;
+var tsProtoGlobalThis: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
@@ -397,7 +473,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends Error {
+export class GrpcWebError extends tsProtoGlobalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }
