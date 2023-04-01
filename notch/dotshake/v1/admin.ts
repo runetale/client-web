@@ -36,6 +36,23 @@ export interface GetUsersResponse {
   users: User[];
 }
 
+export interface Group {
+  name: string;
+  machines: Machine[];
+}
+
+export interface CreateGroupResponse {
+  groups: Group | undefined;
+}
+
+export interface DeleteGroupResponse {
+  group: Group | undefined;
+}
+
+export interface GetGroupResponse {
+  groups: Group[];
+}
+
 function createBaseMachine(): Machine {
   return { domain: "", ip: "", cidr: "", host: "", os: "", isConnect: false };
 }
@@ -460,10 +477,266 @@ export const GetUsersResponse = {
   },
 };
 
+function createBaseGroup(): Group {
+  return { name: "", machines: [] };
+}
+
+export const Group = {
+  encode(message: Group, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    for (const v of message.machines) {
+      Machine.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Group {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGroup();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.machines.push(Machine.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Group {
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      machines: Array.isArray(object?.machines) ? object.machines.map((e: any) => Machine.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: Group): unknown {
+    const obj: any = {};
+    message.name !== undefined && (obj.name = message.name);
+    if (message.machines) {
+      obj.machines = message.machines.map((e) => e ? Machine.toJSON(e) : undefined);
+    } else {
+      obj.machines = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Group>, I>>(base?: I): Group {
+    return Group.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Group>, I>>(object: I): Group {
+    const message = createBaseGroup();
+    message.name = object.name ?? "";
+    message.machines = object.machines?.map((e) => Machine.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseCreateGroupResponse(): CreateGroupResponse {
+  return { groups: undefined };
+}
+
+export const CreateGroupResponse = {
+  encode(message: CreateGroupResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.groups !== undefined) {
+      Group.encode(message.groups, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateGroupResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateGroupResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.groups = Group.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateGroupResponse {
+    return { groups: isSet(object.groups) ? Group.fromJSON(object.groups) : undefined };
+  },
+
+  toJSON(message: CreateGroupResponse): unknown {
+    const obj: any = {};
+    message.groups !== undefined && (obj.groups = message.groups ? Group.toJSON(message.groups) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateGroupResponse>, I>>(base?: I): CreateGroupResponse {
+    return CreateGroupResponse.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<CreateGroupResponse>, I>>(object: I): CreateGroupResponse {
+    const message = createBaseCreateGroupResponse();
+    message.groups = (object.groups !== undefined && object.groups !== null)
+      ? Group.fromPartial(object.groups)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseDeleteGroupResponse(): DeleteGroupResponse {
+  return { group: undefined };
+}
+
+export const DeleteGroupResponse = {
+  encode(message: DeleteGroupResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.group !== undefined) {
+      Group.encode(message.group, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DeleteGroupResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteGroupResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.group = Group.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteGroupResponse {
+    return { group: isSet(object.group) ? Group.fromJSON(object.group) : undefined };
+  },
+
+  toJSON(message: DeleteGroupResponse): unknown {
+    const obj: any = {};
+    message.group !== undefined && (obj.group = message.group ? Group.toJSON(message.group) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteGroupResponse>, I>>(base?: I): DeleteGroupResponse {
+    return DeleteGroupResponse.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<DeleteGroupResponse>, I>>(object: I): DeleteGroupResponse {
+    const message = createBaseDeleteGroupResponse();
+    message.group = (object.group !== undefined && object.group !== null) ? Group.fromPartial(object.group) : undefined;
+    return message;
+  },
+};
+
+function createBaseGetGroupResponse(): GetGroupResponse {
+  return { groups: [] };
+}
+
+export const GetGroupResponse = {
+  encode(message: GetGroupResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.groups) {
+      Group.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetGroupResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetGroupResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.groups.push(Group.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetGroupResponse {
+    return { groups: Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: GetGroupResponse): unknown {
+    const obj: any = {};
+    if (message.groups) {
+      obj.groups = message.groups.map((e) => e ? Group.toJSON(e) : undefined);
+    } else {
+      obj.groups = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetGroupResponse>, I>>(base?: I): GetGroupResponse {
+    return GetGroupResponse.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<GetGroupResponse>, I>>(object: I): GetGroupResponse {
+    const message = createBaseGetGroupResponse();
+    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+/**
+ * memo(shinta): will remove it.
+ * make these rpcs a restfull api
+ */
 export interface AdminService {
   GetMachines(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachinesResponse>;
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse>;
   GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetUsersResponse>;
+  CreateGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateGroupResponse>;
+  DeleteGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<DeleteGroupResponse>;
+  GetGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetGroupResponse>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -474,6 +747,9 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetMachines = this.GetMachines.bind(this);
     this.GetMe = this.GetMe.bind(this);
     this.GetUsers = this.GetUsers.bind(this);
+    this.CreateGroup = this.CreateGroup.bind(this);
+    this.DeleteGroup = this.DeleteGroup.bind(this);
+    this.GetGroup = this.GetGroup.bind(this);
   }
 
   GetMachines(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachinesResponse> {
@@ -486,6 +762,18 @@ export class AdminServiceClientImpl implements AdminService {
 
   GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetUsersResponse> {
     return this.rpc.unary(AdminServiceGetUsersDesc, Empty.fromPartial(request), metadata);
+  }
+
+  CreateGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateGroupResponse> {
+    return this.rpc.unary(AdminServiceCreateGroupDesc, Empty.fromPartial(request), metadata);
+  }
+
+  DeleteGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<DeleteGroupResponse> {
+    return this.rpc.unary(AdminServiceDeleteGroupDesc, Empty.fromPartial(request), metadata);
+  }
+
+  GetGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetGroupResponse> {
+    return this.rpc.unary(AdminServiceGetGroupDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -550,6 +838,75 @@ export const AdminServiceGetUsersDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetUsersResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceCreateGroupDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateGroup",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = CreateGroupResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceDeleteGroupDesc: UnaryMethodDefinitionish = {
+  methodName: "DeleteGroup",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = DeleteGroupResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGetGroupDesc: UnaryMethodDefinitionish = {
+  methodName: "GetGroup",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetGroupResponse.decode(data);
       return {
         ...value,
         toObject() {
