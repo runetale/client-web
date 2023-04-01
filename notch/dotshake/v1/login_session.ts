@@ -50,34 +50,59 @@ export const PeerLoginSessionResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): PeerLoginSessionResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBasePeerLoginSessionResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.ip = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.cidr = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.host = reader.string();
-          break;
+          continue;
         case 4:
+          if (tag != 34) {
+            break;
+          }
+
           message.os = reader.string();
-          break;
+          continue;
         case 5:
+          if (tag != 42) {
+            break;
+          }
+
           message.signalServerHost = reader.string();
-          break;
+          continue;
         case 6:
+          if (tag != 48) {
+            break;
+          }
+
           message.signalServerPort = longToNumber(reader.uint64() as Long);
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -102,6 +127,10 @@ export const PeerLoginSessionResponse = {
     message.signalServerHost !== undefined && (obj.signalServerHost = message.signalServerHost);
     message.signalServerPort !== undefined && (obj.signalServerPort = Math.round(message.signalServerPort));
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PeerLoginSessionResponse>, I>>(base?: I): PeerLoginSessionResponse {
+    return PeerLoginSessionResponse.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<PeerLoginSessionResponse>, I>>(object: I): PeerLoginSessionResponse {
@@ -203,7 +232,7 @@ export class GrpcWebImpl {
         debug: this.options.debug,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
-            resolve(response.message);
+            resolve(response.message!.toObject());
           } else {
             const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
@@ -246,7 +275,11 @@ export class GrpcWebImpl {
             }
           },
         });
-        observer.add(() => client.close());
+        observer.add(() => {
+          if (!observer.closed) {
+            return client.close();
+          }
+        });
       });
       upStream();
     }).pipe(share());
@@ -256,7 +289,7 @@ export class GrpcWebImpl {
 declare var self: any | undefined;
 declare var window: any | undefined;
 declare var global: any | undefined;
-var globalThis: any = (() => {
+var tsProtoGlobalThis: any = (() => {
   if (typeof globalThis !== "undefined") {
     return globalThis;
   }
@@ -285,7 +318,7 @@ export type Exact<P, I extends P> = P extends Builtin ? P
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+    throw new tsProtoGlobalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
   }
   return long.toNumber();
 }
@@ -299,7 +332,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends Error {
+export class GrpcWebError extends tsProtoGlobalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }

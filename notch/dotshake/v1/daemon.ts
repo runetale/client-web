@@ -23,19 +23,24 @@ export const GetConnectionStatusResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): GetConnectionStatusResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseGetConnectionStatusResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 8) {
+            break;
+          }
+
           message.IsConnected = reader.bool();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -48,6 +53,10 @@ export const GetConnectionStatusResponse = {
     const obj: any = {};
     message.IsConnected !== undefined && (obj.IsConnected = message.IsConnected);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetConnectionStatusResponse>, I>>(base?: I): GetConnectionStatusResponse {
+    return GetConnectionStatusResponse.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<GetConnectionStatusResponse>, I>>(object: I): GetConnectionStatusResponse {
@@ -101,10 +110,11 @@ export const DaemonServiceConnectDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
+      const value = GetConnectionStatusResponse.decode(data);
       return {
-        ...GetConnectionStatusResponse.decode(data),
+        ...value,
         toObject() {
-          return this;
+          return value;
         },
       };
     },
@@ -123,10 +133,11 @@ export const DaemonServiceDisconnectDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
+      const value = GetConnectionStatusResponse.decode(data);
       return {
-        ...GetConnectionStatusResponse.decode(data),
+        ...value,
         toObject() {
-          return this;
+          return value;
         },
       };
     },
@@ -145,10 +156,11 @@ export const DaemonServiceGetConnectionStatusDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
+      const value = GetConnectionStatusResponse.decode(data);
       return {
-        ...GetConnectionStatusResponse.decode(data),
+        ...value,
         toObject() {
-          return this;
+          return value;
         },
       };
     },
@@ -212,7 +224,7 @@ export class GrpcWebImpl {
         debug: this.options.debug,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
-            resolve(response.message);
+            resolve(response.message!.toObject());
           } else {
             const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
@@ -222,6 +234,25 @@ export class GrpcWebImpl {
     });
   }
 }
+
+declare var self: any | undefined;
+declare var window: any | undefined;
+declare var global: any | undefined;
+var tsProtoGlobalThis: any = (() => {
+  if (typeof globalThis !== "undefined") {
+    return globalThis;
+  }
+  if (typeof self !== "undefined") {
+    return self;
+  }
+  if (typeof window !== "undefined") {
+    return window;
+  }
+  if (typeof global !== "undefined") {
+    return global;
+  }
+  throw "Unable to locate global object";
+})();
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
@@ -238,7 +269,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends Error {
+export class GrpcWebError extends tsProtoGlobalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }

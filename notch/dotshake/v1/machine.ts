@@ -92,34 +92,59 @@ export const LoginResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): LoginResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseLoginResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 8) {
+            break;
+          }
+
           message.isRegistered = reader.bool();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.loginUrl = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.ip = reader.string();
-          break;
+          continue;
         case 4:
+          if (tag != 34) {
+            break;
+          }
+
           message.cidr = reader.string();
-          break;
+          continue;
         case 5:
+          if (tag != 42) {
+            break;
+          }
+
           message.signalHost = reader.string();
-          break;
+          continue;
         case 6:
+          if (tag != 48) {
+            break;
+          }
+
           message.signalPort = longToNumber(reader.uint64() as Long);
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -144,6 +169,10 @@ export const LoginResponse = {
     message.signalHost !== undefined && (obj.signalHost = message.signalHost);
     message.signalPort !== undefined && (obj.signalPort = Math.round(message.signalPort));
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LoginResponse>, I>>(base?: I): LoginResponse {
+    return LoginResponse.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<LoginResponse>, I>>(object: I): LoginResponse {
@@ -180,28 +209,45 @@ export const SyncMachinesResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): SyncMachinesResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSyncMachinesResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 8) {
+            break;
+          }
+
           message.isEmpty = reader.bool();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.remotePeers.push(RemotePeer.decode(reader, reader.uint32()));
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.ip = reader.string();
-          break;
+          continue;
         case 4:
+          if (tag != 34) {
+            break;
+          }
+
           message.cidr = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -226,6 +272,10 @@ export const SyncMachinesResponse = {
     message.ip !== undefined && (obj.ip = message.ip);
     message.cidr !== undefined && (obj.cidr = message.cidr);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SyncMachinesResponse>, I>>(base?: I): SyncMachinesResponse {
+    return SyncMachinesResponse.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<SyncMachinesResponse>, I>>(object: I): SyncMachinesResponse {
@@ -257,25 +307,38 @@ export const RemotePeer = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): RemotePeer {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseRemotePeer();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.remoteClientMachineKey = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.remoteWgPubKey = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.allowedIPs.push(reader.string());
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -298,6 +361,10 @@ export const RemotePeer = {
       obj.allowedIPs = [];
     }
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RemotePeer>, I>>(base?: I): RemotePeer {
+    return RemotePeer.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<RemotePeer>, I>>(object: I): RemotePeer {
@@ -346,10 +413,11 @@ export const MachineServiceLoginDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
+      const value = LoginResponse.decode(data);
       return {
-        ...LoginResponse.decode(data),
+        ...value,
         toObject() {
-          return this;
+          return value;
         },
       };
     },
@@ -368,10 +436,11 @@ export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionis
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
+      const value = SyncMachinesResponse.decode(data);
       return {
-        ...SyncMachinesResponse.decode(data),
+        ...value,
         toObject() {
-          return this;
+          return value;
         },
       };
     },
@@ -435,7 +504,7 @@ export class GrpcWebImpl {
         debug: this.options.debug,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
-            resolve(response.message);
+            resolve(response.message!.toObject());
           } else {
             const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
@@ -449,7 +518,7 @@ export class GrpcWebImpl {
 declare var self: any | undefined;
 declare var window: any | undefined;
 declare var global: any | undefined;
-var globalThis: any = (() => {
+var tsProtoGlobalThis: any = (() => {
   if (typeof globalThis !== "undefined") {
     return globalThis;
   }
@@ -478,7 +547,7 @@ export type Exact<P, I extends P> = P extends Builtin ? P
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+    throw new tsProtoGlobalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
   }
   return long.toNumber();
 }
@@ -492,7 +561,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends Error {
+export class GrpcWebError extends tsProtoGlobalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }

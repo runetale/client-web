@@ -61,19 +61,24 @@ export const SignInRequest = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): SignInRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSignInRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.email = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -86,6 +91,10 @@ export const SignInRequest = {
     const obj: any = {};
     message.email !== undefined && (obj.email = message.email);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SignInRequest>, I>>(base?: I): SignInRequest {
+    return SignInRequest.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<SignInRequest>, I>>(object: I): SignInRequest {
@@ -108,19 +117,24 @@ export const SignInResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): SignInResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSignInResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 8) {
+            break;
+          }
+
           message.isFirstLogin = reader.bool();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -133,6 +147,10 @@ export const SignInResponse = {
     const obj: any = {};
     message.isFirstLogin !== undefined && (obj.isFirstLogin = message.isFirstLogin);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SignInResponse>, I>>(base?: I): SignInResponse {
+    return SignInResponse.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<SignInResponse>, I>>(object: I): SignInResponse {
@@ -161,25 +179,38 @@ export const SignUpRequest = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): SignUpRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSignUpRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.userID = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.host = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.os = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -198,6 +229,10 @@ export const SignUpRequest = {
     message.host !== undefined && (obj.host = message.host);
     message.os !== undefined && (obj.os = message.os);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SignUpRequest>, I>>(base?: I): SignUpRequest {
+    return SignUpRequest.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<SignUpRequest>, I>>(object: I): SignUpRequest {
@@ -231,28 +266,45 @@ export const SignUpResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): SignUpResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseSignUpResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.ip = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.cidr = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.signalServerHost = reader.string();
-          break;
+          continue;
         case 4:
+          if (tag != 32) {
+            break;
+          }
+
           message.signalServerPort = longToNumber(reader.uint64() as Long);
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -273,6 +325,10 @@ export const SignUpResponse = {
     message.signalServerHost !== undefined && (obj.signalServerHost = message.signalServerHost);
     message.signalServerPort !== undefined && (obj.signalServerPort = Math.round(message.signalServerPort));
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SignUpResponse>, I>>(base?: I): SignUpResponse {
+    return SignUpResponse.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<SignUpResponse>, I>>(object: I): SignUpResponse {
@@ -298,19 +354,24 @@ export const VerifyPeerLoginSessionRequest = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): VerifyPeerLoginSessionRequest {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseVerifyPeerLoginSessionRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.sessionID = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -323,6 +384,10 @@ export const VerifyPeerLoginSessionRequest = {
     const obj: any = {};
     message.sessionID !== undefined && (obj.sessionID = message.sessionID);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<VerifyPeerLoginSessionRequest>, I>>(base?: I): VerifyPeerLoginSessionRequest {
+    return VerifyPeerLoginSessionRequest.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<VerifyPeerLoginSessionRequest>, I>>(
@@ -353,25 +418,38 @@ export const VerifyPeerLoginSessionResponse = {
   },
 
   decode(input: _m0.Reader | Uint8Array, length?: number): VerifyPeerLoginSessionResponse {
-    const reader = input instanceof _m0.Reader ? input : new _m0.Reader(input);
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
     const message = createBaseVerifyPeerLoginSessionResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
+          if (tag != 10) {
+            break;
+          }
+
           message.ip = reader.string();
-          break;
+          continue;
         case 2:
+          if (tag != 18) {
+            break;
+          }
+
           message.host = reader.string();
-          break;
+          continue;
         case 3:
+          if (tag != 26) {
+            break;
+          }
+
           message.os = reader.string();
-          break;
-        default:
-          reader.skipType(tag & 7);
-          break;
+          continue;
       }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
     }
     return message;
   },
@@ -390,6 +468,10 @@ export const VerifyPeerLoginSessionResponse = {
     message.host !== undefined && (obj.host = message.host);
     message.os !== undefined && (obj.os = message.os);
     return obj;
+  },
+
+  create<I extends Exact<DeepPartial<VerifyPeerLoginSessionResponse>, I>>(base?: I): VerifyPeerLoginSessionResponse {
+    return VerifyPeerLoginSessionResponse.fromPartial(base ?? {});
   },
 
   fromPartial<I extends Exact<DeepPartial<VerifyPeerLoginSessionResponse>, I>>(
@@ -456,10 +538,11 @@ export const SessionServiceSignInDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
+      const value = SignInResponse.decode(data);
       return {
-        ...SignInResponse.decode(data),
+        ...value,
         toObject() {
-          return this;
+          return value;
         },
       };
     },
@@ -478,10 +561,11 @@ export const SessionServiceSignUpDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
+      const value = SignUpResponse.decode(data);
       return {
-        ...SignUpResponse.decode(data),
+        ...value,
         toObject() {
-          return this;
+          return value;
         },
       };
     },
@@ -500,10 +584,11 @@ export const SessionServiceVerifyPeerLoginSessionDesc: UnaryMethodDefinitionish 
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
+      const value = VerifyPeerLoginSessionResponse.decode(data);
       return {
-        ...VerifyPeerLoginSessionResponse.decode(data),
+        ...value,
         toObject() {
-          return this;
+          return value;
         },
       };
     },
@@ -567,7 +652,7 @@ export class GrpcWebImpl {
         debug: this.options.debug,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
-            resolve(response.message);
+            resolve(response.message!.toObject());
           } else {
             const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
             reject(err);
@@ -581,7 +666,7 @@ export class GrpcWebImpl {
 declare var self: any | undefined;
 declare var window: any | undefined;
 declare var global: any | undefined;
-var globalThis: any = (() => {
+var tsProtoGlobalThis: any = (() => {
   if (typeof globalThis !== "undefined") {
     return globalThis;
   }
@@ -610,7 +695,7 @@ export type Exact<P, I extends P> = P extends Builtin ? P
 
 function longToNumber(long: Long): number {
   if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+    throw new tsProtoGlobalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
   }
   return long.toNumber();
 }
@@ -624,7 +709,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends Error {
+export class GrpcWebError extends tsProtoGlobalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }
