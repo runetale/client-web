@@ -38,7 +38,7 @@ export interface GetUsersResponse {
 
 export interface Group {
   name: string;
-  machines: Machine[];
+  users: User[];
 }
 
 export interface CreateGroupResponse {
@@ -478,7 +478,7 @@ export const GetUsersResponse = {
 };
 
 function createBaseGroup(): Group {
-  return { name: "", machines: [] };
+  return { name: "", users: [] };
 }
 
 export const Group = {
@@ -486,8 +486,8 @@ export const Group = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    for (const v of message.machines) {
-      Machine.encode(v!, writer.uint32(18).fork()).ldelim();
+    for (const v of message.users) {
+      User.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -511,7 +511,7 @@ export const Group = {
             break;
           }
 
-          message.machines.push(Machine.decode(reader, reader.uint32()));
+          message.users.push(User.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
@@ -525,17 +525,17 @@ export const Group = {
   fromJSON(object: any): Group {
     return {
       name: isSet(object.name) ? String(object.name) : "",
-      machines: Array.isArray(object?.machines) ? object.machines.map((e: any) => Machine.fromJSON(e)) : [],
+      users: Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: Group): unknown {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
-    if (message.machines) {
-      obj.machines = message.machines.map((e) => e ? Machine.toJSON(e) : undefined);
+    if (message.users) {
+      obj.users = message.users.map((e) => e ? User.toJSON(e) : undefined);
     } else {
-      obj.machines = [];
+      obj.users = [];
     }
     return obj;
   },
@@ -547,7 +547,7 @@ export const Group = {
   fromPartial<I extends Exact<DeepPartial<Group>, I>>(object: I): Group {
     const message = createBaseGroup();
     message.name = object.name ?? "";
-    message.machines = object.machines?.map((e) => Machine.fromPartial(e)) || [];
+    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
     return message;
   },
 };
