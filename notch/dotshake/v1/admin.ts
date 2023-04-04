@@ -25,6 +25,7 @@ export interface GetMeResponse {
 }
 
 export interface User {
+  userId: string;
   username: string;
   email: string;
   joined: string;
@@ -41,15 +42,62 @@ export interface Group {
   users: User[];
 }
 
-export interface CreateGroupResponse {
-  groups: Group | undefined;
+export interface Acl {
+  name: string;
+  src: Route | undefined;
+  srcName: string;
+  dst: Route | undefined;
+  dstName: string;
 }
 
-export interface DeleteGroupResponse {
+export interface Route {
+  userIds: string[];
+  groupIds: string[];
+}
+
+export interface CreateAclRequest {
+  aclName: string;
+  src: Route | undefined;
+  dst: Route | undefined;
+}
+
+export interface DeleteAclRequest {
+  aclId: string;
+}
+
+export interface PatchAclRequest {
+  aclId: string;
+  src: Route | undefined;
+  dst: Route | undefined;
+}
+
+export interface AclResponse {
+  acl: Acl | undefined;
+}
+
+export interface AclsResponse {
+  acls: Acl[];
+}
+
+export interface CreateGroupRequest {
+  groupName: string;
+  users: User[];
+}
+
+export interface DeleteGroupRequest {
+  groupId: string;
+}
+
+export interface PatchGroupRequest {
+  groupId: string;
+  users: User[];
+}
+
+export interface GroupResponse {
   group: Group | undefined;
 }
 
-export interface GetGroupResponse {
+export interface GroupsResponse {
   groups: Group[];
 }
 
@@ -308,25 +356,28 @@ export const GetMeResponse = {
 };
 
 function createBaseUser(): User {
-  return { username: "", email: "", joined: "", lastSeen: "", picture: "" };
+  return { userId: "", username: "", email: "", joined: "", lastSeen: "", picture: "" };
 }
 
 export const User = {
   encode(message: User, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.userId !== "") {
+      writer.uint32(10).string(message.userId);
+    }
     if (message.username !== "") {
-      writer.uint32(10).string(message.username);
+      writer.uint32(18).string(message.username);
     }
     if (message.email !== "") {
-      writer.uint32(18).string(message.email);
+      writer.uint32(26).string(message.email);
     }
     if (message.joined !== "") {
-      writer.uint32(26).string(message.joined);
+      writer.uint32(34).string(message.joined);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(34).string(message.lastSeen);
+      writer.uint32(42).string(message.lastSeen);
     }
     if (message.picture !== "") {
-      writer.uint32(42).string(message.picture);
+      writer.uint32(50).string(message.picture);
     }
     return writer;
   },
@@ -343,31 +394,38 @@ export const User = {
             break;
           }
 
-          message.username = reader.string();
+          message.userId = reader.string();
           continue;
         case 2:
           if (tag != 18) {
             break;
           }
 
-          message.email = reader.string();
+          message.username = reader.string();
           continue;
         case 3:
           if (tag != 26) {
             break;
           }
 
-          message.joined = reader.string();
+          message.email = reader.string();
           continue;
         case 4:
           if (tag != 34) {
             break;
           }
 
-          message.lastSeen = reader.string();
+          message.joined = reader.string();
           continue;
         case 5:
           if (tag != 42) {
+            break;
+          }
+
+          message.lastSeen = reader.string();
+          continue;
+        case 6:
+          if (tag != 50) {
             break;
           }
 
@@ -384,6 +442,7 @@ export const User = {
 
   fromJSON(object: any): User {
     return {
+      userId: isSet(object.userId) ? String(object.userId) : "",
       username: isSet(object.username) ? String(object.username) : "",
       email: isSet(object.email) ? String(object.email) : "",
       joined: isSet(object.joined) ? String(object.joined) : "",
@@ -394,6 +453,7 @@ export const User = {
 
   toJSON(message: User): unknown {
     const obj: any = {};
+    message.userId !== undefined && (obj.userId = message.userId);
     message.username !== undefined && (obj.username = message.username);
     message.email !== undefined && (obj.email = message.email);
     message.joined !== undefined && (obj.joined = message.joined);
@@ -408,6 +468,7 @@ export const User = {
 
   fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
     const message = createBaseUser();
+    message.userId = object.userId ?? "";
     message.username = object.username ?? "";
     message.email = object.email ?? "";
     message.joined = object.joined ?? "";
@@ -552,22 +613,34 @@ export const Group = {
   },
 };
 
-function createBaseCreateGroupResponse(): CreateGroupResponse {
-  return { groups: undefined };
+function createBaseAcl(): Acl {
+  return { name: "", src: undefined, srcName: "", dst: undefined, dstName: "" };
 }
 
-export const CreateGroupResponse = {
-  encode(message: CreateGroupResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.groups !== undefined) {
-      Group.encode(message.groups, writer.uint32(10).fork()).ldelim();
+export const Acl = {
+  encode(message: Acl, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.src !== undefined) {
+      Route.encode(message.src, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.srcName !== "") {
+      writer.uint32(26).string(message.srcName);
+    }
+    if (message.dst !== undefined) {
+      Route.encode(message.dst, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.dstName !== "") {
+      writer.uint32(42).string(message.dstName);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): CreateGroupResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Acl {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCreateGroupResponse();
+    const message = createBaseAcl();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -576,7 +649,35 @@ export const CreateGroupResponse = {
             break;
           }
 
-          message.groups = Group.decode(reader, reader.uint32());
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.src = Route.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag != 26) {
+            break;
+          }
+
+          message.srcName = reader.string();
+          continue;
+        case 4:
+          if (tag != 34) {
+            break;
+          }
+
+          message.dst = Route.decode(reader, reader.uint32());
+          continue;
+        case 5:
+          if (tag != 42) {
+            break;
+          }
+
+          message.dstName = reader.string();
           continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
@@ -587,45 +688,682 @@ export const CreateGroupResponse = {
     return message;
   },
 
-  fromJSON(object: any): CreateGroupResponse {
-    return { groups: isSet(object.groups) ? Group.fromJSON(object.groups) : undefined };
+  fromJSON(object: any): Acl {
+    return {
+      name: isSet(object.name) ? String(object.name) : "",
+      src: isSet(object.src) ? Route.fromJSON(object.src) : undefined,
+      srcName: isSet(object.srcName) ? String(object.srcName) : "",
+      dst: isSet(object.dst) ? Route.fromJSON(object.dst) : undefined,
+      dstName: isSet(object.dstName) ? String(object.dstName) : "",
+    };
   },
 
-  toJSON(message: CreateGroupResponse): unknown {
+  toJSON(message: Acl): unknown {
     const obj: any = {};
-    message.groups !== undefined && (obj.groups = message.groups ? Group.toJSON(message.groups) : undefined);
+    message.name !== undefined && (obj.name = message.name);
+    message.src !== undefined && (obj.src = message.src ? Route.toJSON(message.src) : undefined);
+    message.srcName !== undefined && (obj.srcName = message.srcName);
+    message.dst !== undefined && (obj.dst = message.dst ? Route.toJSON(message.dst) : undefined);
+    message.dstName !== undefined && (obj.dstName = message.dstName);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CreateGroupResponse>, I>>(base?: I): CreateGroupResponse {
-    return CreateGroupResponse.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<Acl>, I>>(base?: I): Acl {
+    return Acl.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<CreateGroupResponse>, I>>(object: I): CreateGroupResponse {
-    const message = createBaseCreateGroupResponse();
-    message.groups = (object.groups !== undefined && object.groups !== null)
-      ? Group.fromPartial(object.groups)
-      : undefined;
+  fromPartial<I extends Exact<DeepPartial<Acl>, I>>(object: I): Acl {
+    const message = createBaseAcl();
+    message.name = object.name ?? "";
+    message.src = (object.src !== undefined && object.src !== null) ? Route.fromPartial(object.src) : undefined;
+    message.srcName = object.srcName ?? "";
+    message.dst = (object.dst !== undefined && object.dst !== null) ? Route.fromPartial(object.dst) : undefined;
+    message.dstName = object.dstName ?? "";
     return message;
   },
 };
 
-function createBaseDeleteGroupResponse(): DeleteGroupResponse {
+function createBaseRoute(): Route {
+  return { userIds: [], groupIds: [] };
+}
+
+export const Route = {
+  encode(message: Route, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.userIds) {
+      writer.uint32(10).string(v!);
+    }
+    for (const v of message.groupIds) {
+      writer.uint32(18).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Route {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRoute();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.userIds.push(reader.string());
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.groupIds.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Route {
+    return {
+      userIds: Array.isArray(object?.userIds) ? object.userIds.map((e: any) => String(e)) : [],
+      groupIds: Array.isArray(object?.groupIds) ? object.groupIds.map((e: any) => String(e)) : [],
+    };
+  },
+
+  toJSON(message: Route): unknown {
+    const obj: any = {};
+    if (message.userIds) {
+      obj.userIds = message.userIds.map((e) => e);
+    } else {
+      obj.userIds = [];
+    }
+    if (message.groupIds) {
+      obj.groupIds = message.groupIds.map((e) => e);
+    } else {
+      obj.groupIds = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Route>, I>>(base?: I): Route {
+    return Route.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<Route>, I>>(object: I): Route {
+    const message = createBaseRoute();
+    message.userIds = object.userIds?.map((e) => e) || [];
+    message.groupIds = object.groupIds?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseCreateAclRequest(): CreateAclRequest {
+  return { aclName: "", src: undefined, dst: undefined };
+}
+
+export const CreateAclRequest = {
+  encode(message: CreateAclRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.aclName !== "") {
+      writer.uint32(10).string(message.aclName);
+    }
+    if (message.src !== undefined) {
+      Route.encode(message.src, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.dst !== undefined) {
+      Route.encode(message.dst, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateAclRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateAclRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.aclName = reader.string();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.src = Route.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag != 26) {
+            break;
+          }
+
+          message.dst = Route.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateAclRequest {
+    return {
+      aclName: isSet(object.aclName) ? String(object.aclName) : "",
+      src: isSet(object.src) ? Route.fromJSON(object.src) : undefined,
+      dst: isSet(object.dst) ? Route.fromJSON(object.dst) : undefined,
+    };
+  },
+
+  toJSON(message: CreateAclRequest): unknown {
+    const obj: any = {};
+    message.aclName !== undefined && (obj.aclName = message.aclName);
+    message.src !== undefined && (obj.src = message.src ? Route.toJSON(message.src) : undefined);
+    message.dst !== undefined && (obj.dst = message.dst ? Route.toJSON(message.dst) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateAclRequest>, I>>(base?: I): CreateAclRequest {
+    return CreateAclRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<CreateAclRequest>, I>>(object: I): CreateAclRequest {
+    const message = createBaseCreateAclRequest();
+    message.aclName = object.aclName ?? "";
+    message.src = (object.src !== undefined && object.src !== null) ? Route.fromPartial(object.src) : undefined;
+    message.dst = (object.dst !== undefined && object.dst !== null) ? Route.fromPartial(object.dst) : undefined;
+    return message;
+  },
+};
+
+function createBaseDeleteAclRequest(): DeleteAclRequest {
+  return { aclId: "" };
+}
+
+export const DeleteAclRequest = {
+  encode(message: DeleteAclRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.aclId !== "") {
+      writer.uint32(10).string(message.aclId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DeleteAclRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteAclRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.aclId = reader.string();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteAclRequest {
+    return { aclId: isSet(object.aclId) ? String(object.aclId) : "" };
+  },
+
+  toJSON(message: DeleteAclRequest): unknown {
+    const obj: any = {};
+    message.aclId !== undefined && (obj.aclId = message.aclId);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteAclRequest>, I>>(base?: I): DeleteAclRequest {
+    return DeleteAclRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<DeleteAclRequest>, I>>(object: I): DeleteAclRequest {
+    const message = createBaseDeleteAclRequest();
+    message.aclId = object.aclId ?? "";
+    return message;
+  },
+};
+
+function createBasePatchAclRequest(): PatchAclRequest {
+  return { aclId: "", src: undefined, dst: undefined };
+}
+
+export const PatchAclRequest = {
+  encode(message: PatchAclRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.aclId !== "") {
+      writer.uint32(10).string(message.aclId);
+    }
+    if (message.src !== undefined) {
+      Route.encode(message.src, writer.uint32(18).fork()).ldelim();
+    }
+    if (message.dst !== undefined) {
+      Route.encode(message.dst, writer.uint32(26).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PatchAclRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePatchAclRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.aclId = reader.string();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.src = Route.decode(reader, reader.uint32());
+          continue;
+        case 3:
+          if (tag != 26) {
+            break;
+          }
+
+          message.dst = Route.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PatchAclRequest {
+    return {
+      aclId: isSet(object.aclId) ? String(object.aclId) : "",
+      src: isSet(object.src) ? Route.fromJSON(object.src) : undefined,
+      dst: isSet(object.dst) ? Route.fromJSON(object.dst) : undefined,
+    };
+  },
+
+  toJSON(message: PatchAclRequest): unknown {
+    const obj: any = {};
+    message.aclId !== undefined && (obj.aclId = message.aclId);
+    message.src !== undefined && (obj.src = message.src ? Route.toJSON(message.src) : undefined);
+    message.dst !== undefined && (obj.dst = message.dst ? Route.toJSON(message.dst) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PatchAclRequest>, I>>(base?: I): PatchAclRequest {
+    return PatchAclRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PatchAclRequest>, I>>(object: I): PatchAclRequest {
+    const message = createBasePatchAclRequest();
+    message.aclId = object.aclId ?? "";
+    message.src = (object.src !== undefined && object.src !== null) ? Route.fromPartial(object.src) : undefined;
+    message.dst = (object.dst !== undefined && object.dst !== null) ? Route.fromPartial(object.dst) : undefined;
+    return message;
+  },
+};
+
+function createBaseAclResponse(): AclResponse {
+  return { acl: undefined };
+}
+
+export const AclResponse = {
+  encode(message: AclResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.acl !== undefined) {
+      Acl.encode(message.acl, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AclResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAclResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.acl = Acl.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AclResponse {
+    return { acl: isSet(object.acl) ? Acl.fromJSON(object.acl) : undefined };
+  },
+
+  toJSON(message: AclResponse): unknown {
+    const obj: any = {};
+    message.acl !== undefined && (obj.acl = message.acl ? Acl.toJSON(message.acl) : undefined);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AclResponse>, I>>(base?: I): AclResponse {
+    return AclResponse.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<AclResponse>, I>>(object: I): AclResponse {
+    const message = createBaseAclResponse();
+    message.acl = (object.acl !== undefined && object.acl !== null) ? Acl.fromPartial(object.acl) : undefined;
+    return message;
+  },
+};
+
+function createBaseAclsResponse(): AclsResponse {
+  return { acls: [] };
+}
+
+export const AclsResponse = {
+  encode(message: AclsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.acls) {
+      Acl.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AclsResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAclsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.acls.push(Acl.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AclsResponse {
+    return { acls: Array.isArray(object?.acls) ? object.acls.map((e: any) => Acl.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: AclsResponse): unknown {
+    const obj: any = {};
+    if (message.acls) {
+      obj.acls = message.acls.map((e) => e ? Acl.toJSON(e) : undefined);
+    } else {
+      obj.acls = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AclsResponse>, I>>(base?: I): AclsResponse {
+    return AclsResponse.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<AclsResponse>, I>>(object: I): AclsResponse {
+    const message = createBaseAclsResponse();
+    message.acls = object.acls?.map((e) => Acl.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseCreateGroupRequest(): CreateGroupRequest {
+  return { groupName: "", users: [] };
+}
+
+export const CreateGroupRequest = {
+  encode(message: CreateGroupRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.groupName !== "") {
+      writer.uint32(10).string(message.groupName);
+    }
+    for (const v of message.users) {
+      User.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateGroupRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateGroupRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.groupName = reader.string();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.users.push(User.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateGroupRequest {
+    return {
+      groupName: isSet(object.groupName) ? String(object.groupName) : "",
+      users: Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: CreateGroupRequest): unknown {
+    const obj: any = {};
+    message.groupName !== undefined && (obj.groupName = message.groupName);
+    if (message.users) {
+      obj.users = message.users.map((e) => e ? User.toJSON(e) : undefined);
+    } else {
+      obj.users = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateGroupRequest>, I>>(base?: I): CreateGroupRequest {
+    return CreateGroupRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<CreateGroupRequest>, I>>(object: I): CreateGroupRequest {
+    const message = createBaseCreateGroupRequest();
+    message.groupName = object.groupName ?? "";
+    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseDeleteGroupRequest(): DeleteGroupRequest {
+  return { groupId: "" };
+}
+
+export const DeleteGroupRequest = {
+  encode(message: DeleteGroupRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.groupId !== "") {
+      writer.uint32(10).string(message.groupId);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DeleteGroupRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteGroupRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.groupId = reader.string();
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteGroupRequest {
+    return { groupId: isSet(object.groupId) ? String(object.groupId) : "" };
+  },
+
+  toJSON(message: DeleteGroupRequest): unknown {
+    const obj: any = {};
+    message.groupId !== undefined && (obj.groupId = message.groupId);
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteGroupRequest>, I>>(base?: I): DeleteGroupRequest {
+    return DeleteGroupRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<DeleteGroupRequest>, I>>(object: I): DeleteGroupRequest {
+    const message = createBaseDeleteGroupRequest();
+    message.groupId = object.groupId ?? "";
+    return message;
+  },
+};
+
+function createBasePatchGroupRequest(): PatchGroupRequest {
+  return { groupId: "", users: [] };
+}
+
+export const PatchGroupRequest = {
+  encode(message: PatchGroupRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.groupId !== "") {
+      writer.uint32(10).string(message.groupId);
+    }
+    for (const v of message.users) {
+      User.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PatchGroupRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePatchGroupRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag != 10) {
+            break;
+          }
+
+          message.groupId = reader.string();
+          continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.users.push(User.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) == 4 || tag == 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PatchGroupRequest {
+    return {
+      groupId: isSet(object.groupId) ? String(object.groupId) : "",
+      users: Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: PatchGroupRequest): unknown {
+    const obj: any = {};
+    message.groupId !== undefined && (obj.groupId = message.groupId);
+    if (message.users) {
+      obj.users = message.users.map((e) => e ? User.toJSON(e) : undefined);
+    } else {
+      obj.users = [];
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PatchGroupRequest>, I>>(base?: I): PatchGroupRequest {
+    return PatchGroupRequest.fromPartial(base ?? {});
+  },
+
+  fromPartial<I extends Exact<DeepPartial<PatchGroupRequest>, I>>(object: I): PatchGroupRequest {
+    const message = createBasePatchGroupRequest();
+    message.groupId = object.groupId ?? "";
+    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseGroupResponse(): GroupResponse {
   return { group: undefined };
 }
 
-export const DeleteGroupResponse = {
-  encode(message: DeleteGroupResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const GroupResponse = {
+  encode(message: GroupResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.group !== undefined) {
       Group.encode(message.group, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): DeleteGroupResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GroupResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDeleteGroupResponse();
+    const message = createBaseGroupResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -645,43 +1383,43 @@ export const DeleteGroupResponse = {
     return message;
   },
 
-  fromJSON(object: any): DeleteGroupResponse {
+  fromJSON(object: any): GroupResponse {
     return { group: isSet(object.group) ? Group.fromJSON(object.group) : undefined };
   },
 
-  toJSON(message: DeleteGroupResponse): unknown {
+  toJSON(message: GroupResponse): unknown {
     const obj: any = {};
     message.group !== undefined && (obj.group = message.group ? Group.toJSON(message.group) : undefined);
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<DeleteGroupResponse>, I>>(base?: I): DeleteGroupResponse {
-    return DeleteGroupResponse.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<GroupResponse>, I>>(base?: I): GroupResponse {
+    return GroupResponse.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<DeleteGroupResponse>, I>>(object: I): DeleteGroupResponse {
-    const message = createBaseDeleteGroupResponse();
+  fromPartial<I extends Exact<DeepPartial<GroupResponse>, I>>(object: I): GroupResponse {
+    const message = createBaseGroupResponse();
     message.group = (object.group !== undefined && object.group !== null) ? Group.fromPartial(object.group) : undefined;
     return message;
   },
 };
 
-function createBaseGetGroupResponse(): GetGroupResponse {
+function createBaseGroupsResponse(): GroupsResponse {
   return { groups: [] };
 }
 
-export const GetGroupResponse = {
-  encode(message: GetGroupResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const GroupsResponse = {
+  encode(message: GroupsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.groups) {
       Group.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetGroupResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GroupsResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetGroupResponse();
+    const message = createBaseGroupsResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -701,11 +1439,11 @@ export const GetGroupResponse = {
     return message;
   },
 
-  fromJSON(object: any): GetGroupResponse {
+  fromJSON(object: any): GroupsResponse {
     return { groups: Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [] };
   },
 
-  toJSON(message: GetGroupResponse): unknown {
+  toJSON(message: GroupsResponse): unknown {
     const obj: any = {};
     if (message.groups) {
       obj.groups = message.groups.map((e) => e ? Group.toJSON(e) : undefined);
@@ -715,12 +1453,12 @@ export const GetGroupResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetGroupResponse>, I>>(base?: I): GetGroupResponse {
-    return GetGroupResponse.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<GroupsResponse>, I>>(base?: I): GroupsResponse {
+    return GroupsResponse.fromPartial(base ?? {});
   },
 
-  fromPartial<I extends Exact<DeepPartial<GetGroupResponse>, I>>(object: I): GetGroupResponse {
-    const message = createBaseGetGroupResponse();
+  fromPartial<I extends Exact<DeepPartial<GroupsResponse>, I>>(object: I): GroupsResponse {
+    const message = createBaseGroupsResponse();
     message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
     return message;
   },
@@ -734,9 +1472,14 @@ export interface AdminService {
   GetMachines(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachinesResponse>;
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse>;
   GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetUsersResponse>;
-  CreateGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateGroupResponse>;
-  DeleteGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<DeleteGroupResponse>;
-  GetGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetGroupResponse>;
+  CreateAcl(request: DeepPartial<CreateAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
+  DeleteAcl(request: DeepPartial<DeleteAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
+  GetAcl(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<AclsResponse>;
+  PatchAcl(request: DeepPartial<PatchAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
+  CreateGroup(request: DeepPartial<CreateGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse>;
+  DeleteGroup(request: DeepPartial<DeleteGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse>;
+  GetGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GroupsResponse>;
+  PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -747,9 +1490,14 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetMachines = this.GetMachines.bind(this);
     this.GetMe = this.GetMe.bind(this);
     this.GetUsers = this.GetUsers.bind(this);
+    this.CreateAcl = this.CreateAcl.bind(this);
+    this.DeleteAcl = this.DeleteAcl.bind(this);
+    this.GetAcl = this.GetAcl.bind(this);
+    this.PatchAcl = this.PatchAcl.bind(this);
     this.CreateGroup = this.CreateGroup.bind(this);
     this.DeleteGroup = this.DeleteGroup.bind(this);
     this.GetGroup = this.GetGroup.bind(this);
+    this.PatchGroup = this.PatchGroup.bind(this);
   }
 
   GetMachines(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachinesResponse> {
@@ -764,16 +1512,36 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGetUsersDesc, Empty.fromPartial(request), metadata);
   }
 
-  CreateGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateGroupResponse> {
-    return this.rpc.unary(AdminServiceCreateGroupDesc, Empty.fromPartial(request), metadata);
+  CreateAcl(request: DeepPartial<CreateAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse> {
+    return this.rpc.unary(AdminServiceCreateAclDesc, CreateAclRequest.fromPartial(request), metadata);
   }
 
-  DeleteGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<DeleteGroupResponse> {
-    return this.rpc.unary(AdminServiceDeleteGroupDesc, Empty.fromPartial(request), metadata);
+  DeleteAcl(request: DeepPartial<DeleteAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse> {
+    return this.rpc.unary(AdminServiceDeleteAclDesc, DeleteAclRequest.fromPartial(request), metadata);
   }
 
-  GetGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetGroupResponse> {
+  GetAcl(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<AclsResponse> {
+    return this.rpc.unary(AdminServiceGetAclDesc, Empty.fromPartial(request), metadata);
+  }
+
+  PatchAcl(request: DeepPartial<PatchAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse> {
+    return this.rpc.unary(AdminServicePatchAclDesc, PatchAclRequest.fromPartial(request), metadata);
+  }
+
+  CreateGroup(request: DeepPartial<CreateGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse> {
+    return this.rpc.unary(AdminServiceCreateGroupDesc, CreateGroupRequest.fromPartial(request), metadata);
+  }
+
+  DeleteGroup(request: DeepPartial<DeleteGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse> {
+    return this.rpc.unary(AdminServiceDeleteGroupDesc, DeleteGroupRequest.fromPartial(request), metadata);
+  }
+
+  GetGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GroupsResponse> {
     return this.rpc.unary(AdminServiceGetGroupDesc, Empty.fromPartial(request), metadata);
+  }
+
+  PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse> {
+    return this.rpc.unary(AdminServicePatchGroupDesc, PatchGroupRequest.fromPartial(request), metadata);
   }
 }
 
@@ -848,8 +1616,54 @@ export const AdminServiceGetUsersDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const AdminServiceCreateGroupDesc: UnaryMethodDefinitionish = {
-  methodName: "CreateGroup",
+export const AdminServiceCreateAclDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateAcl",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return CreateAclRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = AclResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceDeleteAclDesc: UnaryMethodDefinitionish = {
+  methodName: "DeleteAcl",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return DeleteAclRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = AclResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGetAclDesc: UnaryMethodDefinitionish = {
+  methodName: "GetAcl",
   service: AdminServiceDesc,
   requestStream: false,
   responseStream: false,
@@ -860,7 +1674,53 @@ export const AdminServiceCreateGroupDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = CreateGroupResponse.decode(data);
+      const value = AclsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServicePatchAclDesc: UnaryMethodDefinitionish = {
+  methodName: "PatchAcl",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return PatchAclRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = AclResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceCreateGroupDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateGroup",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return CreateGroupRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GroupResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -878,12 +1738,12 @@ export const AdminServiceDeleteGroupDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return Empty.encode(this).finish();
+      return DeleteGroupRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = DeleteGroupResponse.decode(data);
+      const value = GroupResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -906,7 +1766,30 @@ export const AdminServiceGetGroupDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GetGroupResponse.decode(data);
+      const value = GroupsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServicePatchGroupDesc: UnaryMethodDefinitionish = {
+  methodName: "PatchGroup",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return PatchGroupRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GroupResponse.decode(data);
       return {
         ...value,
         toObject() {
