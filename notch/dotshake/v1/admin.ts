@@ -99,6 +99,7 @@ export interface GroupResponse {
 
 export interface GroupsResponse {
   groups: Group[];
+  users: User[];
 }
 
 function createBaseMachine(): Machine {
@@ -1405,13 +1406,16 @@ export const GroupResponse = {
 };
 
 function createBaseGroupsResponse(): GroupsResponse {
-  return { groups: [] };
+  return { groups: [], users: [] };
 }
 
 export const GroupsResponse = {
   encode(message: GroupsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.groups) {
       Group.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.users) {
+      User.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -1430,6 +1434,13 @@ export const GroupsResponse = {
 
           message.groups.push(Group.decode(reader, reader.uint32()));
           continue;
+        case 2:
+          if (tag != 18) {
+            break;
+          }
+
+          message.users.push(User.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
         break;
@@ -1440,7 +1451,10 @@ export const GroupsResponse = {
   },
 
   fromJSON(object: any): GroupsResponse {
-    return { groups: Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [] };
+    return {
+      groups: Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
+      users: Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+    };
   },
 
   toJSON(message: GroupsResponse): unknown {
@@ -1449,6 +1463,11 @@ export const GroupsResponse = {
       obj.groups = message.groups.map((e) => e ? Group.toJSON(e) : undefined);
     } else {
       obj.groups = [];
+    }
+    if (message.users) {
+      obj.users = message.users.map((e) => e ? User.toJSON(e) : undefined);
+    } else {
+      obj.users = [];
     }
     return obj;
   },
@@ -1460,6 +1479,7 @@ export const GroupsResponse = {
   fromPartial<I extends Exact<DeepPartial<GroupsResponse>, I>>(object: I): GroupsResponse {
     const message = createBaseGroupsResponse();
     message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
+    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
     return message;
   },
 };
@@ -1478,6 +1498,7 @@ export interface AdminService {
   PatchAcl(request: DeepPartial<PatchAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
   CreateGroup(request: DeepPartial<CreateGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse>;
   DeleteGroup(request: DeepPartial<DeleteGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse>;
+  GetGroupAndUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GroupsResponse>;
   GetGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GroupsResponse>;
   PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse>;
 }
@@ -1496,6 +1517,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.PatchAcl = this.PatchAcl.bind(this);
     this.CreateGroup = this.CreateGroup.bind(this);
     this.DeleteGroup = this.DeleteGroup.bind(this);
+    this.GetGroupAndUsers = this.GetGroupAndUsers.bind(this);
     this.GetGroup = this.GetGroup.bind(this);
     this.PatchGroup = this.PatchGroup.bind(this);
   }
@@ -1534,6 +1556,10 @@ export class AdminServiceClientImpl implements AdminService {
 
   DeleteGroup(request: DeepPartial<DeleteGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse> {
     return this.rpc.unary(AdminServiceDeleteGroupDesc, DeleteGroupRequest.fromPartial(request), metadata);
+  }
+
+  GetGroupAndUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GroupsResponse> {
+    return this.rpc.unary(AdminServiceGetGroupAndUsersDesc, Empty.fromPartial(request), metadata);
   }
 
   GetGroup(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GroupsResponse> {
@@ -1744,6 +1770,29 @@ export const AdminServiceDeleteGroupDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GroupResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGetGroupAndUsersDesc: UnaryMethodDefinitionish = {
+  methodName: "GetGroupAndUsers",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GroupsResponse.decode(data);
       return {
         ...value,
         toObject() {
