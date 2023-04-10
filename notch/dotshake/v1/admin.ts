@@ -45,9 +45,9 @@ export interface Group {
 export interface Acl {
   name: string;
   src: Route | undefined;
-  srcName: string;
+  srcGroups: string[];
   dst: Route | undefined;
-  dstName: string;
+  dstGroups: string[];
 }
 
 export interface Route {
@@ -615,7 +615,7 @@ export const Group = {
 };
 
 function createBaseAcl(): Acl {
-  return { name: "", src: undefined, srcName: "", dst: undefined, dstName: "" };
+  return { name: "", src: undefined, srcGroups: [], dst: undefined, dstGroups: [] };
 }
 
 export const Acl = {
@@ -626,14 +626,14 @@ export const Acl = {
     if (message.src !== undefined) {
       Route.encode(message.src, writer.uint32(18).fork()).ldelim();
     }
-    if (message.srcName !== "") {
-      writer.uint32(26).string(message.srcName);
+    for (const v of message.srcGroups) {
+      writer.uint32(26).string(v!);
     }
     if (message.dst !== undefined) {
       Route.encode(message.dst, writer.uint32(34).fork()).ldelim();
     }
-    if (message.dstName !== "") {
-      writer.uint32(42).string(message.dstName);
+    for (const v of message.dstGroups) {
+      writer.uint32(42).string(v!);
     }
     return writer;
   },
@@ -664,7 +664,7 @@ export const Acl = {
             break;
           }
 
-          message.srcName = reader.string();
+          message.srcGroups.push(reader.string());
           continue;
         case 4:
           if (tag != 34) {
@@ -678,7 +678,7 @@ export const Acl = {
             break;
           }
 
-          message.dstName = reader.string();
+          message.dstGroups.push(reader.string());
           continue;
       }
       if ((tag & 7) == 4 || tag == 0) {
@@ -693,9 +693,9 @@ export const Acl = {
     return {
       name: isSet(object.name) ? String(object.name) : "",
       src: isSet(object.src) ? Route.fromJSON(object.src) : undefined,
-      srcName: isSet(object.srcName) ? String(object.srcName) : "",
+      srcGroups: Array.isArray(object?.srcGroups) ? object.srcGroups.map((e: any) => String(e)) : [],
       dst: isSet(object.dst) ? Route.fromJSON(object.dst) : undefined,
-      dstName: isSet(object.dstName) ? String(object.dstName) : "",
+      dstGroups: Array.isArray(object?.dstGroups) ? object.dstGroups.map((e: any) => String(e)) : [],
     };
   },
 
@@ -703,9 +703,17 @@ export const Acl = {
     const obj: any = {};
     message.name !== undefined && (obj.name = message.name);
     message.src !== undefined && (obj.src = message.src ? Route.toJSON(message.src) : undefined);
-    message.srcName !== undefined && (obj.srcName = message.srcName);
+    if (message.srcGroups) {
+      obj.srcGroups = message.srcGroups.map((e) => e);
+    } else {
+      obj.srcGroups = [];
+    }
     message.dst !== undefined && (obj.dst = message.dst ? Route.toJSON(message.dst) : undefined);
-    message.dstName !== undefined && (obj.dstName = message.dstName);
+    if (message.dstGroups) {
+      obj.dstGroups = message.dstGroups.map((e) => e);
+    } else {
+      obj.dstGroups = [];
+    }
     return obj;
   },
 
@@ -717,9 +725,9 @@ export const Acl = {
     const message = createBaseAcl();
     message.name = object.name ?? "";
     message.src = (object.src !== undefined && object.src !== null) ? Route.fromPartial(object.src) : undefined;
-    message.srcName = object.srcName ?? "";
+    message.srcGroups = object.srcGroups?.map((e) => e) || [];
     message.dst = (object.dst !== undefined && object.dst !== null) ? Route.fromPartial(object.dst) : undefined;
-    message.dstName = object.dstName ?? "";
+    message.dstGroups = object.dstGroups?.map((e) => e) || [];
     return message;
   },
 };
