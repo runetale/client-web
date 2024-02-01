@@ -84,24 +84,29 @@ export const StunHost = {
 
   fromJSON(object: any): StunHost {
     return {
-      url: isSet(object.url) ? String(object.url) : "",
-      username: isSet(object.username) ? String(object.username) : "",
-      password: isSet(object.password) ? String(object.password) : "",
+      url: isSet(object.url) ? globalThis.String(object.url) : "",
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
+      password: isSet(object.password) ? globalThis.String(object.password) : "",
     };
   },
 
   toJSON(message: StunHost): unknown {
     const obj: any = {};
-    message.url !== undefined && (obj.url = message.url);
-    message.username !== undefined && (obj.username = message.username);
-    message.password !== undefined && (obj.password = message.password);
+    if (message.url !== "") {
+      obj.url = message.url;
+    }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
+    if (message.password !== "") {
+      obj.password = message.password;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<StunHost>, I>>(base?: I): StunHost {
-    return StunHost.fromPartial(base ?? {});
+    return StunHost.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<StunHost>, I>>(object: I): StunHost {
     const message = createBaseStunHost();
     message.url = object.url ?? "";
@@ -168,24 +173,29 @@ export const TurnHost = {
 
   fromJSON(object: any): TurnHost {
     return {
-      url: isSet(object.url) ? String(object.url) : "",
-      username: isSet(object.username) ? String(object.username) : "",
-      password: isSet(object.password) ? String(object.password) : "",
+      url: isSet(object.url) ? globalThis.String(object.url) : "",
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
+      password: isSet(object.password) ? globalThis.String(object.password) : "",
     };
   },
 
   toJSON(message: TurnHost): unknown {
     const obj: any = {};
-    message.url !== undefined && (obj.url = message.url);
-    message.username !== undefined && (obj.username = message.username);
-    message.password !== undefined && (obj.password = message.password);
+    if (message.url !== "") {
+      obj.url = message.url;
+    }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
+    if (message.password !== "") {
+      obj.password = message.password;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<TurnHost>, I>>(base?: I): TurnHost {
-    return TurnHost.fromPartial(base ?? {});
+    return TurnHost.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<TurnHost>, I>>(object: I): TurnHost {
     const message = createBaseTurnHost();
     message.url = object.url ?? "";
@@ -249,15 +259,18 @@ export const RtcConfig = {
 
   toJSON(message: RtcConfig): unknown {
     const obj: any = {};
-    message.turnHost !== undefined && (obj.turnHost = message.turnHost ? TurnHost.toJSON(message.turnHost) : undefined);
-    message.stunHost !== undefined && (obj.stunHost = message.stunHost ? StunHost.toJSON(message.stunHost) : undefined);
+    if (message.turnHost !== undefined) {
+      obj.turnHost = TurnHost.toJSON(message.turnHost);
+    }
+    if (message.stunHost !== undefined) {
+      obj.stunHost = StunHost.toJSON(message.stunHost);
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<RtcConfig>, I>>(base?: I): RtcConfig {
-    return RtcConfig.fromPartial(base ?? {});
+    return RtcConfig.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<RtcConfig>, I>>(object: I): RtcConfig {
     const message = createBaseRtcConfig();
     message.turnHost = (object.turnHost !== undefined && object.turnHost !== null)
@@ -311,15 +324,15 @@ export const GetStunTurnConfigResponse = {
 
   toJSON(message: GetStunTurnConfigResponse): unknown {
     const obj: any = {};
-    message.rtcConfig !== undefined &&
-      (obj.rtcConfig = message.rtcConfig ? RtcConfig.toJSON(message.rtcConfig) : undefined);
+    if (message.rtcConfig !== undefined) {
+      obj.rtcConfig = RtcConfig.toJSON(message.rtcConfig);
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<GetStunTurnConfigResponse>, I>>(base?: I): GetStunTurnConfigResponse {
-    return GetStunTurnConfigResponse.fromPartial(base ?? {});
+    return GetStunTurnConfigResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<GetStunTurnConfigResponse>, I>>(object: I): GetStunTurnConfigResponse {
     const message = createBaseGetStunTurnConfigResponse();
     message.rtcConfig = (object.rtcConfig !== undefined && object.rtcConfig !== null)
@@ -418,14 +431,14 @@ export class GrpcWebImpl {
     const request = { ..._request, ...methodDesc.requestType };
     const maybeCombinedMetadata = metadata && this.options.metadata
       ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata || this.options.metadata;
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
         host: this.host,
-        metadata: maybeCombinedMetadata,
-        transport: this.options.transport,
-        debug: this.options.debug,
+        metadata: maybeCombinedMetadata ?? {},
+        ...(this.options.transport !== undefined ? { transport: this.options.transport } : {}),
+        debug: this.options.debug ?? false,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
@@ -439,29 +452,11 @@ export class GrpcWebImpl {
   }
 }
 
-declare var self: any | undefined;
-declare var window: any | undefined;
-declare var global: any | undefined;
-var tsProtoGlobalThis: any = (() => {
-  if (typeof globalThis !== "undefined") {
-    return globalThis;
-  }
-  if (typeof self !== "undefined") {
-    return self;
-  }
-  if (typeof window !== "undefined") {
-    return window;
-  }
-  if (typeof global !== "undefined") {
-    return global;
-  }
-  throw "Unable to locate global object";
-})();
-
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
@@ -473,7 +468,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends tsProtoGlobalThis.Error {
+export class GrpcWebError extends globalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }

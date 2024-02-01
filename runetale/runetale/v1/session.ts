@@ -84,19 +84,20 @@ export const SignInRequest = {
   },
 
   fromJSON(object: any): SignInRequest {
-    return { email: isSet(object.email) ? String(object.email) : "" };
+    return { email: isSet(object.email) ? globalThis.String(object.email) : "" };
   },
 
   toJSON(message: SignInRequest): unknown {
     const obj: any = {};
-    message.email !== undefined && (obj.email = message.email);
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<SignInRequest>, I>>(base?: I): SignInRequest {
-    return SignInRequest.fromPartial(base ?? {});
+    return SignInRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<SignInRequest>, I>>(object: I): SignInRequest {
     const message = createBaseSignInRequest();
     message.email = object.email ?? "";
@@ -140,19 +141,20 @@ export const SignInResponse = {
   },
 
   fromJSON(object: any): SignInResponse {
-    return { isFirstLogin: isSet(object.isFirstLogin) ? Boolean(object.isFirstLogin) : false };
+    return { isFirstLogin: isSet(object.isFirstLogin) ? globalThis.Boolean(object.isFirstLogin) : false };
   },
 
   toJSON(message: SignInResponse): unknown {
     const obj: any = {};
-    message.isFirstLogin !== undefined && (obj.isFirstLogin = message.isFirstLogin);
+    if (message.isFirstLogin === true) {
+      obj.isFirstLogin = message.isFirstLogin;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<SignInResponse>, I>>(base?: I): SignInResponse {
-    return SignInResponse.fromPartial(base ?? {});
+    return SignInResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<SignInResponse>, I>>(object: I): SignInResponse {
     const message = createBaseSignInResponse();
     message.isFirstLogin = object.isFirstLogin ?? false;
@@ -217,24 +219,29 @@ export const SignUpRequest = {
 
   fromJSON(object: any): SignUpRequest {
     return {
-      userID: isSet(object.userID) ? String(object.userID) : "",
-      host: isSet(object.host) ? String(object.host) : "",
-      os: isSet(object.os) ? String(object.os) : "",
+      userID: isSet(object.userID) ? globalThis.String(object.userID) : "",
+      host: isSet(object.host) ? globalThis.String(object.host) : "",
+      os: isSet(object.os) ? globalThis.String(object.os) : "",
     };
   },
 
   toJSON(message: SignUpRequest): unknown {
     const obj: any = {};
-    message.userID !== undefined && (obj.userID = message.userID);
-    message.host !== undefined && (obj.host = message.host);
-    message.os !== undefined && (obj.os = message.os);
+    if (message.userID !== "") {
+      obj.userID = message.userID;
+    }
+    if (message.host !== "") {
+      obj.host = message.host;
+    }
+    if (message.os !== "") {
+      obj.os = message.os;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<SignUpRequest>, I>>(base?: I): SignUpRequest {
-    return SignUpRequest.fromPartial(base ?? {});
+    return SignUpRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<SignUpRequest>, I>>(object: I): SignUpRequest {
     const message = createBaseSignUpRequest();
     message.userID = object.userID ?? "";
@@ -311,26 +318,33 @@ export const SignUpResponse = {
 
   fromJSON(object: any): SignUpResponse {
     return {
-      ip: isSet(object.ip) ? String(object.ip) : "",
-      cidr: isSet(object.cidr) ? String(object.cidr) : "",
-      signalServerHost: isSet(object.signalServerHost) ? String(object.signalServerHost) : "",
-      signalServerPort: isSet(object.signalServerPort) ? Number(object.signalServerPort) : 0,
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
+      signalServerHost: isSet(object.signalServerHost) ? globalThis.String(object.signalServerHost) : "",
+      signalServerPort: isSet(object.signalServerPort) ? globalThis.Number(object.signalServerPort) : 0,
     };
   },
 
   toJSON(message: SignUpResponse): unknown {
     const obj: any = {};
-    message.ip !== undefined && (obj.ip = message.ip);
-    message.cidr !== undefined && (obj.cidr = message.cidr);
-    message.signalServerHost !== undefined && (obj.signalServerHost = message.signalServerHost);
-    message.signalServerPort !== undefined && (obj.signalServerPort = Math.round(message.signalServerPort));
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.cidr !== "") {
+      obj.cidr = message.cidr;
+    }
+    if (message.signalServerHost !== "") {
+      obj.signalServerHost = message.signalServerHost;
+    }
+    if (message.signalServerPort !== 0) {
+      obj.signalServerPort = Math.round(message.signalServerPort);
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<SignUpResponse>, I>>(base?: I): SignUpResponse {
-    return SignUpResponse.fromPartial(base ?? {});
+    return SignUpResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<SignUpResponse>, I>>(object: I): SignUpResponse {
     const message = createBaseSignUpResponse();
     message.ip = object.ip ?? "";
@@ -377,19 +391,20 @@ export const VerifyPeerLoginSessionRequest = {
   },
 
   fromJSON(object: any): VerifyPeerLoginSessionRequest {
-    return { sessionID: isSet(object.sessionID) ? String(object.sessionID) : "" };
+    return { sessionID: isSet(object.sessionID) ? globalThis.String(object.sessionID) : "" };
   },
 
   toJSON(message: VerifyPeerLoginSessionRequest): unknown {
     const obj: any = {};
-    message.sessionID !== undefined && (obj.sessionID = message.sessionID);
+    if (message.sessionID !== "") {
+      obj.sessionID = message.sessionID;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<VerifyPeerLoginSessionRequest>, I>>(base?: I): VerifyPeerLoginSessionRequest {
-    return VerifyPeerLoginSessionRequest.fromPartial(base ?? {});
+    return VerifyPeerLoginSessionRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<VerifyPeerLoginSessionRequest>, I>>(
     object: I,
   ): VerifyPeerLoginSessionRequest {
@@ -456,24 +471,29 @@ export const VerifyPeerLoginSessionResponse = {
 
   fromJSON(object: any): VerifyPeerLoginSessionResponse {
     return {
-      ip: isSet(object.ip) ? String(object.ip) : "",
-      host: isSet(object.host) ? String(object.host) : "",
-      os: isSet(object.os) ? String(object.os) : "",
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      host: isSet(object.host) ? globalThis.String(object.host) : "",
+      os: isSet(object.os) ? globalThis.String(object.os) : "",
     };
   },
 
   toJSON(message: VerifyPeerLoginSessionResponse): unknown {
     const obj: any = {};
-    message.ip !== undefined && (obj.ip = message.ip);
-    message.host !== undefined && (obj.host = message.host);
-    message.os !== undefined && (obj.os = message.os);
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.host !== "") {
+      obj.host = message.host;
+    }
+    if (message.os !== "") {
+      obj.os = message.os;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<VerifyPeerLoginSessionResponse>, I>>(base?: I): VerifyPeerLoginSessionResponse {
-    return VerifyPeerLoginSessionResponse.fromPartial(base ?? {});
+    return VerifyPeerLoginSessionResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<VerifyPeerLoginSessionResponse>, I>>(
     object: I,
   ): VerifyPeerLoginSessionResponse {
@@ -642,14 +662,14 @@ export class GrpcWebImpl {
     const request = { ..._request, ...methodDesc.requestType };
     const maybeCombinedMetadata = metadata && this.options.metadata
       ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata || this.options.metadata;
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
         host: this.host,
-        metadata: maybeCombinedMetadata,
-        transport: this.options.transport,
-        debug: this.options.debug,
+        metadata: maybeCombinedMetadata ?? {},
+        ...(this.options.transport !== undefined ? { transport: this.options.transport } : {}),
+        debug: this.options.debug ?? false,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
@@ -663,29 +683,11 @@ export class GrpcWebImpl {
   }
 }
 
-declare var self: any | undefined;
-declare var window: any | undefined;
-declare var global: any | undefined;
-var tsProtoGlobalThis: any = (() => {
-  if (typeof globalThis !== "undefined") {
-    return globalThis;
-  }
-  if (typeof self !== "undefined") {
-    return self;
-  }
-  if (typeof window !== "undefined") {
-    return window;
-  }
-  if (typeof global !== "undefined") {
-    return global;
-  }
-  throw "Unable to locate global object";
-})();
-
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
@@ -694,8 +696,8 @@ export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToNumber(long: Long): number {
-  if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new tsProtoGlobalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  if (long.gt(globalThis.Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
   }
   return long.toNumber();
 }
@@ -709,7 +711,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends tsProtoGlobalThis.Error {
+export class GrpcWebError extends globalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }

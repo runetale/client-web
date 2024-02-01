@@ -46,19 +46,20 @@ export const GetConnectionStatusResponse = {
   },
 
   fromJSON(object: any): GetConnectionStatusResponse {
-    return { IsConnected: isSet(object.IsConnected) ? Boolean(object.IsConnected) : false };
+    return { IsConnected: isSet(object.IsConnected) ? globalThis.Boolean(object.IsConnected) : false };
   },
 
   toJSON(message: GetConnectionStatusResponse): unknown {
     const obj: any = {};
-    message.IsConnected !== undefined && (obj.IsConnected = message.IsConnected);
+    if (message.IsConnected === true) {
+      obj.IsConnected = message.IsConnected;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<GetConnectionStatusResponse>, I>>(base?: I): GetConnectionStatusResponse {
-    return GetConnectionStatusResponse.fromPartial(base ?? {});
+    return GetConnectionStatusResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<GetConnectionStatusResponse>, I>>(object: I): GetConnectionStatusResponse {
     const message = createBaseGetConnectionStatusResponse();
     message.IsConnected = object.IsConnected ?? false;
@@ -214,14 +215,14 @@ export class GrpcWebImpl {
     const request = { ..._request, ...methodDesc.requestType };
     const maybeCombinedMetadata = metadata && this.options.metadata
       ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata || this.options.metadata;
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
         host: this.host,
-        metadata: maybeCombinedMetadata,
-        transport: this.options.transport,
-        debug: this.options.debug,
+        metadata: maybeCombinedMetadata ?? {},
+        ...(this.options.transport !== undefined ? { transport: this.options.transport } : {}),
+        debug: this.options.debug ?? false,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
@@ -235,29 +236,11 @@ export class GrpcWebImpl {
   }
 }
 
-declare var self: any | undefined;
-declare var window: any | undefined;
-declare var global: any | undefined;
-var tsProtoGlobalThis: any = (() => {
-  if (typeof globalThis !== "undefined") {
-    return globalThis;
-  }
-  if (typeof self !== "undefined") {
-    return self;
-  }
-  if (typeof window !== "undefined") {
-    return window;
-  }
-  if (typeof global !== "undefined") {
-    return global;
-  }
-  throw "Unable to locate global object";
-})();
-
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
@@ -269,7 +252,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends tsProtoGlobalThis.Error {
+export class GrpcWebError extends globalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }

@@ -172,29 +172,40 @@ export const NegotiationRequest = {
   fromJSON(object: any): NegotiationRequest {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? String(object.dstPeerMachineKey) : "",
-      srcWgPubKey: isSet(object.srcWgPubKey) ? String(object.srcWgPubKey) : "",
-      uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
-      pwd: isSet(object.pwd) ? String(object.pwd) : "",
-      candidate: isSet(object.candidate) ? String(object.candidate) : "",
+      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? globalThis.String(object.dstPeerMachineKey) : "",
+      srcWgPubKey: isSet(object.srcWgPubKey) ? globalThis.String(object.srcWgPubKey) : "",
+      uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
+      pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
+      candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
     };
   },
 
   toJSON(message: NegotiationRequest): unknown {
     const obj: any = {};
-    message.type !== undefined && (obj.type = negotiationTypeToJSON(message.type));
-    message.dstPeerMachineKey !== undefined && (obj.dstPeerMachineKey = message.dstPeerMachineKey);
-    message.srcWgPubKey !== undefined && (obj.srcWgPubKey = message.srcWgPubKey);
-    message.uFlag !== undefined && (obj.uFlag = message.uFlag);
-    message.pwd !== undefined && (obj.pwd = message.pwd);
-    message.candidate !== undefined && (obj.candidate = message.candidate);
+    if (message.type !== 0) {
+      obj.type = negotiationTypeToJSON(message.type);
+    }
+    if (message.dstPeerMachineKey !== "") {
+      obj.dstPeerMachineKey = message.dstPeerMachineKey;
+    }
+    if (message.srcWgPubKey !== "") {
+      obj.srcWgPubKey = message.srcWgPubKey;
+    }
+    if (message.uFlag !== "") {
+      obj.uFlag = message.uFlag;
+    }
+    if (message.pwd !== "") {
+      obj.pwd = message.pwd;
+    }
+    if (message.candidate !== "") {
+      obj.candidate = message.candidate;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<NegotiationRequest>, I>>(base?: I): NegotiationRequest {
-    return NegotiationRequest.fromPartial(base ?? {});
+    return NegotiationRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<NegotiationRequest>, I>>(object: I): NegotiationRequest {
     const message = createBaseNegotiationRequest();
     message.type = object.type ?? 0;
@@ -285,27 +296,36 @@ export const NegotiationResponse = {
   fromJSON(object: any): NegotiationResponse {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? String(object.dstPeerMachineKey) : "",
-      uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
-      pwd: isSet(object.pwd) ? String(object.pwd) : "",
-      candidate: isSet(object.candidate) ? String(object.candidate) : "",
+      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? globalThis.String(object.dstPeerMachineKey) : "",
+      uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
+      pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
+      candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
     };
   },
 
   toJSON(message: NegotiationResponse): unknown {
     const obj: any = {};
-    message.type !== undefined && (obj.type = negotiationTypeToJSON(message.type));
-    message.dstPeerMachineKey !== undefined && (obj.dstPeerMachineKey = message.dstPeerMachineKey);
-    message.uFlag !== undefined && (obj.uFlag = message.uFlag);
-    message.pwd !== undefined && (obj.pwd = message.pwd);
-    message.candidate !== undefined && (obj.candidate = message.candidate);
+    if (message.type !== 0) {
+      obj.type = negotiationTypeToJSON(message.type);
+    }
+    if (message.dstPeerMachineKey !== "") {
+      obj.dstPeerMachineKey = message.dstPeerMachineKey;
+    }
+    if (message.uFlag !== "") {
+      obj.uFlag = message.uFlag;
+    }
+    if (message.pwd !== "") {
+      obj.pwd = message.pwd;
+    }
+    if (message.candidate !== "") {
+      obj.candidate = message.candidate;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<NegotiationResponse>, I>>(base?: I): NegotiationResponse {
-    return NegotiationResponse.fromPartial(base ?? {});
+    return NegotiationResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<NegotiationResponse>, I>>(object: I): NegotiationResponse {
     const message = createBaseNegotiationResponse();
     message.type = object.type ?? 0;
@@ -384,26 +404,33 @@ export const HandshakeRequest = {
 
   fromJSON(object: any): HandshakeRequest {
     return {
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? String(object.dstPeerMachineKey) : "",
-      srcPeerMachineKey: isSet(object.srcPeerMachineKey) ? String(object.srcPeerMachineKey) : "",
-      uFlag: isSet(object.uFlag) ? String(object.uFlag) : "",
-      pwd: isSet(object.pwd) ? String(object.pwd) : "",
+      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? globalThis.String(object.dstPeerMachineKey) : "",
+      srcPeerMachineKey: isSet(object.srcPeerMachineKey) ? globalThis.String(object.srcPeerMachineKey) : "",
+      uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
+      pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
     };
   },
 
   toJSON(message: HandshakeRequest): unknown {
     const obj: any = {};
-    message.dstPeerMachineKey !== undefined && (obj.dstPeerMachineKey = message.dstPeerMachineKey);
-    message.srcPeerMachineKey !== undefined && (obj.srcPeerMachineKey = message.srcPeerMachineKey);
-    message.uFlag !== undefined && (obj.uFlag = message.uFlag);
-    message.pwd !== undefined && (obj.pwd = message.pwd);
+    if (message.dstPeerMachineKey !== "") {
+      obj.dstPeerMachineKey = message.dstPeerMachineKey;
+    }
+    if (message.srcPeerMachineKey !== "") {
+      obj.srcPeerMachineKey = message.srcPeerMachineKey;
+    }
+    if (message.uFlag !== "") {
+      obj.uFlag = message.uFlag;
+    }
+    if (message.pwd !== "") {
+      obj.pwd = message.pwd;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<HandshakeRequest>, I>>(base?: I): HandshakeRequest {
-    return HandshakeRequest.fromPartial(base ?? {});
+    return HandshakeRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<HandshakeRequest>, I>>(object: I): HandshakeRequest {
     const message = createBaseHandshakeRequest();
     message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
@@ -471,24 +498,29 @@ export const CandidateRequest = {
 
   fromJSON(object: any): CandidateRequest {
     return {
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? String(object.dstPeerMachineKey) : "",
-      srcPeerMachineKey: isSet(object.srcPeerMachineKey) ? String(object.srcPeerMachineKey) : "",
-      candidate: isSet(object.candidate) ? String(object.candidate) : "",
+      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? globalThis.String(object.dstPeerMachineKey) : "",
+      srcPeerMachineKey: isSet(object.srcPeerMachineKey) ? globalThis.String(object.srcPeerMachineKey) : "",
+      candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
     };
   },
 
   toJSON(message: CandidateRequest): unknown {
     const obj: any = {};
-    message.dstPeerMachineKey !== undefined && (obj.dstPeerMachineKey = message.dstPeerMachineKey);
-    message.srcPeerMachineKey !== undefined && (obj.srcPeerMachineKey = message.srcPeerMachineKey);
-    message.candidate !== undefined && (obj.candidate = message.candidate);
+    if (message.dstPeerMachineKey !== "") {
+      obj.dstPeerMachineKey = message.dstPeerMachineKey;
+    }
+    if (message.srcPeerMachineKey !== "") {
+      obj.srcPeerMachineKey = message.srcPeerMachineKey;
+    }
+    if (message.candidate !== "") {
+      obj.candidate = message.candidate;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<CandidateRequest>, I>>(base?: I): CandidateRequest {
-    return CandidateRequest.fromPartial(base ?? {});
+    return CandidateRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<CandidateRequest>, I>>(object: I): CandidateRequest {
     const message = createBaseCandidateRequest();
     message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
@@ -662,14 +694,14 @@ export class GrpcWebImpl {
     const request = { ..._request, ...methodDesc.requestType };
     const maybeCombinedMetadata = metadata && this.options.metadata
       ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata || this.options.metadata;
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
         host: this.host,
-        metadata: maybeCombinedMetadata,
-        transport: this.options.transport,
-        debug: this.options.debug,
+        metadata: maybeCombinedMetadata ?? {},
+        ...(this.options.transport !== undefined ? { transport: this.options.transport } : {}),
+        debug: this.options.debug ?? false,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
@@ -687,20 +719,21 @@ export class GrpcWebImpl {
     _request: any,
     metadata: grpc.Metadata | undefined,
   ): Observable<any> {
-    const upStreamCodes = this.options.upStreamRetryCodes || [];
+    const upStreamCodes = this.options.upStreamRetryCodes ?? [];
     const DEFAULT_TIMEOUT_TIME: number = 3_000;
     const request = { ..._request, ...methodDesc.requestType };
+    const transport = this.options.streamingTransport ?? this.options.transport;
     const maybeCombinedMetadata = metadata && this.options.metadata
       ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata || this.options.metadata;
+      : metadata ?? this.options.metadata;
     return new Observable((observer) => {
-      const upStream = (() => {
+      const upStream = () => {
         const client = grpc.invoke(methodDesc, {
           host: this.host,
           request,
-          transport: this.options.streamingTransport || this.options.transport,
-          metadata: maybeCombinedMetadata,
-          debug: this.options.debug,
+          ...(transport !== undefined ? { transport } : {}),
+          metadata: maybeCombinedMetadata ?? {},
+          debug: this.options.debug ?? false,
           onMessage: (next) => observer.next(next),
           onEnd: (code: grpc.Code, message: string, trailers: grpc.Metadata) => {
             if (code === 0) {
@@ -715,38 +748,18 @@ export class GrpcWebImpl {
             }
           },
         });
-        observer.add(() => {
-          return client.close();
-        });
-      });
+        observer.add(() => client.close());
+      };
       upStream();
     }).pipe(share());
   }
 }
 
-declare var self: any | undefined;
-declare var window: any | undefined;
-declare var global: any | undefined;
-var tsProtoGlobalThis: any = (() => {
-  if (typeof globalThis !== "undefined") {
-    return globalThis;
-  }
-  if (typeof self !== "undefined") {
-    return self;
-  }
-  if (typeof window !== "undefined") {
-    return window;
-  }
-  if (typeof global !== "undefined") {
-    return global;
-  }
-  throw "Unable to locate global object";
-})();
-
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
@@ -758,7 +771,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends tsProtoGlobalThis.Error {
+export class GrpcWebError extends globalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }

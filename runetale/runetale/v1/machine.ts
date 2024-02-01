@@ -40,7 +40,7 @@ export function hangOutTypeToJSON(object: HangOutType): string {
   }
 }
 
-export interface LoginResponse {
+export interface JoinResponse {
   isRegistered: boolean;
   loginUrl: string;
   ip: string;
@@ -64,12 +64,12 @@ export interface RemotePeer {
   allowedIPs: string[];
 }
 
-function createBaseLoginResponse(): LoginResponse {
+function createBaseJoinResponse(): JoinResponse {
   return { isRegistered: false, loginUrl: "", ip: "", cidr: "", signalHost: "", signalPort: 0 };
 }
 
-export const LoginResponse = {
-  encode(message: LoginResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const JoinResponse = {
+  encode(message: JoinResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.isRegistered === true) {
       writer.uint32(8).bool(message.isRegistered);
     }
@@ -91,10 +91,10 @@ export const LoginResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): LoginResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): JoinResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseLoginResponse();
+    const message = createBaseJoinResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -149,34 +149,45 @@ export const LoginResponse = {
     return message;
   },
 
-  fromJSON(object: any): LoginResponse {
+  fromJSON(object: any): JoinResponse {
     return {
-      isRegistered: isSet(object.isRegistered) ? Boolean(object.isRegistered) : false,
-      loginUrl: isSet(object.loginUrl) ? String(object.loginUrl) : "",
-      ip: isSet(object.ip) ? String(object.ip) : "",
-      cidr: isSet(object.cidr) ? String(object.cidr) : "",
-      signalHost: isSet(object.signalHost) ? String(object.signalHost) : "",
-      signalPort: isSet(object.signalPort) ? Number(object.signalPort) : 0,
+      isRegistered: isSet(object.isRegistered) ? globalThis.Boolean(object.isRegistered) : false,
+      loginUrl: isSet(object.loginUrl) ? globalThis.String(object.loginUrl) : "",
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
+      signalHost: isSet(object.signalHost) ? globalThis.String(object.signalHost) : "",
+      signalPort: isSet(object.signalPort) ? globalThis.Number(object.signalPort) : 0,
     };
   },
 
-  toJSON(message: LoginResponse): unknown {
+  toJSON(message: JoinResponse): unknown {
     const obj: any = {};
-    message.isRegistered !== undefined && (obj.isRegistered = message.isRegistered);
-    message.loginUrl !== undefined && (obj.loginUrl = message.loginUrl);
-    message.ip !== undefined && (obj.ip = message.ip);
-    message.cidr !== undefined && (obj.cidr = message.cidr);
-    message.signalHost !== undefined && (obj.signalHost = message.signalHost);
-    message.signalPort !== undefined && (obj.signalPort = Math.round(message.signalPort));
+    if (message.isRegistered === true) {
+      obj.isRegistered = message.isRegistered;
+    }
+    if (message.loginUrl !== "") {
+      obj.loginUrl = message.loginUrl;
+    }
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.cidr !== "") {
+      obj.cidr = message.cidr;
+    }
+    if (message.signalHost !== "") {
+      obj.signalHost = message.signalHost;
+    }
+    if (message.signalPort !== 0) {
+      obj.signalPort = Math.round(message.signalPort);
+    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<LoginResponse>, I>>(base?: I): LoginResponse {
-    return LoginResponse.fromPartial(base ?? {});
+  create<I extends Exact<DeepPartial<JoinResponse>, I>>(base?: I): JoinResponse {
+    return JoinResponse.fromPartial(base ?? ({} as any));
   },
-
-  fromPartial<I extends Exact<DeepPartial<LoginResponse>, I>>(object: I): LoginResponse {
-    const message = createBaseLoginResponse();
+  fromPartial<I extends Exact<DeepPartial<JoinResponse>, I>>(object: I): JoinResponse {
+    const message = createBaseJoinResponse();
     message.isRegistered = object.isRegistered ?? false;
     message.loginUrl = object.loginUrl ?? "";
     message.ip = object.ip ?? "";
@@ -254,30 +265,35 @@ export const SyncMachinesResponse = {
 
   fromJSON(object: any): SyncMachinesResponse {
     return {
-      isEmpty: isSet(object.isEmpty) ? Boolean(object.isEmpty) : false,
-      remotePeers: Array.isArray(object?.remotePeers) ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e)) : [],
-      ip: isSet(object.ip) ? String(object.ip) : "",
-      cidr: isSet(object.cidr) ? String(object.cidr) : "",
+      isEmpty: isSet(object.isEmpty) ? globalThis.Boolean(object.isEmpty) : false,
+      remotePeers: globalThis.Array.isArray(object?.remotePeers)
+        ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e))
+        : [],
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
     };
   },
 
   toJSON(message: SyncMachinesResponse): unknown {
     const obj: any = {};
-    message.isEmpty !== undefined && (obj.isEmpty = message.isEmpty);
-    if (message.remotePeers) {
-      obj.remotePeers = message.remotePeers.map((e) => e ? RemotePeer.toJSON(e) : undefined);
-    } else {
-      obj.remotePeers = [];
+    if (message.isEmpty === true) {
+      obj.isEmpty = message.isEmpty;
     }
-    message.ip !== undefined && (obj.ip = message.ip);
-    message.cidr !== undefined && (obj.cidr = message.cidr);
+    if (message.remotePeers?.length) {
+      obj.remotePeers = message.remotePeers.map((e) => RemotePeer.toJSON(e));
+    }
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.cidr !== "") {
+      obj.cidr = message.cidr;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<SyncMachinesResponse>, I>>(base?: I): SyncMachinesResponse {
-    return SyncMachinesResponse.fromPartial(base ?? {});
+    return SyncMachinesResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<SyncMachinesResponse>, I>>(object: I): SyncMachinesResponse {
     const message = createBaseSyncMachinesResponse();
     message.isEmpty = object.isEmpty ?? false;
@@ -345,28 +361,33 @@ export const RemotePeer = {
 
   fromJSON(object: any): RemotePeer {
     return {
-      remoteClientMachineKey: isSet(object.remoteClientMachineKey) ? String(object.remoteClientMachineKey) : "",
-      remoteWgPubKey: isSet(object.remoteWgPubKey) ? String(object.remoteWgPubKey) : "",
-      allowedIPs: Array.isArray(object?.allowedIPs) ? object.allowedIPs.map((e: any) => String(e)) : [],
+      remoteClientMachineKey: isSet(object.remoteClientMachineKey)
+        ? globalThis.String(object.remoteClientMachineKey)
+        : "",
+      remoteWgPubKey: isSet(object.remoteWgPubKey) ? globalThis.String(object.remoteWgPubKey) : "",
+      allowedIPs: globalThis.Array.isArray(object?.allowedIPs)
+        ? object.allowedIPs.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
   toJSON(message: RemotePeer): unknown {
     const obj: any = {};
-    message.remoteClientMachineKey !== undefined && (obj.remoteClientMachineKey = message.remoteClientMachineKey);
-    message.remoteWgPubKey !== undefined && (obj.remoteWgPubKey = message.remoteWgPubKey);
-    if (message.allowedIPs) {
-      obj.allowedIPs = message.allowedIPs.map((e) => e);
-    } else {
-      obj.allowedIPs = [];
+    if (message.remoteClientMachineKey !== "") {
+      obj.remoteClientMachineKey = message.remoteClientMachineKey;
+    }
+    if (message.remoteWgPubKey !== "") {
+      obj.remoteWgPubKey = message.remoteWgPubKey;
+    }
+    if (message.allowedIPs?.length) {
+      obj.allowedIPs = message.allowedIPs;
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<RemotePeer>, I>>(base?: I): RemotePeer {
-    return RemotePeer.fromPartial(base ?? {});
+    return RemotePeer.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<RemotePeer>, I>>(object: I): RemotePeer {
     const message = createBaseRemotePeer();
     message.remoteClientMachineKey = object.remoteClientMachineKey ?? "";
@@ -377,7 +398,7 @@ export const RemotePeer = {
 };
 
 export interface MachineService {
-  Login(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginResponse>;
+  Join(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<JoinResponse>;
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse>;
 }
 
@@ -386,12 +407,12 @@ export class MachineServiceClientImpl implements MachineService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Login = this.Login.bind(this);
+    this.Join = this.Join.bind(this);
     this.SyncRemoteMachinesConfig = this.SyncRemoteMachinesConfig.bind(this);
   }
 
-  Login(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginResponse> {
-    return this.rpc.unary(MachineServiceLoginDesc, Empty.fromPartial(request), metadata);
+  Join(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<JoinResponse> {
+    return this.rpc.unary(MachineServiceJoinDesc, Empty.fromPartial(request), metadata);
   }
 
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse> {
@@ -401,8 +422,8 @@ export class MachineServiceClientImpl implements MachineService {
 
 export const MachineServiceDesc = { serviceName: "protos.MachineService" };
 
-export const MachineServiceLoginDesc: UnaryMethodDefinitionish = {
-  methodName: "Login",
+export const MachineServiceJoinDesc: UnaryMethodDefinitionish = {
+  methodName: "Join",
   service: MachineServiceDesc,
   requestStream: false,
   responseStream: false,
@@ -413,7 +434,7 @@ export const MachineServiceLoginDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = LoginResponse.decode(data);
+      const value = JoinResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -494,14 +515,14 @@ export class GrpcWebImpl {
     const request = { ..._request, ...methodDesc.requestType };
     const maybeCombinedMetadata = metadata && this.options.metadata
       ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata || this.options.metadata;
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
         host: this.host,
-        metadata: maybeCombinedMetadata,
-        transport: this.options.transport,
-        debug: this.options.debug,
+        metadata: maybeCombinedMetadata ?? {},
+        ...(this.options.transport !== undefined ? { transport: this.options.transport } : {}),
+        debug: this.options.debug ?? false,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
@@ -515,29 +536,11 @@ export class GrpcWebImpl {
   }
 }
 
-declare var self: any | undefined;
-declare var window: any | undefined;
-declare var global: any | undefined;
-var tsProtoGlobalThis: any = (() => {
-  if (typeof globalThis !== "undefined") {
-    return globalThis;
-  }
-  if (typeof self !== "undefined") {
-    return self;
-  }
-  if (typeof window !== "undefined") {
-    return window;
-  }
-  if (typeof global !== "undefined") {
-    return global;
-  }
-  throw "Unable to locate global object";
-})();
-
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
@@ -546,8 +549,8 @@ export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
 
 function longToNumber(long: Long): number {
-  if (long.gt(Number.MAX_SAFE_INTEGER)) {
-    throw new tsProtoGlobalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  if (long.gt(globalThis.Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
   }
   return long.toNumber();
 }
@@ -561,7 +564,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends tsProtoGlobalThis.Error {
+export class GrpcWebError extends globalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }

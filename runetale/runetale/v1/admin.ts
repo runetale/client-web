@@ -189,30 +189,41 @@ export const Machine = {
 
   fromJSON(object: any): Machine {
     return {
-      domain: isSet(object.domain) ? String(object.domain) : "",
-      ip: isSet(object.ip) ? String(object.ip) : "",
-      cidr: isSet(object.cidr) ? String(object.cidr) : "",
-      host: isSet(object.host) ? String(object.host) : "",
-      os: isSet(object.os) ? String(object.os) : "",
-      isConnect: isSet(object.isConnect) ? Boolean(object.isConnect) : false,
+      domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
+      host: isSet(object.host) ? globalThis.String(object.host) : "",
+      os: isSet(object.os) ? globalThis.String(object.os) : "",
+      isConnect: isSet(object.isConnect) ? globalThis.Boolean(object.isConnect) : false,
     };
   },
 
   toJSON(message: Machine): unknown {
     const obj: any = {};
-    message.domain !== undefined && (obj.domain = message.domain);
-    message.ip !== undefined && (obj.ip = message.ip);
-    message.cidr !== undefined && (obj.cidr = message.cidr);
-    message.host !== undefined && (obj.host = message.host);
-    message.os !== undefined && (obj.os = message.os);
-    message.isConnect !== undefined && (obj.isConnect = message.isConnect);
+    if (message.domain !== "") {
+      obj.domain = message.domain;
+    }
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.cidr !== "") {
+      obj.cidr = message.cidr;
+    }
+    if (message.host !== "") {
+      obj.host = message.host;
+    }
+    if (message.os !== "") {
+      obj.os = message.os;
+    }
+    if (message.isConnect === true) {
+      obj.isConnect = message.isConnect;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<Machine>, I>>(base?: I): Machine {
-    return Machine.fromPartial(base ?? {});
+    return Machine.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<Machine>, I>>(object: I): Machine {
     const message = createBaseMachine();
     message.domain = object.domain ?? "";
@@ -261,23 +272,22 @@ export const GetMachinesResponse = {
   },
 
   fromJSON(object: any): GetMachinesResponse {
-    return { machines: Array.isArray(object?.machines) ? object.machines.map((e: any) => Machine.fromJSON(e)) : [] };
+    return {
+      machines: globalThis.Array.isArray(object?.machines) ? object.machines.map((e: any) => Machine.fromJSON(e)) : [],
+    };
   },
 
   toJSON(message: GetMachinesResponse): unknown {
     const obj: any = {};
-    if (message.machines) {
-      obj.machines = message.machines.map((e) => e ? Machine.toJSON(e) : undefined);
-    } else {
-      obj.machines = [];
+    if (message.machines?.length) {
+      obj.machines = message.machines.map((e) => Machine.toJSON(e));
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<GetMachinesResponse>, I>>(base?: I): GetMachinesResponse {
-    return GetMachinesResponse.fromPartial(base ?? {});
+    return GetMachinesResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<GetMachinesResponse>, I>>(object: I): GetMachinesResponse {
     const message = createBaseGetMachinesResponse();
     message.machines = object.machines?.map((e) => Machine.fromPartial(e)) || [];
@@ -332,22 +342,25 @@ export const GetMeResponse = {
 
   fromJSON(object: any): GetMeResponse {
     return {
-      username: isSet(object.username) ? String(object.username) : "",
-      email: isSet(object.email) ? String(object.email) : "",
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
     };
   },
 
   toJSON(message: GetMeResponse): unknown {
     const obj: any = {};
-    message.username !== undefined && (obj.username = message.username);
-    message.email !== undefined && (obj.email = message.email);
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<GetMeResponse>, I>>(base?: I): GetMeResponse {
-    return GetMeResponse.fromPartial(base ?? {});
+    return GetMeResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<GetMeResponse>, I>>(object: I): GetMeResponse {
     const message = createBaseGetMeResponse();
     message.username = object.username ?? "";
@@ -443,30 +456,41 @@ export const User = {
 
   fromJSON(object: any): User {
     return {
-      userId: isSet(object.userId) ? String(object.userId) : "",
-      username: isSet(object.username) ? String(object.username) : "",
-      email: isSet(object.email) ? String(object.email) : "",
-      joined: isSet(object.joined) ? String(object.joined) : "",
-      lastSeen: isSet(object.lastSeen) ? String(object.lastSeen) : "",
-      picture: isSet(object.picture) ? String(object.picture) : "",
+      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      joined: isSet(object.joined) ? globalThis.String(object.joined) : "",
+      lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
+      picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
     };
   },
 
   toJSON(message: User): unknown {
     const obj: any = {};
-    message.userId !== undefined && (obj.userId = message.userId);
-    message.username !== undefined && (obj.username = message.username);
-    message.email !== undefined && (obj.email = message.email);
-    message.joined !== undefined && (obj.joined = message.joined);
-    message.lastSeen !== undefined && (obj.lastSeen = message.lastSeen);
-    message.picture !== undefined && (obj.picture = message.picture);
+    if (message.userId !== "") {
+      obj.userId = message.userId;
+    }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.joined !== "") {
+      obj.joined = message.joined;
+    }
+    if (message.lastSeen !== "") {
+      obj.lastSeen = message.lastSeen;
+    }
+    if (message.picture !== "") {
+      obj.picture = message.picture;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<User>, I>>(base?: I): User {
-    return User.fromPartial(base ?? {});
+    return User.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
     const message = createBaseUser();
     message.userId = object.userId ?? "";
@@ -515,23 +539,20 @@ export const GetUsersResponse = {
   },
 
   fromJSON(object: any): GetUsersResponse {
-    return { users: Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [] };
+    return { users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [] };
   },
 
   toJSON(message: GetUsersResponse): unknown {
     const obj: any = {};
-    if (message.users) {
-      obj.users = message.users.map((e) => e ? User.toJSON(e) : undefined);
-    } else {
-      obj.users = [];
+    if (message.users?.length) {
+      obj.users = message.users.map((e) => User.toJSON(e));
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<GetUsersResponse>, I>>(base?: I): GetUsersResponse {
-    return GetUsersResponse.fromPartial(base ?? {});
+    return GetUsersResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<GetUsersResponse>, I>>(object: I): GetUsersResponse {
     const message = createBaseGetUsersResponse();
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
@@ -586,26 +607,25 @@ export const Group = {
 
   fromJSON(object: any): Group {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
-      users: Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: Group): unknown {
     const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    if (message.users) {
-      obj.users = message.users.map((e) => e ? User.toJSON(e) : undefined);
-    } else {
-      obj.users = [];
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.users?.length) {
+      obj.users = message.users.map((e) => User.toJSON(e));
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<Group>, I>>(base?: I): Group {
-    return Group.fromPartial(base ?? {});
+    return Group.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<Group>, I>>(object: I): Group {
     const message = createBaseGroup();
     message.name = object.name ?? "";
@@ -691,36 +711,41 @@ export const Acl = {
 
   fromJSON(object: any): Acl {
     return {
-      name: isSet(object.name) ? String(object.name) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
       src: isSet(object.src) ? Route.fromJSON(object.src) : undefined,
-      srcGroups: Array.isArray(object?.srcGroups) ? object.srcGroups.map((e: any) => String(e)) : [],
+      srcGroups: globalThis.Array.isArray(object?.srcGroups)
+        ? object.srcGroups.map((e: any) => globalThis.String(e))
+        : [],
       dst: isSet(object.dst) ? Route.fromJSON(object.dst) : undefined,
-      dstGroups: Array.isArray(object?.dstGroups) ? object.dstGroups.map((e: any) => String(e)) : [],
+      dstGroups: globalThis.Array.isArray(object?.dstGroups)
+        ? object.dstGroups.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
   toJSON(message: Acl): unknown {
     const obj: any = {};
-    message.name !== undefined && (obj.name = message.name);
-    message.src !== undefined && (obj.src = message.src ? Route.toJSON(message.src) : undefined);
-    if (message.srcGroups) {
-      obj.srcGroups = message.srcGroups.map((e) => e);
-    } else {
-      obj.srcGroups = [];
+    if (message.name !== "") {
+      obj.name = message.name;
     }
-    message.dst !== undefined && (obj.dst = message.dst ? Route.toJSON(message.dst) : undefined);
-    if (message.dstGroups) {
-      obj.dstGroups = message.dstGroups.map((e) => e);
-    } else {
-      obj.dstGroups = [];
+    if (message.src !== undefined) {
+      obj.src = Route.toJSON(message.src);
+    }
+    if (message.srcGroups?.length) {
+      obj.srcGroups = message.srcGroups;
+    }
+    if (message.dst !== undefined) {
+      obj.dst = Route.toJSON(message.dst);
+    }
+    if (message.dstGroups?.length) {
+      obj.dstGroups = message.dstGroups;
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<Acl>, I>>(base?: I): Acl {
-    return Acl.fromPartial(base ?? {});
+    return Acl.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<Acl>, I>>(object: I): Acl {
     const message = createBaseAcl();
     message.name = object.name ?? "";
@@ -779,30 +804,25 @@ export const Route = {
 
   fromJSON(object: any): Route {
     return {
-      userIds: Array.isArray(object?.userIds) ? object.userIds.map((e: any) => String(e)) : [],
-      groupIds: Array.isArray(object?.groupIds) ? object.groupIds.map((e: any) => String(e)) : [],
+      userIds: globalThis.Array.isArray(object?.userIds) ? object.userIds.map((e: any) => globalThis.String(e)) : [],
+      groupIds: globalThis.Array.isArray(object?.groupIds) ? object.groupIds.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
   toJSON(message: Route): unknown {
     const obj: any = {};
-    if (message.userIds) {
-      obj.userIds = message.userIds.map((e) => e);
-    } else {
-      obj.userIds = [];
+    if (message.userIds?.length) {
+      obj.userIds = message.userIds;
     }
-    if (message.groupIds) {
-      obj.groupIds = message.groupIds.map((e) => e);
-    } else {
-      obj.groupIds = [];
+    if (message.groupIds?.length) {
+      obj.groupIds = message.groupIds;
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<Route>, I>>(base?: I): Route {
-    return Route.fromPartial(base ?? {});
+    return Route.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<Route>, I>>(object: I): Route {
     const message = createBaseRoute();
     message.userIds = object.userIds?.map((e) => e) || [];
@@ -868,7 +888,7 @@ export const CreateAclRequest = {
 
   fromJSON(object: any): CreateAclRequest {
     return {
-      aclName: isSet(object.aclName) ? String(object.aclName) : "",
+      aclName: isSet(object.aclName) ? globalThis.String(object.aclName) : "",
       src: isSet(object.src) ? Route.fromJSON(object.src) : undefined,
       dst: isSet(object.dst) ? Route.fromJSON(object.dst) : undefined,
     };
@@ -876,16 +896,21 @@ export const CreateAclRequest = {
 
   toJSON(message: CreateAclRequest): unknown {
     const obj: any = {};
-    message.aclName !== undefined && (obj.aclName = message.aclName);
-    message.src !== undefined && (obj.src = message.src ? Route.toJSON(message.src) : undefined);
-    message.dst !== undefined && (obj.dst = message.dst ? Route.toJSON(message.dst) : undefined);
+    if (message.aclName !== "") {
+      obj.aclName = message.aclName;
+    }
+    if (message.src !== undefined) {
+      obj.src = Route.toJSON(message.src);
+    }
+    if (message.dst !== undefined) {
+      obj.dst = Route.toJSON(message.dst);
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<CreateAclRequest>, I>>(base?: I): CreateAclRequest {
-    return CreateAclRequest.fromPartial(base ?? {});
+    return CreateAclRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<CreateAclRequest>, I>>(object: I): CreateAclRequest {
     const message = createBaseCreateAclRequest();
     message.aclName = object.aclName ?? "";
@@ -931,19 +956,20 @@ export const DeleteAclRequest = {
   },
 
   fromJSON(object: any): DeleteAclRequest {
-    return { aclId: isSet(object.aclId) ? String(object.aclId) : "" };
+    return { aclId: isSet(object.aclId) ? globalThis.String(object.aclId) : "" };
   },
 
   toJSON(message: DeleteAclRequest): unknown {
     const obj: any = {};
-    message.aclId !== undefined && (obj.aclId = message.aclId);
+    if (message.aclId !== "") {
+      obj.aclId = message.aclId;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<DeleteAclRequest>, I>>(base?: I): DeleteAclRequest {
-    return DeleteAclRequest.fromPartial(base ?? {});
+    return DeleteAclRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<DeleteAclRequest>, I>>(object: I): DeleteAclRequest {
     const message = createBaseDeleteAclRequest();
     message.aclId = object.aclId ?? "";
@@ -1008,7 +1034,7 @@ export const PatchAclRequest = {
 
   fromJSON(object: any): PatchAclRequest {
     return {
-      aclId: isSet(object.aclId) ? String(object.aclId) : "",
+      aclId: isSet(object.aclId) ? globalThis.String(object.aclId) : "",
       src: isSet(object.src) ? Route.fromJSON(object.src) : undefined,
       dst: isSet(object.dst) ? Route.fromJSON(object.dst) : undefined,
     };
@@ -1016,16 +1042,21 @@ export const PatchAclRequest = {
 
   toJSON(message: PatchAclRequest): unknown {
     const obj: any = {};
-    message.aclId !== undefined && (obj.aclId = message.aclId);
-    message.src !== undefined && (obj.src = message.src ? Route.toJSON(message.src) : undefined);
-    message.dst !== undefined && (obj.dst = message.dst ? Route.toJSON(message.dst) : undefined);
+    if (message.aclId !== "") {
+      obj.aclId = message.aclId;
+    }
+    if (message.src !== undefined) {
+      obj.src = Route.toJSON(message.src);
+    }
+    if (message.dst !== undefined) {
+      obj.dst = Route.toJSON(message.dst);
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<PatchAclRequest>, I>>(base?: I): PatchAclRequest {
-    return PatchAclRequest.fromPartial(base ?? {});
+    return PatchAclRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<PatchAclRequest>, I>>(object: I): PatchAclRequest {
     const message = createBasePatchAclRequest();
     message.aclId = object.aclId ?? "";
@@ -1076,14 +1107,15 @@ export const AclResponse = {
 
   toJSON(message: AclResponse): unknown {
     const obj: any = {};
-    message.acl !== undefined && (obj.acl = message.acl ? Acl.toJSON(message.acl) : undefined);
+    if (message.acl !== undefined) {
+      obj.acl = Acl.toJSON(message.acl);
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<AclResponse>, I>>(base?: I): AclResponse {
-    return AclResponse.fromPartial(base ?? {});
+    return AclResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<AclResponse>, I>>(object: I): AclResponse {
     const message = createBaseAclResponse();
     message.acl = (object.acl !== undefined && object.acl !== null) ? Acl.fromPartial(object.acl) : undefined;
@@ -1127,23 +1159,20 @@ export const AclsResponse = {
   },
 
   fromJSON(object: any): AclsResponse {
-    return { acls: Array.isArray(object?.acls) ? object.acls.map((e: any) => Acl.fromJSON(e)) : [] };
+    return { acls: globalThis.Array.isArray(object?.acls) ? object.acls.map((e: any) => Acl.fromJSON(e)) : [] };
   },
 
   toJSON(message: AclsResponse): unknown {
     const obj: any = {};
-    if (message.acls) {
-      obj.acls = message.acls.map((e) => e ? Acl.toJSON(e) : undefined);
-    } else {
-      obj.acls = [];
+    if (message.acls?.length) {
+      obj.acls = message.acls.map((e) => Acl.toJSON(e));
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<AclsResponse>, I>>(base?: I): AclsResponse {
-    return AclsResponse.fromPartial(base ?? {});
+    return AclsResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<AclsResponse>, I>>(object: I): AclsResponse {
     const message = createBaseAclsResponse();
     message.acls = object.acls?.map((e) => Acl.fromPartial(e)) || [];
@@ -1198,26 +1227,25 @@ export const CreateGroupRequest = {
 
   fromJSON(object: any): CreateGroupRequest {
     return {
-      groupName: isSet(object.groupName) ? String(object.groupName) : "",
-      users: Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+      groupName: isSet(object.groupName) ? globalThis.String(object.groupName) : "",
+      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: CreateGroupRequest): unknown {
     const obj: any = {};
-    message.groupName !== undefined && (obj.groupName = message.groupName);
-    if (message.users) {
-      obj.users = message.users.map((e) => e ? User.toJSON(e) : undefined);
-    } else {
-      obj.users = [];
+    if (message.groupName !== "") {
+      obj.groupName = message.groupName;
+    }
+    if (message.users?.length) {
+      obj.users = message.users.map((e) => User.toJSON(e));
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<CreateGroupRequest>, I>>(base?: I): CreateGroupRequest {
-    return CreateGroupRequest.fromPartial(base ?? {});
+    return CreateGroupRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<CreateGroupRequest>, I>>(object: I): CreateGroupRequest {
     const message = createBaseCreateGroupRequest();
     message.groupName = object.groupName ?? "";
@@ -1262,19 +1290,20 @@ export const DeleteGroupRequest = {
   },
 
   fromJSON(object: any): DeleteGroupRequest {
-    return { groupId: isSet(object.groupId) ? String(object.groupId) : "" };
+    return { groupId: isSet(object.groupId) ? globalThis.String(object.groupId) : "" };
   },
 
   toJSON(message: DeleteGroupRequest): unknown {
     const obj: any = {};
-    message.groupId !== undefined && (obj.groupId = message.groupId);
+    if (message.groupId !== "") {
+      obj.groupId = message.groupId;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<DeleteGroupRequest>, I>>(base?: I): DeleteGroupRequest {
-    return DeleteGroupRequest.fromPartial(base ?? {});
+    return DeleteGroupRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<DeleteGroupRequest>, I>>(object: I): DeleteGroupRequest {
     const message = createBaseDeleteGroupRequest();
     message.groupId = object.groupId ?? "";
@@ -1329,26 +1358,25 @@ export const PatchGroupRequest = {
 
   fromJSON(object: any): PatchGroupRequest {
     return {
-      groupId: isSet(object.groupId) ? String(object.groupId) : "",
-      users: Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+      groupId: isSet(object.groupId) ? globalThis.String(object.groupId) : "",
+      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: PatchGroupRequest): unknown {
     const obj: any = {};
-    message.groupId !== undefined && (obj.groupId = message.groupId);
-    if (message.users) {
-      obj.users = message.users.map((e) => e ? User.toJSON(e) : undefined);
-    } else {
-      obj.users = [];
+    if (message.groupId !== "") {
+      obj.groupId = message.groupId;
+    }
+    if (message.users?.length) {
+      obj.users = message.users.map((e) => User.toJSON(e));
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<PatchGroupRequest>, I>>(base?: I): PatchGroupRequest {
-    return PatchGroupRequest.fromPartial(base ?? {});
+    return PatchGroupRequest.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<PatchGroupRequest>, I>>(object: I): PatchGroupRequest {
     const message = createBasePatchGroupRequest();
     message.groupId = object.groupId ?? "";
@@ -1398,14 +1426,15 @@ export const GroupResponse = {
 
   toJSON(message: GroupResponse): unknown {
     const obj: any = {};
-    message.group !== undefined && (obj.group = message.group ? Group.toJSON(message.group) : undefined);
+    if (message.group !== undefined) {
+      obj.group = Group.toJSON(message.group);
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<GroupResponse>, I>>(base?: I): GroupResponse {
-    return GroupResponse.fromPartial(base ?? {});
+    return GroupResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<GroupResponse>, I>>(object: I): GroupResponse {
     const message = createBaseGroupResponse();
     message.group = (object.group !== undefined && object.group !== null) ? Group.fromPartial(object.group) : undefined;
@@ -1460,30 +1489,25 @@ export const GroupsResponse = {
 
   fromJSON(object: any): GroupsResponse {
     return {
-      groups: Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
-      users: Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
+      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: GroupsResponse): unknown {
     const obj: any = {};
-    if (message.groups) {
-      obj.groups = message.groups.map((e) => e ? Group.toJSON(e) : undefined);
-    } else {
-      obj.groups = [];
+    if (message.groups?.length) {
+      obj.groups = message.groups.map((e) => Group.toJSON(e));
     }
-    if (message.users) {
-      obj.users = message.users.map((e) => e ? User.toJSON(e) : undefined);
-    } else {
-      obj.users = [];
+    if (message.users?.length) {
+      obj.users = message.users.map((e) => User.toJSON(e));
     }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<GroupsResponse>, I>>(base?: I): GroupsResponse {
-    return GroupsResponse.fromPartial(base ?? {});
+    return GroupsResponse.fromPartial(base ?? ({} as any));
   },
-
   fromPartial<I extends Exact<DeepPartial<GroupsResponse>, I>>(object: I): GroupsResponse {
     const message = createBaseGroupsResponse();
     message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
@@ -1904,14 +1928,14 @@ export class GrpcWebImpl {
     const request = { ..._request, ...methodDesc.requestType };
     const maybeCombinedMetadata = metadata && this.options.metadata
       ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
-      : metadata || this.options.metadata;
+      : metadata ?? this.options.metadata;
     return new Promise((resolve, reject) => {
       grpc.unary(methodDesc, {
         request,
         host: this.host,
-        metadata: maybeCombinedMetadata,
-        transport: this.options.transport,
-        debug: this.options.debug,
+        metadata: maybeCombinedMetadata ?? {},
+        ...(this.options.transport !== undefined ? { transport: this.options.transport } : {}),
+        debug: this.options.debug ?? false,
         onEnd: function (response) {
           if (response.status === grpc.Code.OK) {
             resolve(response.message!.toObject());
@@ -1925,29 +1949,11 @@ export class GrpcWebImpl {
   }
 }
 
-declare var self: any | undefined;
-declare var window: any | undefined;
-declare var global: any | undefined;
-var tsProtoGlobalThis: any = (() => {
-  if (typeof globalThis !== "undefined") {
-    return globalThis;
-  }
-  if (typeof self !== "undefined") {
-    return self;
-  }
-  if (typeof window !== "undefined") {
-    return window;
-  }
-  if (typeof global !== "undefined") {
-    return global;
-  }
-  throw "Unable to locate global object";
-})();
-
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
-  : T extends Array<infer U> ? Array<DeepPartial<U>> : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
+  : T extends globalThis.Array<infer U> ? globalThis.Array<DeepPartial<U>>
+  : T extends ReadonlyArray<infer U> ? ReadonlyArray<DeepPartial<U>>
   : T extends {} ? { [K in keyof T]?: DeepPartial<T[K]> }
   : Partial<T>;
 
@@ -1959,7 +1965,7 @@ function isSet(value: any): boolean {
   return value !== null && value !== undefined;
 }
 
-export class GrpcWebError extends tsProtoGlobalThis.Error {
+export class GrpcWebError extends globalThis.Error {
   constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
     super(message);
   }
