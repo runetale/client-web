@@ -14,6 +14,7 @@ export interface LoginRequest {
   doamin: string;
   providerID: string;
   email: string;
+  username: string;
 }
 
 function createBaseLoginResponse(): LoginResponse {
@@ -60,7 +61,7 @@ export const LoginResponse = {
 };
 
 function createBaseLoginRequest(): LoginRequest {
-  return { sub: "", tenantID: "", doamin: "", providerID: "", email: "" };
+  return { sub: "", tenantID: "", doamin: "", providerID: "", email: "", username: "" };
 }
 
 export const LoginRequest = {
@@ -79,6 +80,9 @@ export const LoginRequest = {
     }
     if (message.email !== "") {
       writer.uint32(42).string(message.email);
+    }
+    if (message.username !== "") {
+      writer.uint32(50).string(message.username);
     }
     return writer;
   },
@@ -125,6 +129,13 @@ export const LoginRequest = {
 
           message.email = reader.string();
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.username = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -141,6 +152,7 @@ export const LoginRequest = {
       doamin: isSet(object.doamin) ? globalThis.String(object.doamin) : "",
       providerID: isSet(object.providerID) ? globalThis.String(object.providerID) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
     };
   },
 
@@ -161,6 +173,9 @@ export const LoginRequest = {
     if (message.email !== "") {
       obj.email = message.email;
     }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
     return obj;
   },
 
@@ -174,6 +189,7 @@ export const LoginRequest = {
     message.doamin = object.doamin ?? "";
     message.providerID = object.providerID ?? "";
     message.email = object.email ?? "";
+    message.username = object.username ?? "";
     return message;
   },
 };
