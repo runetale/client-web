@@ -6,6 +6,12 @@ import _m0 from "protobufjs/minimal";
 export const protobufPackage = "protos";
 
 export interface LoginResponse {
+  sub: string;
+  tenantID: string;
+  doamin: string;
+  providerID: string;
+  email: string;
+  username: string;
 }
 
 export interface LoginRequest {
@@ -18,11 +24,29 @@ export interface LoginRequest {
 }
 
 function createBaseLoginResponse(): LoginResponse {
-  return {};
+  return { sub: "", tenantID: "", doamin: "", providerID: "", email: "", username: "" };
 }
 
 export const LoginResponse = {
-  encode(_: LoginResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+  encode(message: LoginResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.sub !== "") {
+      writer.uint32(10).string(message.sub);
+    }
+    if (message.tenantID !== "") {
+      writer.uint32(18).string(message.tenantID);
+    }
+    if (message.doamin !== "") {
+      writer.uint32(26).string(message.doamin);
+    }
+    if (message.providerID !== "") {
+      writer.uint32(34).string(message.providerID);
+    }
+    if (message.email !== "") {
+      writer.uint32(42).string(message.email);
+    }
+    if (message.username !== "") {
+      writer.uint32(50).string(message.username);
+    }
     return writer;
   },
 
@@ -33,6 +57,48 @@ export const LoginResponse = {
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sub = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.tenantID = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.doamin = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.providerID = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.username = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -42,20 +108,51 @@ export const LoginResponse = {
     return message;
   },
 
-  fromJSON(_: any): LoginResponse {
-    return {};
+  fromJSON(object: any): LoginResponse {
+    return {
+      sub: isSet(object.sub) ? globalThis.String(object.sub) : "",
+      tenantID: isSet(object.tenantID) ? globalThis.String(object.tenantID) : "",
+      doamin: isSet(object.doamin) ? globalThis.String(object.doamin) : "",
+      providerID: isSet(object.providerID) ? globalThis.String(object.providerID) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
+    };
   },
 
-  toJSON(_: LoginResponse): unknown {
+  toJSON(message: LoginResponse): unknown {
     const obj: any = {};
+    if (message.sub !== "") {
+      obj.sub = message.sub;
+    }
+    if (message.tenantID !== "") {
+      obj.tenantID = message.tenantID;
+    }
+    if (message.doamin !== "") {
+      obj.doamin = message.doamin;
+    }
+    if (message.providerID !== "") {
+      obj.providerID = message.providerID;
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
     return obj;
   },
 
   create<I extends Exact<DeepPartial<LoginResponse>, I>>(base?: I): LoginResponse {
     return LoginResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<LoginResponse>, I>>(_: I): LoginResponse {
+  fromPartial<I extends Exact<DeepPartial<LoginResponse>, I>>(object: I): LoginResponse {
     const message = createBaseLoginResponse();
+    message.sub = object.sub ?? "";
+    message.tenantID = object.tenantID ?? "";
+    message.doamin = object.doamin ?? "";
+    message.providerID = object.providerID ?? "";
+    message.email = object.email ?? "";
+    message.username = object.username ?? "";
     return message;
   },
 };
