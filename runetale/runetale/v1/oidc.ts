@@ -291,11 +291,11 @@ export const LoginRequest = {
   },
 };
 
-export interface LoginService {
+export interface OIDCService {
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse>;
 }
 
-export class LoginServiceClientImpl implements LoginService {
+export class OIDCServiceClientImpl implements OIDCService {
   private readonly rpc: Rpc;
 
   constructor(rpc: Rpc) {
@@ -304,15 +304,15 @@ export class LoginServiceClientImpl implements LoginService {
   }
 
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse> {
-    return this.rpc.unary(LoginServiceLoginDesc, LoginRequest.fromPartial(request), metadata);
+    return this.rpc.unary(OIDCServiceLoginDesc, LoginRequest.fromPartial(request), metadata);
   }
 }
 
-export const LoginServiceDesc = { serviceName: "protos.LoginService" };
+export const OIDCServiceDesc = { serviceName: "protos.OIDCService" };
 
-export const LoginServiceLoginDesc: UnaryMethodDefinitionish = {
+export const OIDCServiceLoginDesc: UnaryMethodDefinitionish = {
   methodName: "Login",
-  service: LoginServiceDesc,
+  service: OIDCServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
