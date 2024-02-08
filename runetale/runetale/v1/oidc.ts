@@ -24,6 +24,12 @@ export interface LoginRequest {
   username: string;
 }
 
+export interface AuthenticateResponse {
+  doamin: string;
+  email: string;
+  username: string;
+}
+
 function createBaseLoginResponse(): LoginResponse {
   return { sub: "", tenantID: "", doamin: "", providerID: "", email: "", username: "" };
 }
@@ -292,9 +298,98 @@ export const LoginRequest = {
   },
 };
 
+function createBaseAuthenticateResponse(): AuthenticateResponse {
+  return { doamin: "", email: "", username: "" };
+}
+
+export const AuthenticateResponse = {
+  encode(message: AuthenticateResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.doamin !== "") {
+      writer.uint32(10).string(message.doamin);
+    }
+    if (message.email !== "") {
+      writer.uint32(18).string(message.email);
+    }
+    if (message.username !== "") {
+      writer.uint32(26).string(message.username);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AuthenticateResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAuthenticateResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.doamin = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.username = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AuthenticateResponse {
+    return {
+      doamin: isSet(object.doamin) ? globalThis.String(object.doamin) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      username: isSet(object.username) ? globalThis.String(object.username) : "",
+    };
+  },
+
+  toJSON(message: AuthenticateResponse): unknown {
+    const obj: any = {};
+    if (message.doamin !== "") {
+      obj.doamin = message.doamin;
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.username !== "") {
+      obj.username = message.username;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AuthenticateResponse>, I>>(base?: I): AuthenticateResponse {
+    return AuthenticateResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AuthenticateResponse>, I>>(object: I): AuthenticateResponse {
+    const message = createBaseAuthenticateResponse();
+    message.doamin = object.doamin ?? "";
+    message.email = object.email ?? "";
+    message.username = object.username ?? "";
+    return message;
+  },
+};
+
 export interface OIDCService {
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse>;
-  Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty>;
+  Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<AuthenticateResponse>;
 }
 
 export class OIDCServiceClientImpl implements OIDCService {
@@ -310,7 +405,7 @@ export class OIDCServiceClientImpl implements OIDCService {
     return this.rpc.unary(OIDCServiceLoginDesc, LoginRequest.fromPartial(request), metadata);
   }
 
-  Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty> {
+  Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<AuthenticateResponse> {
     return this.rpc.unary(OIDCServiceAuthenticateDesc, Empty.fromPartial(request), metadata);
   }
 }
@@ -352,7 +447,7 @@ export const OIDCServiceAuthenticateDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
+      const value = AuthenticateResponse.decode(data);
       return {
         ...value,
         toObject() {
