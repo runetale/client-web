@@ -2,6 +2,7 @@
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import _m0 from "protobufjs/minimal";
+import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
@@ -293,6 +294,7 @@ export const LoginRequest = {
 
 export interface OIDCService {
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse>;
+  Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
 export class OIDCServiceClientImpl implements OIDCService {
@@ -301,10 +303,15 @@ export class OIDCServiceClientImpl implements OIDCService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.Login = this.Login.bind(this);
+    this.Authenticate = this.Authenticate.bind(this);
   }
 
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse> {
     return this.rpc.unary(OIDCServiceLoginDesc, LoginRequest.fromPartial(request), metadata);
+  }
+
+  Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(OIDCServiceAuthenticateDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -323,6 +330,29 @@ export const OIDCServiceLoginDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = LoginResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const OIDCServiceAuthenticateDesc: UnaryMethodDefinitionish = {
+  methodName: "Authenticate",
+  service: OIDCServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
       return {
         ...value,
         toObject() {
