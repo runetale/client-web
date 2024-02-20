@@ -29,7 +29,7 @@ export interface AuthenticateResponse {
   email: string;
   username: string;
   sub: string;
-  isRegistered: string;
+  isRegistered: boolean;
 }
 
 function createBaseLoginResponse(): LoginResponse {
@@ -301,7 +301,7 @@ export const LoginRequest = {
 };
 
 function createBaseAuthenticateResponse(): AuthenticateResponse {
-  return { doamin: "", email: "", username: "", sub: "", isRegistered: "" };
+  return { doamin: "", email: "", username: "", sub: "", isRegistered: false };
 }
 
 export const AuthenticateResponse = {
@@ -318,8 +318,8 @@ export const AuthenticateResponse = {
     if (message.sub !== "") {
       writer.uint32(34).string(message.sub);
     }
-    if (message.isRegistered !== "") {
-      writer.uint32(42).string(message.isRegistered);
+    if (message.isRegistered === true) {
+      writer.uint32(40).bool(message.isRegistered);
     }
     return writer;
   },
@@ -360,11 +360,11 @@ export const AuthenticateResponse = {
           message.sub = reader.string();
           continue;
         case 5:
-          if (tag !== 42) {
+          if (tag !== 40) {
             break;
           }
 
-          message.isRegistered = reader.string();
+          message.isRegistered = reader.bool();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -381,7 +381,7 @@ export const AuthenticateResponse = {
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       sub: isSet(object.sub) ? globalThis.String(object.sub) : "",
-      isRegistered: isSet(object.isRegistered) ? globalThis.String(object.isRegistered) : "",
+      isRegistered: isSet(object.isRegistered) ? globalThis.Boolean(object.isRegistered) : false,
     };
   },
 
@@ -399,7 +399,7 @@ export const AuthenticateResponse = {
     if (message.sub !== "") {
       obj.sub = message.sub;
     }
-    if (message.isRegistered !== "") {
+    if (message.isRegistered === true) {
       obj.isRegistered = message.isRegistered;
     }
     return obj;
@@ -414,7 +414,7 @@ export const AuthenticateResponse = {
     message.email = object.email ?? "";
     message.username = object.username ?? "";
     message.sub = object.sub ?? "";
-    message.isRegistered = object.isRegistered ?? "";
+    message.isRegistered = object.isRegistered ?? false;
     return message;
   },
 };
