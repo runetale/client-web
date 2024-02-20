@@ -1,53 +1,10 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
-import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
-
-export enum HangOutType {
-  CONNECT = 0,
-  DISCONNECT = 1,
-  UNRECOGNIZED = -1,
-}
-
-export function hangOutTypeFromJSON(object: any): HangOutType {
-  switch (object) {
-    case 0:
-    case "CONNECT":
-      return HangOutType.CONNECT;
-    case 1:
-    case "DISCONNECT":
-      return HangOutType.DISCONNECT;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return HangOutType.UNRECOGNIZED;
-  }
-}
-
-export function hangOutTypeToJSON(object: HangOutType): string {
-  switch (object) {
-    case HangOutType.CONNECT:
-      return "CONNECT";
-    case HangOutType.DISCONNECT:
-      return "DISCONNECT";
-    case HangOutType.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
-export interface JoinResponse {
-  isRegistered: boolean;
-  loginUrl: string;
-  ip: string;
-  cidr: string;
-  signalHost: string;
-  signalPort: number;
-}
 
 export interface SyncMachinesResponse {
   isEmpty: boolean;
@@ -63,140 +20,6 @@ export interface RemotePeer {
   remoteWgPubKey: string;
   allowedIPs: string[];
 }
-
-function createBaseJoinResponse(): JoinResponse {
-  return { isRegistered: false, loginUrl: "", ip: "", cidr: "", signalHost: "", signalPort: 0 };
-}
-
-export const JoinResponse = {
-  encode(message: JoinResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.isRegistered === true) {
-      writer.uint32(8).bool(message.isRegistered);
-    }
-    if (message.loginUrl !== "") {
-      writer.uint32(18).string(message.loginUrl);
-    }
-    if (message.ip !== "") {
-      writer.uint32(26).string(message.ip);
-    }
-    if (message.cidr !== "") {
-      writer.uint32(34).string(message.cidr);
-    }
-    if (message.signalHost !== "") {
-      writer.uint32(42).string(message.signalHost);
-    }
-    if (message.signalPort !== 0) {
-      writer.uint32(48).uint64(message.signalPort);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): JoinResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseJoinResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.isRegistered = reader.bool();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.loginUrl = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.ip = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.cidr = reader.string();
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.signalHost = reader.string();
-          continue;
-        case 6:
-          if (tag !== 48) {
-            break;
-          }
-
-          message.signalPort = longToNumber(reader.uint64() as Long);
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): JoinResponse {
-    return {
-      isRegistered: isSet(object.isRegistered) ? globalThis.Boolean(object.isRegistered) : false,
-      loginUrl: isSet(object.loginUrl) ? globalThis.String(object.loginUrl) : "",
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
-      signalHost: isSet(object.signalHost) ? globalThis.String(object.signalHost) : "",
-      signalPort: isSet(object.signalPort) ? globalThis.Number(object.signalPort) : 0,
-    };
-  },
-
-  toJSON(message: JoinResponse): unknown {
-    const obj: any = {};
-    if (message.isRegistered === true) {
-      obj.isRegistered = message.isRegistered;
-    }
-    if (message.loginUrl !== "") {
-      obj.loginUrl = message.loginUrl;
-    }
-    if (message.ip !== "") {
-      obj.ip = message.ip;
-    }
-    if (message.cidr !== "") {
-      obj.cidr = message.cidr;
-    }
-    if (message.signalHost !== "") {
-      obj.signalHost = message.signalHost;
-    }
-    if (message.signalPort !== 0) {
-      obj.signalPort = Math.round(message.signalPort);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<JoinResponse>, I>>(base?: I): JoinResponse {
-    return JoinResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<JoinResponse>, I>>(object: I): JoinResponse {
-    const message = createBaseJoinResponse();
-    message.isRegistered = object.isRegistered ?? false;
-    message.loginUrl = object.loginUrl ?? "";
-    message.ip = object.ip ?? "";
-    message.cidr = object.cidr ?? "";
-    message.signalHost = object.signalHost ?? "";
-    message.signalPort = object.signalPort ?? 0;
-    return message;
-  },
-};
 
 function createBaseSyncMachinesResponse(): SyncMachinesResponse {
   return { isEmpty: false, remotePeers: [], ip: "", cidr: "" };
@@ -398,7 +221,6 @@ export const RemotePeer = {
 };
 
 export interface MachineService {
-  Join(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<JoinResponse>;
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse>;
 }
 
@@ -407,12 +229,7 @@ export class MachineServiceClientImpl implements MachineService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Join = this.Join.bind(this);
     this.SyncRemoteMachinesConfig = this.SyncRemoteMachinesConfig.bind(this);
-  }
-
-  Join(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<JoinResponse> {
-    return this.rpc.unary(MachineServiceJoinDesc, Empty.fromPartial(request), metadata);
   }
 
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse> {
@@ -421,29 +238,6 @@ export class MachineServiceClientImpl implements MachineService {
 }
 
 export const MachineServiceDesc = { serviceName: "protos.MachineService" };
-
-export const MachineServiceJoinDesc: UnaryMethodDefinitionish = {
-  methodName: "Join",
-  service: MachineServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return Empty.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = JoinResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
 
 export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionish = {
   methodName: "SyncRemoteMachinesConfig",
@@ -547,18 +341,6 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
-
-function longToNumber(long: Long): number {
-  if (long.gt(globalThis.Number.MAX_SAFE_INTEGER)) {
-    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
-  }
-  return long.toNumber();
-}
-
-if (_m0.util.Long !== Long) {
-  _m0.util.Long = Long as any;
-  _m0.configure();
-}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
