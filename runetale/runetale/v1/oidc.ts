@@ -28,6 +28,8 @@ export interface AuthenticateResponse {
   doamin: string;
   email: string;
   username: string;
+  sub: string;
+  isRegistered: string;
 }
 
 function createBaseLoginResponse(): LoginResponse {
@@ -299,7 +301,7 @@ export const LoginRequest = {
 };
 
 function createBaseAuthenticateResponse(): AuthenticateResponse {
-  return { doamin: "", email: "", username: "" };
+  return { doamin: "", email: "", username: "", sub: "", isRegistered: "" };
 }
 
 export const AuthenticateResponse = {
@@ -312,6 +314,12 @@ export const AuthenticateResponse = {
     }
     if (message.username !== "") {
       writer.uint32(26).string(message.username);
+    }
+    if (message.sub !== "") {
+      writer.uint32(34).string(message.sub);
+    }
+    if (message.isRegistered !== "") {
+      writer.uint32(42).string(message.isRegistered);
     }
     return writer;
   },
@@ -344,6 +352,20 @@ export const AuthenticateResponse = {
 
           message.username = reader.string();
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.sub = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.isRegistered = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -358,6 +380,8 @@ export const AuthenticateResponse = {
       doamin: isSet(object.doamin) ? globalThis.String(object.doamin) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       username: isSet(object.username) ? globalThis.String(object.username) : "",
+      sub: isSet(object.sub) ? globalThis.String(object.sub) : "",
+      isRegistered: isSet(object.isRegistered) ? globalThis.String(object.isRegistered) : "",
     };
   },
 
@@ -372,6 +396,12 @@ export const AuthenticateResponse = {
     if (message.username !== "") {
       obj.username = message.username;
     }
+    if (message.sub !== "") {
+      obj.sub = message.sub;
+    }
+    if (message.isRegistered !== "") {
+      obj.isRegistered = message.isRegistered;
+    }
     return obj;
   },
 
@@ -383,6 +413,8 @@ export const AuthenticateResponse = {
     message.doamin = object.doamin ?? "";
     message.email = object.email ?? "";
     message.username = object.username ?? "";
+    message.sub = object.sub ?? "";
+    message.isRegistered = object.isRegistered ?? "";
     return message;
   },
 };
