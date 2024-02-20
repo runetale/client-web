@@ -9,7 +9,7 @@ import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
-export interface JoinResponse {
+export interface LoginMachineResponse {
   isRegistered: boolean;
   loginUrl: string;
   ip: string;
@@ -31,12 +31,12 @@ export interface PeerLoginSessionResponse {
   signalServerPort: number;
 }
 
-function createBaseJoinResponse(): JoinResponse {
+function createBaseLoginMachineResponse(): LoginMachineResponse {
   return { isRegistered: false, loginUrl: "", ip: "", cidr: "", signalHost: "", signalPort: 0 };
 }
 
-export const JoinResponse = {
-  encode(message: JoinResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const LoginMachineResponse = {
+  encode(message: LoginMachineResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.isRegistered === true) {
       writer.uint32(8).bool(message.isRegistered);
     }
@@ -58,10 +58,10 @@ export const JoinResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): JoinResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): LoginMachineResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseJoinResponse();
+    const message = createBaseLoginMachineResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -116,7 +116,7 @@ export const JoinResponse = {
     return message;
   },
 
-  fromJSON(object: any): JoinResponse {
+  fromJSON(object: any): LoginMachineResponse {
     return {
       isRegistered: isSet(object.isRegistered) ? globalThis.Boolean(object.isRegistered) : false,
       loginUrl: isSet(object.loginUrl) ? globalThis.String(object.loginUrl) : "",
@@ -127,7 +127,7 @@ export const JoinResponse = {
     };
   },
 
-  toJSON(message: JoinResponse): unknown {
+  toJSON(message: LoginMachineResponse): unknown {
     const obj: any = {};
     if (message.isRegistered === true) {
       obj.isRegistered = message.isRegistered;
@@ -150,11 +150,11 @@ export const JoinResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<JoinResponse>, I>>(base?: I): JoinResponse {
-    return JoinResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<LoginMachineResponse>, I>>(base?: I): LoginMachineResponse {
+    return LoginMachineResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<JoinResponse>, I>>(object: I): JoinResponse {
-    const message = createBaseJoinResponse();
+  fromPartial<I extends Exact<DeepPartial<LoginMachineResponse>, I>>(object: I): LoginMachineResponse {
+    const message = createBaseLoginMachineResponse();
     message.isRegistered = object.isRegistered ?? false;
     message.loginUrl = object.loginUrl ?? "";
     message.ip = object.ip ?? "";
@@ -299,25 +299,25 @@ export const PeerLoginSessionResponse = {
   },
 };
 
-export interface LoginSessionService {
-  Join(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<JoinResponse>;
+export interface LoginService {
+  LoginMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginMachineResponse>;
   StreamPeerLoginSession(
     request: Observable<DeepPartial<Empty>>,
     metadata?: grpc.Metadata,
   ): Observable<PeerLoginSessionResponse>;
 }
 
-export class LoginSessionServiceClientImpl implements LoginSessionService {
+export class LoginServiceClientImpl implements LoginService {
   private readonly rpc: Rpc;
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Join = this.Join.bind(this);
+    this.LoginMachine = this.LoginMachine.bind(this);
     this.StreamPeerLoginSession = this.StreamPeerLoginSession.bind(this);
   }
 
-  Join(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<JoinResponse> {
-    return this.rpc.unary(LoginSessionServiceJoinDesc, Empty.fromPartial(request), metadata);
+  LoginMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginMachineResponse> {
+    return this.rpc.unary(LoginServiceLoginMachineDesc, Empty.fromPartial(request), metadata);
   }
 
   StreamPeerLoginSession(
@@ -328,11 +328,11 @@ export class LoginSessionServiceClientImpl implements LoginSessionService {
   }
 }
 
-export const LoginSessionServiceDesc = { serviceName: "protos.LoginSessionService" };
+export const LoginServiceDesc = { serviceName: "protos.LoginService" };
 
-export const LoginSessionServiceJoinDesc: UnaryMethodDefinitionish = {
-  methodName: "Join",
-  service: LoginSessionServiceDesc,
+export const LoginServiceLoginMachineDesc: UnaryMethodDefinitionish = {
+  methodName: "LoginMachine",
+  service: LoginServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
@@ -342,7 +342,7 @@ export const LoginSessionServiceJoinDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = JoinResponse.decode(data);
+      const value = LoginMachineResponse.decode(data);
       return {
         ...value,
         toObject() {
