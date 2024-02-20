@@ -23,6 +23,7 @@ export interface LoginRequest {
   providerID: string;
   email: string;
   username: string;
+  picture: string;
 }
 
 export interface AuthenticateResponse {
@@ -183,7 +184,7 @@ export const LoginResponse = {
 };
 
 function createBaseLoginRequest(): LoginRequest {
-  return { sub: "", tenantID: "", doamin: "", providerID: "", email: "", username: "" };
+  return { sub: "", tenantID: "", doamin: "", providerID: "", email: "", username: "", picture: "" };
 }
 
 export const LoginRequest = {
@@ -205,6 +206,9 @@ export const LoginRequest = {
     }
     if (message.username !== "") {
       writer.uint32(50).string(message.username);
+    }
+    if (message.picture !== "") {
+      writer.uint32(58).string(message.picture);
     }
     return writer;
   },
@@ -258,6 +262,13 @@ export const LoginRequest = {
 
           message.username = reader.string();
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.picture = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -275,6 +286,7 @@ export const LoginRequest = {
       providerID: isSet(object.providerID) ? globalThis.String(object.providerID) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       username: isSet(object.username) ? globalThis.String(object.username) : "",
+      picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
     };
   },
 
@@ -298,6 +310,9 @@ export const LoginRequest = {
     if (message.username !== "") {
       obj.username = message.username;
     }
+    if (message.picture !== "") {
+      obj.picture = message.picture;
+    }
     return obj;
   },
 
@@ -312,6 +327,7 @@ export const LoginRequest = {
     message.providerID = object.providerID ?? "";
     message.email = object.email ?? "";
     message.username = object.username ?? "";
+    message.picture = object.picture ?? "";
     return message;
   },
 };
