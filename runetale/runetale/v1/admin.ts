@@ -22,6 +22,7 @@ export interface GetMachinesResponse {
 export interface GetMeResponse {
   username: string;
   email: string;
+  picture: string;
 }
 
 export interface User {
@@ -296,7 +297,7 @@ export const GetMachinesResponse = {
 };
 
 function createBaseGetMeResponse(): GetMeResponse {
-  return { username: "", email: "" };
+  return { username: "", email: "", picture: "" };
 }
 
 export const GetMeResponse = {
@@ -306,6 +307,9 @@ export const GetMeResponse = {
     }
     if (message.email !== "") {
       writer.uint32(18).string(message.email);
+    }
+    if (message.picture !== "") {
+      writer.uint32(26).string(message.picture);
     }
     return writer;
   },
@@ -331,6 +335,13 @@ export const GetMeResponse = {
 
           message.email = reader.string();
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.picture = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -344,6 +355,7 @@ export const GetMeResponse = {
     return {
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
+      picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
     };
   },
 
@@ -355,6 +367,9 @@ export const GetMeResponse = {
     if (message.email !== "") {
       obj.email = message.email;
     }
+    if (message.picture !== "") {
+      obj.picture = message.picture;
+    }
     return obj;
   },
 
@@ -365,6 +380,7 @@ export const GetMeResponse = {
     const message = createBaseGetMeResponse();
     message.username = object.username ?? "";
     message.email = object.email ?? "";
+    message.picture = object.picture ?? "";
     return message;
   },
 };
