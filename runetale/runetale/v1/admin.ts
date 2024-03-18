@@ -124,7 +124,7 @@ export const Machine = {
     if (message.os !== "") {
       writer.uint32(42).string(message.os);
     }
-    if (message.isConnect === true) {
+    if (message.isConnect !== false) {
       writer.uint32(48).bool(message.isConnect);
     }
     return writer;
@@ -216,7 +216,7 @@ export const Machine = {
     if (message.os !== "") {
       obj.os = message.os;
     }
-    if (message.isConnect === true) {
+    if (message.isConnect !== false) {
       obj.isConnect = message.isConnect;
     }
     return obj;

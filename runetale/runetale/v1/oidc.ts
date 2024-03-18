@@ -350,7 +350,7 @@ export const AuthenticateResponse = {
     if (message.sub !== "") {
       writer.uint32(34).string(message.sub);
     }
-    if (message.isRegistered === true) {
+    if (message.isRegistered !== false) {
       writer.uint32(40).bool(message.isRegistered);
     }
     return writer;
@@ -431,7 +431,7 @@ export const AuthenticateResponse = {
     if (message.sub !== "") {
       obj.sub = message.sub;
     }
-    if (message.isRegistered === true) {
+    if (message.isRegistered !== false) {
       obj.isRegistered = message.isRegistered;
     }
     return obj;

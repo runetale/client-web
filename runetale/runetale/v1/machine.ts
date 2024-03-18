@@ -27,7 +27,7 @@ function createBaseSyncMachinesResponse(): SyncMachinesResponse {
 
 export const SyncMachinesResponse = {
   encode(message: SyncMachinesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.isEmpty === true) {
+    if (message.isEmpty !== false) {
       writer.uint32(8).bool(message.isEmpty);
     }
     for (const v of message.remotePeers) {
@@ -99,7 +99,7 @@ export const SyncMachinesResponse = {
 
   toJSON(message: SyncMachinesResponse): unknown {
     const obj: any = {};
-    if (message.isEmpty === true) {
+    if (message.isEmpty !== false) {
       obj.isEmpty = message.isEmpty;
     }
     if (message.remotePeers?.length) {

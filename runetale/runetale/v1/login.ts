@@ -37,7 +37,7 @@ function createBaseLoginMachineResponse(): LoginMachineResponse {
 
 export const LoginMachineResponse = {
   encode(message: LoginMachineResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.isRegistered === true) {
+    if (message.isRegistered !== false) {
       writer.uint32(8).bool(message.isRegistered);
     }
     if (message.loginUrl !== "") {
@@ -129,7 +129,7 @@ export const LoginMachineResponse = {
 
   toJSON(message: LoginMachineResponse): unknown {
     const obj: any = {};
-    if (message.isRegistered === true) {
+    if (message.isRegistered !== false) {
       obj.isRegistered = message.isRegistered;
     }
     if (message.loginUrl !== "") {

@@ -16,7 +16,7 @@ function createBaseGetConnectionStatusResponse(): GetConnectionStatusResponse {
 
 export const GetConnectionStatusResponse = {
   encode(message: GetConnectionStatusResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.IsConnected === true) {
+    if (message.IsConnected !== false) {
       writer.uint32(8).bool(message.IsConnected);
     }
     return writer;
@@ -51,7 +51,7 @@ export const GetConnectionStatusResponse = {
 
   toJSON(message: GetConnectionStatusResponse): unknown {
     const obj: any = {};
-    if (message.IsConnected === true) {
+    if (message.IsConnected !== false) {
       obj.IsConnected = message.IsConnected;
     }
     return obj;
