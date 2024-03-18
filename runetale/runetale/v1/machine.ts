@@ -19,6 +19,8 @@ export interface RemotePeer {
   remoteClientMachineKey: string;
   remoteWgPubKey: string;
   allowedIPs: string[];
+  ip: string;
+  cidr: string;
 }
 
 function createBaseSyncMachinesResponse(): SyncMachinesResponse {
@@ -128,7 +130,7 @@ export const SyncMachinesResponse = {
 };
 
 function createBaseRemotePeer(): RemotePeer {
-  return { remoteClientMachineKey: "", remoteWgPubKey: "", allowedIPs: [] };
+  return { remoteClientMachineKey: "", remoteWgPubKey: "", allowedIPs: [], ip: "", cidr: "" };
 }
 
 export const RemotePeer = {
@@ -141,6 +143,12 @@ export const RemotePeer = {
     }
     for (const v of message.allowedIPs) {
       writer.uint32(26).string(v!);
+    }
+    if (message.ip !== "") {
+      writer.uint32(34).string(message.ip);
+    }
+    if (message.cidr !== "") {
+      writer.uint32(42).string(message.cidr);
     }
     return writer;
   },
@@ -173,6 +181,20 @@ export const RemotePeer = {
 
           message.allowedIPs.push(reader.string());
           continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.ip = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.cidr = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -191,6 +213,8 @@ export const RemotePeer = {
       allowedIPs: globalThis.Array.isArray(object?.allowedIPs)
         ? object.allowedIPs.map((e: any) => globalThis.String(e))
         : [],
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
     };
   },
 
@@ -205,6 +229,12 @@ export const RemotePeer = {
     if (message.allowedIPs?.length) {
       obj.allowedIPs = message.allowedIPs;
     }
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.cidr !== "") {
+      obj.cidr = message.cidr;
+    }
     return obj;
   },
 
@@ -216,6 +246,8 @@ export const RemotePeer = {
     message.remoteClientMachineKey = object.remoteClientMachineKey ?? "";
     message.remoteWgPubKey = object.remoteWgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
+    message.ip = object.ip ?? "";
+    message.cidr = object.cidr ?? "";
     return message;
   },
 };
