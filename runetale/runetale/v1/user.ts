@@ -39,7 +39,7 @@ export interface GetUsersResponse {
 }
 
 export interface GetGroupsResponse {
-  users: User[];
+  groups: Group[];
 }
 
 export interface Group {
@@ -521,13 +521,13 @@ export const GetUsersResponse = {
 };
 
 function createBaseGetGroupsResponse(): GetGroupsResponse {
-  return { users: [] };
+  return { groups: [] };
 }
 
 export const GetGroupsResponse = {
   encode(message: GetGroupsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.users) {
-      User.encode(v!, writer.uint32(10).fork()).ldelim();
+    for (const v of message.groups) {
+      Group.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
@@ -544,7 +544,7 @@ export const GetGroupsResponse = {
             break;
           }
 
-          message.users.push(User.decode(reader, reader.uint32()));
+          message.groups.push(Group.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -556,13 +556,13 @@ export const GetGroupsResponse = {
   },
 
   fromJSON(object: any): GetGroupsResponse {
-    return { users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [] };
+    return { groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [] };
   },
 
   toJSON(message: GetGroupsResponse): unknown {
     const obj: any = {};
-    if (message.users?.length) {
-      obj.users = message.users.map((e) => User.toJSON(e));
+    if (message.groups?.length) {
+      obj.groups = message.groups.map((e) => Group.toJSON(e));
     }
     return obj;
   },
@@ -572,7 +572,7 @@ export const GetGroupsResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<GetGroupsResponse>, I>>(object: I): GetGroupsResponse {
     const message = createBaseGetGroupsResponse();
-    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
+    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
     return message;
   },
 };
