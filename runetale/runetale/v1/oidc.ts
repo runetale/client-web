@@ -454,7 +454,6 @@ export const AuthenticateResponse = {
 export interface OIDCService {
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse>;
   Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<AuthenticateResponse>;
-  RefreshToken(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
 export class OIDCServiceClientImpl implements OIDCService {
@@ -464,7 +463,6 @@ export class OIDCServiceClientImpl implements OIDCService {
     this.rpc = rpc;
     this.Login = this.Login.bind(this);
     this.Authenticate = this.Authenticate.bind(this);
-    this.RefreshToken = this.RefreshToken.bind(this);
   }
 
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse> {
@@ -473,10 +471,6 @@ export class OIDCServiceClientImpl implements OIDCService {
 
   Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<AuthenticateResponse> {
     return this.rpc.unary(OIDCServiceAuthenticateDesc, Empty.fromPartial(request), metadata);
-  }
-
-  RefreshToken(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(OIDCServiceRefreshTokenDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -518,29 +512,6 @@ export const OIDCServiceAuthenticateDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = AuthenticateResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const OIDCServiceRefreshTokenDesc: UnaryMethodDefinitionish = {
-  methodName: "RefreshToken",
-  service: OIDCServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return Empty.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
       return {
         ...value,
         toObject() {
