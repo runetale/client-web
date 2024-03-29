@@ -1,23 +1,11 @@
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
+import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
-
-export interface Machine {
-  domain: string;
-  ip: string;
-  cidr: string;
-  host: string;
-  os: string;
-  isConnect: boolean;
-}
-
-export interface GetMachinesResponse {
-  machines: Machine[];
-}
 
 export interface GetMeResponse {
   username: string;
@@ -25,220 +13,25 @@ export interface GetMeResponse {
   picture: string;
 }
 
+export interface GetUserRequest {
+  id: number;
+}
+
 export interface User {
-  userId: string;
-  username: string;
+  id: number;
+  name: string;
   email: string;
+  role: string;
+  devices: number;
+  groups: number;
+  resources: number;
   joined: string;
   lastSeen: string;
-  picture: string;
 }
 
 export interface GetUsersResponse {
   users: User[];
 }
-
-export interface GetGroupsResponse {
-  groups: Group[];
-}
-
-export interface Group {
-  name: string;
-  users: User[];
-}
-
-function createBaseMachine(): Machine {
-  return { domain: "", ip: "", cidr: "", host: "", os: "", isConnect: false };
-}
-
-export const Machine = {
-  encode(message: Machine, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.domain !== "") {
-      writer.uint32(10).string(message.domain);
-    }
-    if (message.ip !== "") {
-      writer.uint32(18).string(message.ip);
-    }
-    if (message.cidr !== "") {
-      writer.uint32(26).string(message.cidr);
-    }
-    if (message.host !== "") {
-      writer.uint32(34).string(message.host);
-    }
-    if (message.os !== "") {
-      writer.uint32(42).string(message.os);
-    }
-    if (message.isConnect !== false) {
-      writer.uint32(48).bool(message.isConnect);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Machine {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMachine();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.domain = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.ip = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.cidr = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.host = reader.string();
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.os = reader.string();
-          continue;
-        case 6:
-          if (tag !== 48) {
-            break;
-          }
-
-          message.isConnect = reader.bool();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Machine {
-    return {
-      domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
-      host: isSet(object.host) ? globalThis.String(object.host) : "",
-      os: isSet(object.os) ? globalThis.String(object.os) : "",
-      isConnect: isSet(object.isConnect) ? globalThis.Boolean(object.isConnect) : false,
-    };
-  },
-
-  toJSON(message: Machine): unknown {
-    const obj: any = {};
-    if (message.domain !== "") {
-      obj.domain = message.domain;
-    }
-    if (message.ip !== "") {
-      obj.ip = message.ip;
-    }
-    if (message.cidr !== "") {
-      obj.cidr = message.cidr;
-    }
-    if (message.host !== "") {
-      obj.host = message.host;
-    }
-    if (message.os !== "") {
-      obj.os = message.os;
-    }
-    if (message.isConnect !== false) {
-      obj.isConnect = message.isConnect;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Machine>, I>>(base?: I): Machine {
-    return Machine.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<Machine>, I>>(object: I): Machine {
-    const message = createBaseMachine();
-    message.domain = object.domain ?? "";
-    message.ip = object.ip ?? "";
-    message.cidr = object.cidr ?? "";
-    message.host = object.host ?? "";
-    message.os = object.os ?? "";
-    message.isConnect = object.isConnect ?? false;
-    return message;
-  },
-};
-
-function createBaseGetMachinesResponse(): GetMachinesResponse {
-  return { machines: [] };
-}
-
-export const GetMachinesResponse = {
-  encode(message: GetMachinesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.machines) {
-      Machine.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetMachinesResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetMachinesResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.machines.push(Machine.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GetMachinesResponse {
-    return {
-      machines: globalThis.Array.isArray(object?.machines) ? object.machines.map((e: any) => Machine.fromJSON(e)) : [],
-    };
-  },
-
-  toJSON(message: GetMachinesResponse): unknown {
-    const obj: any = {};
-    if (message.machines?.length) {
-      obj.machines = message.machines.map((e) => Machine.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetMachinesResponse>, I>>(base?: I): GetMachinesResponse {
-    return GetMachinesResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetMachinesResponse>, I>>(object: I): GetMachinesResponse {
-    const message = createBaseGetMachinesResponse();
-    message.machines = object.machines?.map((e) => Machine.fromPartial(e)) || [];
-    return message;
-  },
-};
 
 function createBaseGetMeResponse(): GetMeResponse {
   return { username: "", email: "", picture: "" };
@@ -329,29 +122,95 @@ export const GetMeResponse = {
   },
 };
 
+function createBaseGetUserRequest(): GetUserRequest {
+  return { id: 0 };
+}
+
+export const GetUserRequest = {
+  encode(message: GetUserRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetUserRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUserRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64() as Long);
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetUserRequest {
+    return { id: isSet(object.id) ? globalThis.Number(object.id) : 0 };
+  },
+
+  toJSON(message: GetUserRequest): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetUserRequest>, I>>(base?: I): GetUserRequest {
+    return GetUserRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetUserRequest>, I>>(object: I): GetUserRequest {
+    const message = createBaseGetUserRequest();
+    message.id = object.id ?? 0;
+    return message;
+  },
+};
+
 function createBaseUser(): User {
-  return { userId: "", username: "", email: "", joined: "", lastSeen: "", picture: "" };
+  return { id: 0, name: "", email: "", role: "", devices: 0, groups: 0, resources: 0, joined: "", lastSeen: "" };
 }
 
 export const User = {
   encode(message: User, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.userId !== "") {
-      writer.uint32(10).string(message.userId);
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
     }
-    if (message.username !== "") {
-      writer.uint32(18).string(message.username);
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
     }
     if (message.email !== "") {
       writer.uint32(26).string(message.email);
     }
+    if (message.role !== "") {
+      writer.uint32(34).string(message.role);
+    }
+    if (message.devices !== 0) {
+      writer.uint32(40).uint64(message.devices);
+    }
+    if (message.groups !== 0) {
+      writer.uint32(48).uint64(message.groups);
+    }
+    if (message.resources !== 0) {
+      writer.uint32(56).uint64(message.resources);
+    }
     if (message.joined !== "") {
-      writer.uint32(34).string(message.joined);
+      writer.uint32(66).string(message.joined);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(42).string(message.lastSeen);
-    }
-    if (message.picture !== "") {
-      writer.uint32(50).string(message.picture);
+      writer.uint32(74).string(message.lastSeen);
     }
     return writer;
   },
@@ -364,18 +223,18 @@ export const User = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.userId = reader.string();
+          message.id = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.username = reader.string();
+          message.name = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
@@ -389,21 +248,42 @@ export const User = {
             break;
           }
 
-          message.joined = reader.string();
+          message.role = reader.string();
           continue;
         case 5:
-          if (tag !== 42) {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.devices = longToNumber(reader.uint64() as Long);
+          continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.groups = longToNumber(reader.uint64() as Long);
+          continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.resources = longToNumber(reader.uint64() as Long);
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.joined = reader.string();
+          continue;
+        case 9:
+          if (tag !== 74) {
             break;
           }
 
           message.lastSeen = reader.string();
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.picture = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -416,34 +296,46 @@ export const User = {
 
   fromJSON(object: any): User {
     return {
-      userId: isSet(object.userId) ? globalThis.String(object.userId) : "",
-      username: isSet(object.username) ? globalThis.String(object.username) : "",
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
+      role: isSet(object.role) ? globalThis.String(object.role) : "",
+      devices: isSet(object.devices) ? globalThis.Number(object.devices) : 0,
+      groups: isSet(object.groups) ? globalThis.Number(object.groups) : 0,
+      resources: isSet(object.resources) ? globalThis.Number(object.resources) : 0,
       joined: isSet(object.joined) ? globalThis.String(object.joined) : "",
       lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
-      picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
     };
   },
 
   toJSON(message: User): unknown {
     const obj: any = {};
-    if (message.userId !== "") {
-      obj.userId = message.userId;
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
     }
-    if (message.username !== "") {
-      obj.username = message.username;
+    if (message.name !== "") {
+      obj.name = message.name;
     }
     if (message.email !== "") {
       obj.email = message.email;
+    }
+    if (message.role !== "") {
+      obj.role = message.role;
+    }
+    if (message.devices !== 0) {
+      obj.devices = Math.round(message.devices);
+    }
+    if (message.groups !== 0) {
+      obj.groups = Math.round(message.groups);
+    }
+    if (message.resources !== 0) {
+      obj.resources = Math.round(message.resources);
     }
     if (message.joined !== "") {
       obj.joined = message.joined;
     }
     if (message.lastSeen !== "") {
       obj.lastSeen = message.lastSeen;
-    }
-    if (message.picture !== "") {
-      obj.picture = message.picture;
     }
     return obj;
   },
@@ -453,12 +345,15 @@ export const User = {
   },
   fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
     const message = createBaseUser();
-    message.userId = object.userId ?? "";
-    message.username = object.username ?? "";
+    message.id = object.id ?? 0;
+    message.name = object.name ?? "";
     message.email = object.email ?? "";
+    message.role = object.role ?? "";
+    message.devices = object.devices ?? 0;
+    message.groups = object.groups ?? 0;
+    message.resources = object.resources ?? 0;
     message.joined = object.joined ?? "";
     message.lastSeen = object.lastSeen ?? "";
-    message.picture = object.picture ?? "";
     return message;
   },
 };
@@ -520,142 +415,10 @@ export const GetUsersResponse = {
   },
 };
 
-function createBaseGetGroupsResponse(): GetGroupsResponse {
-  return { groups: [] };
-}
-
-export const GetGroupsResponse = {
-  encode(message: GetGroupsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(10).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetGroupsResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetGroupsResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.groups.push(Group.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GetGroupsResponse {
-    return { groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [] };
-  },
-
-  toJSON(message: GetGroupsResponse): unknown {
-    const obj: any = {};
-    if (message.groups?.length) {
-      obj.groups = message.groups.map((e) => Group.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetGroupsResponse>, I>>(base?: I): GetGroupsResponse {
-    return GetGroupsResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetGroupsResponse>, I>>(object: I): GetGroupsResponse {
-    const message = createBaseGetGroupsResponse();
-    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseGroup(): Group {
-  return { name: "", users: [] };
-}
-
-export const Group = {
-  encode(message: Group, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    for (const v of message.users) {
-      User.encode(v!, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Group {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGroup();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.users.push(User.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Group {
-    return {
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
-    };
-  },
-
-  toJSON(message: Group): unknown {
-    const obj: any = {};
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.users?.length) {
-      obj.users = message.users.map((e) => User.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Group>, I>>(base?: I): Group {
-    return Group.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<Group>, I>>(object: I): Group {
-    const message = createBaseGroup();
-    message.name = object.name ?? "";
-    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
-    return message;
-  },
-};
-
 export interface UserService {
-  GetMachines(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachinesResponse>;
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse>;
+  GetUser(request: DeepPartial<GetUserRequest>, metadata?: grpc.Metadata): Promise<User>;
   GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetUsersResponse>;
-  GetGroups(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetGroupsResponse>;
 }
 
 export class UserServiceClientImpl implements UserService {
@@ -663,53 +426,25 @@ export class UserServiceClientImpl implements UserService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.GetMachines = this.GetMachines.bind(this);
     this.GetMe = this.GetMe.bind(this);
+    this.GetUser = this.GetUser.bind(this);
     this.GetUsers = this.GetUsers.bind(this);
-    this.GetGroups = this.GetGroups.bind(this);
-  }
-
-  GetMachines(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMachinesResponse> {
-    return this.rpc.unary(UserServiceGetMachinesDesc, Empty.fromPartial(request), metadata);
   }
 
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse> {
     return this.rpc.unary(UserServiceGetMeDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetUsersResponse> {
-    return this.rpc.unary(UserServiceGetUsersDesc, Empty.fromPartial(request), metadata);
+  GetUser(request: DeepPartial<GetUserRequest>, metadata?: grpc.Metadata): Promise<User> {
+    return this.rpc.unary(UserServiceGetUserDesc, GetUserRequest.fromPartial(request), metadata);
   }
 
-  GetGroups(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetGroupsResponse> {
-    return this.rpc.unary(UserServiceGetGroupsDesc, Empty.fromPartial(request), metadata);
+  GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetUsersResponse> {
+    return this.rpc.unary(UserServiceGetUsersDesc, Empty.fromPartial(request), metadata);
   }
 }
 
 export const UserServiceDesc = { serviceName: "protos.UserService" };
-
-export const UserServiceGetMachinesDesc: UnaryMethodDefinitionish = {
-  methodName: "GetMachines",
-  service: UserServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return Empty.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = GetMachinesResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
 
 export const UserServiceGetMeDesc: UnaryMethodDefinitionish = {
   methodName: "GetMe",
@@ -734,6 +469,29 @@ export const UserServiceGetMeDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
+export const UserServiceGetUserDesc: UnaryMethodDefinitionish = {
+  methodName: "GetUser",
+  service: UserServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetUserRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = User.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
 export const UserServiceGetUsersDesc: UnaryMethodDefinitionish = {
   methodName: "GetUsers",
   service: UserServiceDesc,
@@ -747,29 +505,6 @@ export const UserServiceGetUsersDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetUsersResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const UserServiceGetGroupsDesc: UnaryMethodDefinitionish = {
-  methodName: "GetGroups",
-  service: UserServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return Empty.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = GetGroupsResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -859,6 +594,18 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function longToNumber(long: Long): number {
+  if (long.gt(globalThis.Number.MAX_SAFE_INTEGER)) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  return long.toNumber();
+}
+
+if (_m0.util.Long !== Long) {
+  _m0.util.Long = Long as any;
+  _m0.configure();
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;

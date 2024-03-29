@@ -9,16 +9,28 @@ export const protobufPackage = "protos";
 
 export interface CreateFleetRequest {
   name: string;
-  dst: string[];
-  src: string[];
+  desc: string;
+  /** resource ids */
+  src: number[];
+  /** both options are available */
+  dstFleetID: number;
+  /** both options are available */
+  dstResourceIDs: number[];
   proto: string;
   port: string;
 }
 
 export interface PatchFleetRequest {
+  /** fleet id */
+  id: number;
   name: string;
-  dst: string[];
-  src: string[];
+  desc: string;
+  /** resource ids */
+  src: number[];
+  /** resource ids or fleet id or both? */
+  dstFleetID: number;
+  /** resource ids or fleet id or both? */
+  dstResourceIDs: number[];
   proto: string;
   port: string;
 }
@@ -34,14 +46,20 @@ export interface GetFleetsResponse {
 export interface FleetResponse {
   id: number;
   name: string;
-  src: string[];
-  dst: string[];
+  desc: string;
+  /** resource ids */
+  src: number[];
+  /** resource ids or fleet id or both? */
+  dstFleetID: number;
+  /** resource ids or fleet id or both? */
+  dstResourceIDs: number[];
   proto: string;
   port: string;
+  age: string;
 }
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", dst: [], src: [], proto: "", port: "" };
+  return { name: "", desc: "", src: [], dstFleetID: 0, dstResourceIDs: [], proto: "", port: "" };
 }
 
 export const CreateFleetRequest = {
@@ -49,17 +67,27 @@ export const CreateFleetRequest = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    for (const v of message.dst) {
-      writer.uint32(18).string(v!);
+    if (message.desc !== "") {
+      writer.uint32(18).string(message.desc);
     }
+    writer.uint32(26).fork();
     for (const v of message.src) {
-      writer.uint32(26).string(v!);
+      writer.uint64(v);
     }
+    writer.ldelim();
+    if (message.dstFleetID !== 0) {
+      writer.uint32(32).uint64(message.dstFleetID);
+    }
+    writer.uint32(42).fork();
+    for (const v of message.dstResourceIDs) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
     if (message.proto !== "") {
-      writer.uint32(34).string(message.proto);
+      writer.uint32(50).string(message.proto);
     }
     if (message.port !== "") {
-      writer.uint32(42).string(message.port);
+      writer.uint32(58).string(message.port);
     }
     return writer;
   },
@@ -83,24 +111,58 @@ export const CreateFleetRequest = {
             break;
           }
 
-          message.dst.push(reader.string());
+          message.desc = reader.string();
           continue;
         case 3:
-          if (tag !== 26) {
+          if (tag === 24) {
+            message.src.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.src.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+        case 4:
+          if (tag !== 32) {
             break;
           }
 
-          message.src.push(reader.string());
+          message.dstFleetID = longToNumber(reader.uint64() as Long);
           continue;
-        case 4:
-          if (tag !== 34) {
+        case 5:
+          if (tag === 40) {
+            message.dstResourceIDs.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 42) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.dstResourceIDs.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+        case 6:
+          if (tag !== 50) {
             break;
           }
 
           message.proto = reader.string();
           continue;
-        case 5:
-          if (tag !== 42) {
+        case 7:
+          if (tag !== 58) {
             break;
           }
 
@@ -118,8 +180,12 @@ export const CreateFleetRequest = {
   fromJSON(object: any): CreateFleetRequest {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => globalThis.String(e)) : [],
-      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => globalThis.String(e)) : [],
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => globalThis.Number(e)) : [],
+      dstFleetID: isSet(object.dstFleetID) ? globalThis.Number(object.dstFleetID) : 0,
+      dstResourceIDs: globalThis.Array.isArray(object?.dstResourceIDs)
+        ? object.dstResourceIDs.map((e: any) => globalThis.Number(e))
+        : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
     };
@@ -130,11 +196,17 @@ export const CreateFleetRequest = {
     if (message.name !== "") {
       obj.name = message.name;
     }
-    if (message.dst?.length) {
-      obj.dst = message.dst;
+    if (message.desc !== "") {
+      obj.desc = message.desc;
     }
     if (message.src?.length) {
-      obj.src = message.src;
+      obj.src = message.src.map((e) => Math.round(e));
+    }
+    if (message.dstFleetID !== 0) {
+      obj.dstFleetID = Math.round(message.dstFleetID);
+    }
+    if (message.dstResourceIDs?.length) {
+      obj.dstResourceIDs = message.dstResourceIDs.map((e) => Math.round(e));
     }
     if (message.proto !== "") {
       obj.proto = message.proto;
@@ -151,8 +223,10 @@ export const CreateFleetRequest = {
   fromPartial<I extends Exact<DeepPartial<CreateFleetRequest>, I>>(object: I): CreateFleetRequest {
     const message = createBaseCreateFleetRequest();
     message.name = object.name ?? "";
-    message.dst = object.dst?.map((e) => e) || [];
+    message.desc = object.desc ?? "";
     message.src = object.src?.map((e) => e) || [];
+    message.dstFleetID = object.dstFleetID ?? 0;
+    message.dstResourceIDs = object.dstResourceIDs?.map((e) => e) || [];
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
     return message;
@@ -160,25 +234,38 @@ export const CreateFleetRequest = {
 };
 
 function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { name: "", dst: [], src: [], proto: "", port: "" };
+  return { id: 0, name: "", desc: "", src: [], dstFleetID: 0, dstResourceIDs: [], proto: "", port: "" };
 }
 
 export const PatchFleetRequest = {
   encode(message: PatchFleetRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
     if (message.name !== "") {
-      writer.uint32(10).string(message.name);
+      writer.uint32(18).string(message.name);
     }
-    for (const v of message.dst) {
-      writer.uint32(18).string(v!);
+    if (message.desc !== "") {
+      writer.uint32(26).string(message.desc);
     }
+    writer.uint32(34).fork();
     for (const v of message.src) {
-      writer.uint32(26).string(v!);
+      writer.uint64(v);
     }
+    writer.ldelim();
+    if (message.dstFleetID !== 0) {
+      writer.uint32(40).uint64(message.dstFleetID);
+    }
+    writer.uint32(50).fork();
+    for (const v of message.dstResourceIDs) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
     if (message.proto !== "") {
-      writer.uint32(34).string(message.proto);
+      writer.uint32(58).string(message.proto);
     }
     if (message.port !== "") {
-      writer.uint32(42).string(message.port);
+      writer.uint32(66).string(message.port);
     }
     return writer;
   },
@@ -191,35 +278,76 @@ export const PatchFleetRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.name = reader.string();
+          message.id = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.dst.push(reader.string());
+          message.name = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.src.push(reader.string());
+          message.desc = reader.string();
           continue;
         case 4:
-          if (tag !== 34) {
+          if (tag === 32) {
+            message.src.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 34) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.src.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.dstFleetID = longToNumber(reader.uint64() as Long);
+          continue;
+        case 6:
+          if (tag === 48) {
+            message.dstResourceIDs.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 50) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.dstResourceIDs.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+        case 7:
+          if (tag !== 58) {
             break;
           }
 
           message.proto = reader.string();
           continue;
-        case 5:
-          if (tag !== 42) {
+        case 8:
+          if (tag !== 66) {
             break;
           }
 
@@ -236,9 +364,14 @@ export const PatchFleetRequest = {
 
   fromJSON(object: any): PatchFleetRequest {
     return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => globalThis.String(e)) : [],
-      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => globalThis.String(e)) : [],
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => globalThis.Number(e)) : [],
+      dstFleetID: isSet(object.dstFleetID) ? globalThis.Number(object.dstFleetID) : 0,
+      dstResourceIDs: globalThis.Array.isArray(object?.dstResourceIDs)
+        ? object.dstResourceIDs.map((e: any) => globalThis.Number(e))
+        : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
     };
@@ -246,14 +379,23 @@ export const PatchFleetRequest = {
 
   toJSON(message: PatchFleetRequest): unknown {
     const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
     if (message.name !== "") {
       obj.name = message.name;
     }
-    if (message.dst?.length) {
-      obj.dst = message.dst;
+    if (message.desc !== "") {
+      obj.desc = message.desc;
     }
     if (message.src?.length) {
-      obj.src = message.src;
+      obj.src = message.src.map((e) => Math.round(e));
+    }
+    if (message.dstFleetID !== 0) {
+      obj.dstFleetID = Math.round(message.dstFleetID);
+    }
+    if (message.dstResourceIDs?.length) {
+      obj.dstResourceIDs = message.dstResourceIDs.map((e) => Math.round(e));
     }
     if (message.proto !== "") {
       obj.proto = message.proto;
@@ -269,9 +411,12 @@ export const PatchFleetRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<PatchFleetRequest>, I>>(object: I): PatchFleetRequest {
     const message = createBasePatchFleetRequest();
+    message.id = object.id ?? 0;
     message.name = object.name ?? "";
-    message.dst = object.dst?.map((e) => e) || [];
+    message.desc = object.desc ?? "";
     message.src = object.src?.map((e) => e) || [];
+    message.dstFleetID = object.dstFleetID ?? 0;
+    message.dstResourceIDs = object.dstResourceIDs?.map((e) => e) || [];
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
     return message;
@@ -395,7 +540,7 @@ export const GetFleetsResponse = {
 };
 
 function createBaseFleetResponse(): FleetResponse {
-  return { id: 0, name: "", src: [], dst: [], proto: "", port: "" };
+  return { id: 0, name: "", desc: "", src: [], dstFleetID: 0, dstResourceIDs: [], proto: "", port: "", age: "" };
 }
 
 export const FleetResponse = {
@@ -406,17 +551,30 @@ export const FleetResponse = {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
+    if (message.desc !== "") {
+      writer.uint32(26).string(message.desc);
+    }
+    writer.uint32(34).fork();
     for (const v of message.src) {
-      writer.uint32(26).string(v!);
+      writer.uint64(v);
     }
-    for (const v of message.dst) {
-      writer.uint32(34).string(v!);
+    writer.ldelim();
+    if (message.dstFleetID !== 0) {
+      writer.uint32(40).uint64(message.dstFleetID);
     }
+    writer.uint32(50).fork();
+    for (const v of message.dstResourceIDs) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
     if (message.proto !== "") {
-      writer.uint32(42).string(message.proto);
+      writer.uint32(58).string(message.proto);
     }
     if (message.port !== "") {
-      writer.uint32(50).string(message.port);
+      writer.uint32(66).string(message.port);
+    }
+    if (message.age !== "") {
+      writer.uint32(74).string(message.age);
     }
     return writer;
   },
@@ -447,28 +605,69 @@ export const FleetResponse = {
             break;
           }
 
-          message.src.push(reader.string());
+          message.desc = reader.string();
           continue;
         case 4:
-          if (tag !== 34) {
+          if (tag === 32) {
+            message.src.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 34) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.src.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+        case 5:
+          if (tag !== 40) {
             break;
           }
 
-          message.dst.push(reader.string());
+          message.dstFleetID = longToNumber(reader.uint64() as Long);
           continue;
-        case 5:
-          if (tag !== 42) {
+        case 6:
+          if (tag === 48) {
+            message.dstResourceIDs.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 50) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.dstResourceIDs.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+        case 7:
+          if (tag !== 58) {
             break;
           }
 
           message.proto = reader.string();
           continue;
-        case 6:
-          if (tag !== 50) {
+        case 8:
+          if (tag !== 66) {
             break;
           }
 
           message.port = reader.string();
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.age = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -483,10 +682,15 @@ export const FleetResponse = {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => globalThis.String(e)) : [],
-      dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => globalThis.String(e)) : [],
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => globalThis.Number(e)) : [],
+      dstFleetID: isSet(object.dstFleetID) ? globalThis.Number(object.dstFleetID) : 0,
+      dstResourceIDs: globalThis.Array.isArray(object?.dstResourceIDs)
+        ? object.dstResourceIDs.map((e: any) => globalThis.Number(e))
+        : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
+      age: isSet(object.age) ? globalThis.String(object.age) : "",
     };
   },
 
@@ -498,17 +702,26 @@ export const FleetResponse = {
     if (message.name !== "") {
       obj.name = message.name;
     }
-    if (message.src?.length) {
-      obj.src = message.src;
+    if (message.desc !== "") {
+      obj.desc = message.desc;
     }
-    if (message.dst?.length) {
-      obj.dst = message.dst;
+    if (message.src?.length) {
+      obj.src = message.src.map((e) => Math.round(e));
+    }
+    if (message.dstFleetID !== 0) {
+      obj.dstFleetID = Math.round(message.dstFleetID);
+    }
+    if (message.dstResourceIDs?.length) {
+      obj.dstResourceIDs = message.dstResourceIDs.map((e) => Math.round(e));
     }
     if (message.proto !== "") {
       obj.proto = message.proto;
     }
     if (message.port !== "") {
       obj.port = message.port;
+    }
+    if (message.age !== "") {
+      obj.age = message.age;
     }
     return obj;
   },
@@ -520,10 +733,13 @@ export const FleetResponse = {
     const message = createBaseFleetResponse();
     message.id = object.id ?? 0;
     message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
     message.src = object.src?.map((e) => e) || [];
-    message.dst = object.dst?.map((e) => e) || [];
+    message.dstFleetID = object.dstFleetID ?? 0;
+    message.dstResourceIDs = object.dstResourceIDs?.map((e) => e) || [];
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
+    message.age = object.age ?? "";
     return message;
   },
 };
