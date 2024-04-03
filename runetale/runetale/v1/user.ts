@@ -4,6 +4,10 @@ import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
+import { DeviceResponse } from "./device";
+import { FleetResponse } from "./fleet";
+import { GroupResponse } from "./group";
+import { ResourceResponse } from "./resource";
 
 export const protobufPackage = "protos";
 
@@ -23,11 +27,12 @@ export interface User {
   name: string;
   email: string;
   role: string;
-  devices: number;
-  groups: number;
-  resources: number;
   joined: string;
   lastSeen: string;
+  fleets: FleetResponse[];
+  resources: ResourceResponse[];
+  devices: DeviceResponse[];
+  groups: GroupResponse[];
 }
 
 export interface GetUsersResponse {
@@ -196,7 +201,18 @@ export const GetUserRequest = {
 };
 
 function createBaseUser(): User {
-  return { id: 0, name: "", email: "", role: "", devices: 0, groups: 0, resources: 0, joined: "", lastSeen: "" };
+  return {
+    id: 0,
+    name: "",
+    email: "",
+    role: "",
+    joined: "",
+    lastSeen: "",
+    fleets: [],
+    resources: [],
+    devices: [],
+    groups: [],
+  };
 }
 
 export const User = {
@@ -213,20 +229,23 @@ export const User = {
     if (message.role !== "") {
       writer.uint32(34).string(message.role);
     }
-    if (message.devices !== 0) {
-      writer.uint32(40).uint64(message.devices);
-    }
-    if (message.groups !== 0) {
-      writer.uint32(48).uint64(message.groups);
-    }
-    if (message.resources !== 0) {
-      writer.uint32(56).uint64(message.resources);
-    }
     if (message.joined !== "") {
-      writer.uint32(66).string(message.joined);
+      writer.uint32(42).string(message.joined);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(74).string(message.lastSeen);
+      writer.uint32(50).string(message.lastSeen);
+    }
+    for (const v of message.fleets) {
+      FleetResponse.encode(v!, writer.uint32(58).fork()).ldelim();
+    }
+    for (const v of message.resources) {
+      ResourceResponse.encode(v!, writer.uint32(66).fork()).ldelim();
+    }
+    for (const v of message.devices) {
+      DeviceResponse.encode(v!, writer.uint32(74).fork()).ldelim();
+    }
+    for (const v of message.groups) {
+      GroupResponse.encode(v!, writer.uint32(82).fork()).ldelim();
     }
     return writer;
   },
@@ -267,39 +286,46 @@ export const User = {
           message.role = reader.string();
           continue;
         case 5:
-          if (tag !== 40) {
+          if (tag !== 42) {
             break;
           }
 
-          message.devices = longToNumber(reader.uint64() as Long);
+          message.joined = reader.string();
           continue;
         case 6:
-          if (tag !== 48) {
+          if (tag !== 50) {
             break;
           }
 
-          message.groups = longToNumber(reader.uint64() as Long);
+          message.lastSeen = reader.string();
           continue;
         case 7:
-          if (tag !== 56) {
+          if (tag !== 58) {
             break;
           }
 
-          message.resources = longToNumber(reader.uint64() as Long);
+          message.fleets.push(FleetResponse.decode(reader, reader.uint32()));
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.joined = reader.string();
+          message.resources.push(ResourceResponse.decode(reader, reader.uint32()));
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.lastSeen = reader.string();
+          message.devices.push(DeviceResponse.decode(reader, reader.uint32()));
+          continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.groups.push(GroupResponse.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -316,11 +342,16 @@ export const User = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       role: isSet(object.role) ? globalThis.String(object.role) : "",
-      devices: isSet(object.devices) ? globalThis.Number(object.devices) : 0,
-      groups: isSet(object.groups) ? globalThis.Number(object.groups) : 0,
-      resources: isSet(object.resources) ? globalThis.Number(object.resources) : 0,
       joined: isSet(object.joined) ? globalThis.String(object.joined) : "",
       lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
+      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => FleetResponse.fromJSON(e)) : [],
+      resources: globalThis.Array.isArray(object?.resources)
+        ? object.resources.map((e: any) => ResourceResponse.fromJSON(e))
+        : [],
+      devices: globalThis.Array.isArray(object?.devices)
+        ? object.devices.map((e: any) => DeviceResponse.fromJSON(e))
+        : [],
+      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => GroupResponse.fromJSON(e)) : [],
     };
   },
 
@@ -338,20 +369,23 @@ export const User = {
     if (message.role !== "") {
       obj.role = message.role;
     }
-    if (message.devices !== 0) {
-      obj.devices = Math.round(message.devices);
-    }
-    if (message.groups !== 0) {
-      obj.groups = Math.round(message.groups);
-    }
-    if (message.resources !== 0) {
-      obj.resources = Math.round(message.resources);
-    }
     if (message.joined !== "") {
       obj.joined = message.joined;
     }
     if (message.lastSeen !== "") {
       obj.lastSeen = message.lastSeen;
+    }
+    if (message.fleets?.length) {
+      obj.fleets = message.fleets.map((e) => FleetResponse.toJSON(e));
+    }
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => ResourceResponse.toJSON(e));
+    }
+    if (message.devices?.length) {
+      obj.devices = message.devices.map((e) => DeviceResponse.toJSON(e));
+    }
+    if (message.groups?.length) {
+      obj.groups = message.groups.map((e) => GroupResponse.toJSON(e));
     }
     return obj;
   },
@@ -365,11 +399,12 @@ export const User = {
     message.name = object.name ?? "";
     message.email = object.email ?? "";
     message.role = object.role ?? "";
-    message.devices = object.devices ?? 0;
-    message.groups = object.groups ?? 0;
-    message.resources = object.resources ?? 0;
     message.joined = object.joined ?? "";
     message.lastSeen = object.lastSeen ?? "";
+    message.fleets = object.fleets?.map((e) => FleetResponse.fromPartial(e)) || [];
+    message.resources = object.resources?.map((e) => ResourceResponse.fromPartial(e)) || [];
+    message.devices = object.devices?.map((e) => DeviceResponse.fromPartial(e)) || [];
+    message.groups = object.groups?.map((e) => GroupResponse.fromPartial(e)) || [];
     return message;
   },
 };

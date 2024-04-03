@@ -60,12 +60,14 @@ export function deploymentMethodToJSON(object: DeploymentMethod): string {
 }
 
 export interface AddNewSourcesForResourceRequest {
+  /** resource id */
   id: number;
   userIds: number[];
   groupIds: number[];
 }
 
 export interface AddFleetsRequest {
+  /** resource id */
   id: number;
   fleetIds: number[];
 }

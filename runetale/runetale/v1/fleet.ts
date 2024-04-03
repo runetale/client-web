@@ -4,6 +4,7 @@ import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
+import { KeyValue } from "./key_value";
 import { DeploymentMethod, deploymentMethodFromJSON, deploymentMethodToJSON } from "./resource";
 
 export const protobufPackage = "protos";
@@ -39,19 +40,23 @@ export interface FleetResponse {
   id: number;
   name: string;
   desc: string;
-  resourceIds: number[];
+  resources: KeyValue[];
   proto: string;
   port: string;
+  /** created by domain */
+  domain: string;
   age: string;
 }
 
 export interface AddNewSourcesForFleetRequest {
+  /** fleet id */
   id: number;
   userIds: number[];
   groupIds: number[];
 }
 
 export interface AddResourcesRequest {
+  /** fleet id */
   id: number;
   resourceIds: number[];
 }
@@ -469,7 +474,7 @@ export const GetFleetsResponse = {
 };
 
 function createBaseFleetResponse(): FleetResponse {
-  return { id: 0, name: "", desc: "", resourceIds: [], proto: "", port: "", age: "" };
+  return { id: 0, name: "", desc: "", resources: [], proto: "", port: "", domain: "", age: "" };
 }
 
 export const FleetResponse = {
@@ -483,19 +488,20 @@ export const FleetResponse = {
     if (message.desc !== "") {
       writer.uint32(26).string(message.desc);
     }
-    writer.uint32(34).fork();
-    for (const v of message.resourceIds) {
-      writer.uint64(v);
+    for (const v of message.resources) {
+      KeyValue.encode(v!, writer.uint32(34).fork()).ldelim();
     }
-    writer.ldelim();
     if (message.proto !== "") {
       writer.uint32(42).string(message.proto);
     }
     if (message.port !== "") {
       writer.uint32(50).string(message.port);
     }
+    if (message.domain !== "") {
+      writer.uint32(58).string(message.domain);
+    }
     if (message.age !== "") {
-      writer.uint32(58).string(message.age);
+      writer.uint32(66).string(message.age);
     }
     return writer;
   },
@@ -529,22 +535,12 @@ export const FleetResponse = {
           message.desc = reader.string();
           continue;
         case 4:
-          if (tag === 32) {
-            message.resourceIds.push(longToNumber(reader.uint64() as Long));
-
-            continue;
+          if (tag !== 34) {
+            break;
           }
 
-          if (tag === 34) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.resourceIds.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
+          message.resources.push(KeyValue.decode(reader, reader.uint32()));
+          continue;
         case 5:
           if (tag !== 42) {
             break;
@@ -564,6 +560,13 @@ export const FleetResponse = {
             break;
           }
 
+          message.domain = reader.string();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
           message.age = reader.string();
           continue;
       }
@@ -580,11 +583,12 @@ export const FleetResponse = {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      resourceIds: globalThis.Array.isArray(object?.resourceIds)
-        ? object.resourceIds.map((e: any) => globalThis.Number(e))
+      resources: globalThis.Array.isArray(object?.resources)
+        ? object.resources.map((e: any) => KeyValue.fromJSON(e))
         : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
+      domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
     };
   },
@@ -600,14 +604,17 @@ export const FleetResponse = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.resourceIds?.length) {
-      obj.resourceIds = message.resourceIds.map((e) => Math.round(e));
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => KeyValue.toJSON(e));
     }
     if (message.proto !== "") {
       obj.proto = message.proto;
     }
     if (message.port !== "") {
       obj.port = message.port;
+    }
+    if (message.domain !== "") {
+      obj.domain = message.domain;
     }
     if (message.age !== "") {
       obj.age = message.age;
@@ -623,9 +630,10 @@ export const FleetResponse = {
     message.id = object.id ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.resourceIds = object.resourceIds?.map((e) => e) || [];
+    message.resources = object.resources?.map((e) => KeyValue.fromPartial(e)) || [];
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
+    message.domain = object.domain ?? "";
     message.age = object.age ?? "";
     return message;
   },
