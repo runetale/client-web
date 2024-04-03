@@ -4,6 +4,7 @@ import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
+import { Group } from "./common";
 
 export const protobufPackage = "protos";
 
@@ -22,8 +23,8 @@ export interface GetGroupRequest {
   id: number;
 }
 
-export interface GetGroupsResponse {
-  groups: GroupResponse[];
+export interface Groups {
+  groups: Group[];
 }
 
 export interface UserWithPicture {
@@ -33,17 +34,6 @@ export interface UserWithPicture {
   name: string;
   /** picture url */
   picture: string;
-}
-
-export interface GroupResponse {
-  id: number;
-  name: string;
-  users: UserWithPicture[];
-  /** count of resources accessible */
-  resources: number;
-  /** count of fleets accessible */
-  fleets: number;
-  age: string;
 }
 
 export interface AddNewDstForGroupRequest {
@@ -297,22 +287,22 @@ export const GetGroupRequest = {
   },
 };
 
-function createBaseGetGroupsResponse(): GetGroupsResponse {
+function createBaseGroups(): Groups {
   return { groups: [] };
 }
 
-export const GetGroupsResponse = {
-  encode(message: GetGroupsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Groups = {
+  encode(message: Groups, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.groups) {
-      GroupResponse.encode(v!, writer.uint32(10).fork()).ldelim();
+      Group.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetGroupsResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Groups {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetGroupsResponse();
+    const message = createBaseGroups();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -321,7 +311,7 @@ export const GetGroupsResponse = {
             break;
           }
 
-          message.groups.push(GroupResponse.decode(reader, reader.uint32()));
+          message.groups.push(Group.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -332,26 +322,24 @@ export const GetGroupsResponse = {
     return message;
   },
 
-  fromJSON(object: any): GetGroupsResponse {
-    return {
-      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => GroupResponse.fromJSON(e)) : [],
-    };
+  fromJSON(object: any): Groups {
+    return { groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [] };
   },
 
-  toJSON(message: GetGroupsResponse): unknown {
+  toJSON(message: Groups): unknown {
     const obj: any = {};
     if (message.groups?.length) {
-      obj.groups = message.groups.map((e) => GroupResponse.toJSON(e));
+      obj.groups = message.groups.map((e) => Group.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetGroupsResponse>, I>>(base?: I): GetGroupsResponse {
-    return GetGroupsResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Groups>, I>>(base?: I): Groups {
+    return Groups.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetGroupsResponse>, I>>(object: I): GetGroupsResponse {
-    const message = createBaseGetGroupsResponse();
-    message.groups = object.groups?.map((e) => GroupResponse.fromPartial(e)) || [];
+  fromPartial<I extends Exact<DeepPartial<Groups>, I>>(object: I): Groups {
+    const message = createBaseGroups();
+    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
     return message;
   },
 };
@@ -441,140 +429,6 @@ export const UserWithPicture = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.picture = object.picture ?? "";
-    return message;
-  },
-};
-
-function createBaseGroupResponse(): GroupResponse {
-  return { id: 0, name: "", users: [], resources: 0, fleets: 0, age: "" };
-}
-
-export const GroupResponse = {
-  encode(message: GroupResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
-    }
-    if (message.name !== "") {
-      writer.uint32(18).string(message.name);
-    }
-    for (const v of message.users) {
-      UserWithPicture.encode(v!, writer.uint32(26).fork()).ldelim();
-    }
-    if (message.resources !== 0) {
-      writer.uint32(32).uint64(message.resources);
-    }
-    if (message.fleets !== 0) {
-      writer.uint32(40).uint64(message.fleets);
-    }
-    if (message.age !== "") {
-      writer.uint32(50).string(message.age);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): GroupResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGroupResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.id = longToNumber(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.users.push(UserWithPicture.decode(reader, reader.uint32()));
-          continue;
-        case 4:
-          if (tag !== 32) {
-            break;
-          }
-
-          message.resources = longToNumber(reader.uint64() as Long);
-          continue;
-        case 5:
-          if (tag !== 40) {
-            break;
-          }
-
-          message.fleets = longToNumber(reader.uint64() as Long);
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.age = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GroupResponse {
-    return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => UserWithPicture.fromJSON(e)) : [],
-      resources: isSet(object.resources) ? globalThis.Number(object.resources) : 0,
-      fleets: isSet(object.fleets) ? globalThis.Number(object.fleets) : 0,
-      age: isSet(object.age) ? globalThis.String(object.age) : "",
-    };
-  },
-
-  toJSON(message: GroupResponse): unknown {
-    const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.users?.length) {
-      obj.users = message.users.map((e) => UserWithPicture.toJSON(e));
-    }
-    if (message.resources !== 0) {
-      obj.resources = Math.round(message.resources);
-    }
-    if (message.fleets !== 0) {
-      obj.fleets = Math.round(message.fleets);
-    }
-    if (message.age !== "") {
-      obj.age = message.age;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GroupResponse>, I>>(base?: I): GroupResponse {
-    return GroupResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GroupResponse>, I>>(object: I): GroupResponse {
-    const message = createBaseGroupResponse();
-    message.id = object.id ?? 0;
-    message.name = object.name ?? "";
-    message.users = object.users?.map((e) => UserWithPicture.fromPartial(e)) || [];
-    message.resources = object.resources ?? 0;
-    message.fleets = object.fleets ?? 0;
-    message.age = object.age ?? "";
     return message;
   },
 };
@@ -695,10 +549,10 @@ export const AddNewDstForGroupRequest = {
 };
 
 export interface GroupService {
-  CreateGroup(request: DeepPartial<CreateGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse>;
-  PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse>;
-  GetGroup(request: DeepPartial<GetGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse>;
-  GetGroups(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetGroupsResponse>;
+  CreateGroup(request: DeepPartial<CreateGroupRequest>, metadata?: grpc.Metadata): Promise<Group>;
+  PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<Group>;
+  GetGroup(request: DeepPartial<GetGroupRequest>, metadata?: grpc.Metadata): Promise<Group>;
+  GetGroups(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Groups>;
 }
 
 export class GroupServiceClientImpl implements GroupService {
@@ -712,19 +566,19 @@ export class GroupServiceClientImpl implements GroupService {
     this.GetGroups = this.GetGroups.bind(this);
   }
 
-  CreateGroup(request: DeepPartial<CreateGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse> {
+  CreateGroup(request: DeepPartial<CreateGroupRequest>, metadata?: grpc.Metadata): Promise<Group> {
     return this.rpc.unary(GroupServiceCreateGroupDesc, CreateGroupRequest.fromPartial(request), metadata);
   }
 
-  PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse> {
+  PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<Group> {
     return this.rpc.unary(GroupServicePatchGroupDesc, PatchGroupRequest.fromPartial(request), metadata);
   }
 
-  GetGroup(request: DeepPartial<GetGroupRequest>, metadata?: grpc.Metadata): Promise<GroupResponse> {
+  GetGroup(request: DeepPartial<GetGroupRequest>, metadata?: grpc.Metadata): Promise<Group> {
     return this.rpc.unary(GroupServiceGetGroupDesc, GetGroupRequest.fromPartial(request), metadata);
   }
 
-  GetGroups(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetGroupsResponse> {
+  GetGroups(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Groups> {
     return this.rpc.unary(GroupServiceGetGroupsDesc, Empty.fromPartial(request), metadata);
   }
 }
@@ -743,7 +597,7 @@ export const GroupServiceCreateGroupDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GroupResponse.decode(data);
+      const value = Group.decode(data);
       return {
         ...value,
         toObject() {
@@ -766,7 +620,7 @@ export const GroupServicePatchGroupDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GroupResponse.decode(data);
+      const value = Group.decode(data);
       return {
         ...value,
         toObject() {
@@ -789,7 +643,7 @@ export const GroupServiceGetGroupDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GroupResponse.decode(data);
+      const value = Group.decode(data);
       return {
         ...value,
         toObject() {
@@ -812,7 +666,7 @@ export const GroupServiceGetGroupsDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GetGroupsResponse.decode(data);
+      const value = Groups.decode(data);
       return {
         ...value,
         toObject() {

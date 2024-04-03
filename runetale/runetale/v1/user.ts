@@ -4,10 +4,7 @@ import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
-import { DeviceResponse } from "./device";
-import { FleetResponse } from "./fleet";
-import { GroupResponse } from "./group";
-import { ResourceResponse } from "./resource";
+import { User } from "./common";
 
 export const protobufPackage = "protos";
 
@@ -22,22 +19,21 @@ export interface GetUserRequest {
   id: number;
 }
 
-export interface User {
-  id: number;
-  name: string;
-  picture: string;
-  email: string;
-  role: string;
-  joined: string;
-  lastSeen: string;
-  fleets: FleetResponse[];
-  resources: ResourceResponse[];
-  devices: DeviceResponse[];
-  groups: GroupResponse[];
+export interface Users {
+  users: User[];
 }
 
-export interface GetUsersResponse {
-  users: User[];
+export interface AddNewDstsForUserRequest {
+  /** user id */
+  id: number;
+  resourceIds: number[];
+  fleetIds: number[];
+}
+
+export interface AddGroupsRequest {
+  /** group id */
+  id: number;
+  userIds: number[];
 }
 
 function createBaseGetMeResponse(): GetMeResponse {
@@ -201,247 +197,22 @@ export const GetUserRequest = {
   },
 };
 
-function createBaseUser(): User {
-  return {
-    id: 0,
-    name: "",
-    picture: "",
-    email: "",
-    role: "",
-    joined: "",
-    lastSeen: "",
-    fleets: [],
-    resources: [],
-    devices: [],
-    groups: [],
-  };
-}
-
-export const User = {
-  encode(message: User, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
-    }
-    if (message.name !== "") {
-      writer.uint32(18).string(message.name);
-    }
-    if (message.picture !== "") {
-      writer.uint32(26).string(message.picture);
-    }
-    if (message.email !== "") {
-      writer.uint32(34).string(message.email);
-    }
-    if (message.role !== "") {
-      writer.uint32(42).string(message.role);
-    }
-    if (message.joined !== "") {
-      writer.uint32(50).string(message.joined);
-    }
-    if (message.lastSeen !== "") {
-      writer.uint32(58).string(message.lastSeen);
-    }
-    for (const v of message.fleets) {
-      FleetResponse.encode(v!, writer.uint32(66).fork()).ldelim();
-    }
-    for (const v of message.resources) {
-      ResourceResponse.encode(v!, writer.uint32(74).fork()).ldelim();
-    }
-    for (const v of message.devices) {
-      DeviceResponse.encode(v!, writer.uint32(82).fork()).ldelim();
-    }
-    for (const v of message.groups) {
-      GroupResponse.encode(v!, writer.uint32(90).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): User {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseUser();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.id = longToNumber(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.picture = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.email = reader.string();
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.role = reader.string();
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.joined = reader.string();
-          continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.lastSeen = reader.string();
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.fleets.push(FleetResponse.decode(reader, reader.uint32()));
-          continue;
-        case 9:
-          if (tag !== 74) {
-            break;
-          }
-
-          message.resources.push(ResourceResponse.decode(reader, reader.uint32()));
-          continue;
-        case 10:
-          if (tag !== 82) {
-            break;
-          }
-
-          message.devices.push(DeviceResponse.decode(reader, reader.uint32()));
-          continue;
-        case 11:
-          if (tag !== 90) {
-            break;
-          }
-
-          message.groups.push(GroupResponse.decode(reader, reader.uint32()));
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): User {
-    return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
-      email: isSet(object.email) ? globalThis.String(object.email) : "",
-      role: isSet(object.role) ? globalThis.String(object.role) : "",
-      joined: isSet(object.joined) ? globalThis.String(object.joined) : "",
-      lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
-      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => FleetResponse.fromJSON(e)) : [],
-      resources: globalThis.Array.isArray(object?.resources)
-        ? object.resources.map((e: any) => ResourceResponse.fromJSON(e))
-        : [],
-      devices: globalThis.Array.isArray(object?.devices)
-        ? object.devices.map((e: any) => DeviceResponse.fromJSON(e))
-        : [],
-      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => GroupResponse.fromJSON(e)) : [],
-    };
-  },
-
-  toJSON(message: User): unknown {
-    const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.picture !== "") {
-      obj.picture = message.picture;
-    }
-    if (message.email !== "") {
-      obj.email = message.email;
-    }
-    if (message.role !== "") {
-      obj.role = message.role;
-    }
-    if (message.joined !== "") {
-      obj.joined = message.joined;
-    }
-    if (message.lastSeen !== "") {
-      obj.lastSeen = message.lastSeen;
-    }
-    if (message.fleets?.length) {
-      obj.fleets = message.fleets.map((e) => FleetResponse.toJSON(e));
-    }
-    if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => ResourceResponse.toJSON(e));
-    }
-    if (message.devices?.length) {
-      obj.devices = message.devices.map((e) => DeviceResponse.toJSON(e));
-    }
-    if (message.groups?.length) {
-      obj.groups = message.groups.map((e) => GroupResponse.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<User>, I>>(base?: I): User {
-    return User.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
-    const message = createBaseUser();
-    message.id = object.id ?? 0;
-    message.name = object.name ?? "";
-    message.picture = object.picture ?? "";
-    message.email = object.email ?? "";
-    message.role = object.role ?? "";
-    message.joined = object.joined ?? "";
-    message.lastSeen = object.lastSeen ?? "";
-    message.fleets = object.fleets?.map((e) => FleetResponse.fromPartial(e)) || [];
-    message.resources = object.resources?.map((e) => ResourceResponse.fromPartial(e)) || [];
-    message.devices = object.devices?.map((e) => DeviceResponse.fromPartial(e)) || [];
-    message.groups = object.groups?.map((e) => GroupResponse.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseGetUsersResponse(): GetUsersResponse {
+function createBaseUsers(): Users {
   return { users: [] };
 }
 
-export const GetUsersResponse = {
-  encode(message: GetUsersResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Users = {
+  encode(message: Users, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.users) {
       User.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetUsersResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Users {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetUsersResponse();
+    const message = createBaseUsers();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -461,11 +232,11 @@ export const GetUsersResponse = {
     return message;
   },
 
-  fromJSON(object: any): GetUsersResponse {
+  fromJSON(object: any): Users {
     return { users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [] };
   },
 
-  toJSON(message: GetUsersResponse): unknown {
+  toJSON(message: Users): unknown {
     const obj: any = {};
     if (message.users?.length) {
       obj.users = message.users.map((e) => User.toJSON(e));
@@ -473,12 +244,213 @@ export const GetUsersResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetUsersResponse>, I>>(base?: I): GetUsersResponse {
-    return GetUsersResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Users>, I>>(base?: I): Users {
+    return Users.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetUsersResponse>, I>>(object: I): GetUsersResponse {
-    const message = createBaseGetUsersResponse();
+  fromPartial<I extends Exact<DeepPartial<Users>, I>>(object: I): Users {
+    const message = createBaseUsers();
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseAddNewDstsForUserRequest(): AddNewDstsForUserRequest {
+  return { id: 0, resourceIds: [], fleetIds: [] };
+}
+
+export const AddNewDstsForUserRequest = {
+  encode(message: AddNewDstsForUserRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
+    writer.uint32(18).fork();
+    for (const v of message.resourceIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
+    writer.uint32(26).fork();
+    for (const v of message.fleetIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewDstsForUserRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAddNewDstsForUserRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag === 16) {
+            message.resourceIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 18) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.resourceIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+        case 3:
+          if (tag === 24) {
+            message.fleetIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.fleetIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AddNewDstsForUserRequest {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      resourceIds: globalThis.Array.isArray(object?.resourceIds)
+        ? object.resourceIds.map((e: any) => globalThis.Number(e))
+        : [],
+      fleetIds: globalThis.Array.isArray(object?.fleetIds) ? object.fleetIds.map((e: any) => globalThis.Number(e)) : [],
+    };
+  },
+
+  toJSON(message: AddNewDstsForUserRequest): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.resourceIds?.length) {
+      obj.resourceIds = message.resourceIds.map((e) => Math.round(e));
+    }
+    if (message.fleetIds?.length) {
+      obj.fleetIds = message.fleetIds.map((e) => Math.round(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AddNewDstsForUserRequest>, I>>(base?: I): AddNewDstsForUserRequest {
+    return AddNewDstsForUserRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AddNewDstsForUserRequest>, I>>(object: I): AddNewDstsForUserRequest {
+    const message = createBaseAddNewDstsForUserRequest();
+    message.id = object.id ?? 0;
+    message.resourceIds = object.resourceIds?.map((e) => e) || [];
+    message.fleetIds = object.fleetIds?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseAddGroupsRequest(): AddGroupsRequest {
+  return { id: 0, userIds: [] };
+}
+
+export const AddGroupsRequest = {
+  encode(message: AddGroupsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
+    writer.uint32(26).fork();
+    for (const v of message.userIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AddGroupsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAddGroupsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag === 24) {
+            message.userIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.userIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AddGroupsRequest {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      userIds: globalThis.Array.isArray(object?.userIds) ? object.userIds.map((e: any) => globalThis.Number(e)) : [],
+    };
+  },
+
+  toJSON(message: AddGroupsRequest): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.userIds?.length) {
+      obj.userIds = message.userIds.map((e) => Math.round(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AddGroupsRequest>, I>>(base?: I): AddGroupsRequest {
+    return AddGroupsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AddGroupsRequest>, I>>(object: I): AddGroupsRequest {
+    const message = createBaseAddGroupsRequest();
+    message.id = object.id ?? 0;
+    message.userIds = object.userIds?.map((e) => e) || [];
     return message;
   },
 };
@@ -486,7 +458,7 @@ export const GetUsersResponse = {
 export interface UserService {
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse>;
   GetUser(request: DeepPartial<GetUserRequest>, metadata?: grpc.Metadata): Promise<User>;
-  GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetUsersResponse>;
+  GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Users>;
 }
 
 export class UserServiceClientImpl implements UserService {
@@ -507,7 +479,7 @@ export class UserServiceClientImpl implements UserService {
     return this.rpc.unary(UserServiceGetUserDesc, GetUserRequest.fromPartial(request), metadata);
   }
 
-  GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetUsersResponse> {
+  GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Users> {
     return this.rpc.unary(UserServiceGetUsersDesc, Empty.fromPartial(request), metadata);
   }
 }
@@ -572,7 +544,82 @@ export const UserServiceGetUsersDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GetUsersResponse.decode(data);
+      const value = Users.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export interface UserDetailService {
+  AddNewDstsForUser(request: DeepPartial<AddNewDstsForUserRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+  AddGroups(request: DeepPartial<AddGroupsRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+}
+
+export class UserDetailServiceClientImpl implements UserDetailService {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.AddNewDstsForUser = this.AddNewDstsForUser.bind(this);
+    this.AddGroups = this.AddGroups.bind(this);
+  }
+
+  AddNewDstsForUser(request: DeepPartial<AddNewDstsForUserRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(
+      UserDetailServiceAddNewDstsForUserDesc,
+      AddNewDstsForUserRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  AddGroups(request: DeepPartial<AddGroupsRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(UserDetailServiceAddGroupsDesc, AddGroupsRequest.fromPartial(request), metadata);
+  }
+}
+
+export const UserDetailServiceDesc = { serviceName: "protos.UserDetailService" };
+
+export const UserDetailServiceAddNewDstsForUserDesc: UnaryMethodDefinitionish = {
+  methodName: "AddNewDstsForUser",
+  service: UserDetailServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return AddNewDstsForUserRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const UserDetailServiceAddGroupsDesc: UnaryMethodDefinitionish = {
+  methodName: "AddGroups",
+  service: UserDetailServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return AddGroupsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
       return {
         ...value,
         toObject() {

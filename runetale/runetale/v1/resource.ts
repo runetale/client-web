@@ -4,62 +4,11 @@ import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
-import { KeyValue } from "./key_value";
+import { DeploymentMethod, deploymentMethodFromJSON, deploymentMethodToJSON, Resource } from "./common";
 
 export const protobufPackage = "protos";
 
-export enum DeploymentMethod {
-  DOCKER = 0,
-  CLI = 1,
-  LINUX = 2,
-  GCP = 3,
-  MANUAL = 4,
-  UNRECOGNIZED = -1,
-}
-
-export function deploymentMethodFromJSON(object: any): DeploymentMethod {
-  switch (object) {
-    case 0:
-    case "DOCKER":
-      return DeploymentMethod.DOCKER;
-    case 1:
-    case "CLI":
-      return DeploymentMethod.CLI;
-    case 2:
-    case "LINUX":
-      return DeploymentMethod.LINUX;
-    case 3:
-    case "GCP":
-      return DeploymentMethod.GCP;
-    case 4:
-    case "MANUAL":
-      return DeploymentMethod.MANUAL;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return DeploymentMethod.UNRECOGNIZED;
-  }
-}
-
-export function deploymentMethodToJSON(object: DeploymentMethod): string {
-  switch (object) {
-    case DeploymentMethod.DOCKER:
-      return "DOCKER";
-    case DeploymentMethod.CLI:
-      return "CLI";
-    case DeploymentMethod.LINUX:
-      return "LINUX";
-    case DeploymentMethod.GCP:
-      return "GCP";
-    case DeploymentMethod.MANUAL:
-      return "MANUAL";
-    case DeploymentMethod.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
-export interface AddNewSourcesForResourceRequest {
+export interface AddNewSrcsForResourceRequest {
   /** resource id */
   id: number;
   userIds: number[];
@@ -96,27 +45,16 @@ export interface GetResourceRequest {
   id: number;
 }
 
-export interface GetResourcesResponse {
-  resources: ResourceResponse[];
+export interface Resources {
+  resources: Resource[];
 }
 
-export interface ResourceResponse {
-  id: number;
-  name: string;
-  ip: string;
-  resources: KeyValue[];
-  os: string;
-  status: boolean;
-  /** if made with token, managedBy is returned. */
-  createdBy: string;
-}
-
-function createBaseAddNewSourcesForResourceRequest(): AddNewSourcesForResourceRequest {
+function createBaseAddNewSrcsForResourceRequest(): AddNewSrcsForResourceRequest {
   return { id: 0, userIds: [], groupIds: [] };
 }
 
-export const AddNewSourcesForResourceRequest = {
-  encode(message: AddNewSourcesForResourceRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const AddNewSrcsForResourceRequest = {
+  encode(message: AddNewSrcsForResourceRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.id !== 0) {
       writer.uint32(8).uint64(message.id);
     }
@@ -133,10 +71,10 @@ export const AddNewSourcesForResourceRequest = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewSourcesForResourceRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewSrcsForResourceRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAddNewSourcesForResourceRequest();
+    const message = createBaseAddNewSrcsForResourceRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -190,7 +128,7 @@ export const AddNewSourcesForResourceRequest = {
     return message;
   },
 
-  fromJSON(object: any): AddNewSourcesForResourceRequest {
+  fromJSON(object: any): AddNewSrcsForResourceRequest {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       userIds: globalThis.Array.isArray(object?.userIds) ? object.userIds.map((e: any) => globalThis.Number(e)) : [],
@@ -198,7 +136,7 @@ export const AddNewSourcesForResourceRequest = {
     };
   },
 
-  toJSON(message: AddNewSourcesForResourceRequest): unknown {
+  toJSON(message: AddNewSrcsForResourceRequest): unknown {
     const obj: any = {};
     if (message.id !== 0) {
       obj.id = Math.round(message.id);
@@ -212,13 +150,11 @@ export const AddNewSourcesForResourceRequest = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<AddNewSourcesForResourceRequest>, I>>(base?: I): AddNewSourcesForResourceRequest {
-    return AddNewSourcesForResourceRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<AddNewSrcsForResourceRequest>, I>>(base?: I): AddNewSrcsForResourceRequest {
+    return AddNewSrcsForResourceRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<AddNewSourcesForResourceRequest>, I>>(
-    object: I,
-  ): AddNewSourcesForResourceRequest {
-    const message = createBaseAddNewSourcesForResourceRequest();
+  fromPartial<I extends Exact<DeepPartial<AddNewSrcsForResourceRequest>, I>>(object: I): AddNewSrcsForResourceRequest {
+    const message = createBaseAddNewSrcsForResourceRequest();
     message.id = object.id ?? 0;
     message.userIds = object.userIds?.map((e) => e) || [];
     message.groupIds = object.groupIds?.map((e) => e) || [];
@@ -654,22 +590,22 @@ export const GetResourceRequest = {
   },
 };
 
-function createBaseGetResourcesResponse(): GetResourcesResponse {
+function createBaseResources(): Resources {
   return { resources: [] };
 }
 
-export const GetResourcesResponse = {
-  encode(message: GetResourcesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Resources = {
+  encode(message: Resources, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.resources) {
-      ResourceResponse.encode(v!, writer.uint32(10).fork()).ldelim();
+      Resource.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetResourcesResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Resources {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetResourcesResponse();
+    const message = createBaseResources();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -678,7 +614,7 @@ export const GetResourcesResponse = {
             break;
           }
 
-          message.resources.push(ResourceResponse.decode(reader, reader.uint32()));
+          message.resources.push(Resource.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -689,179 +625,28 @@ export const GetResourcesResponse = {
     return message;
   },
 
-  fromJSON(object: any): GetResourcesResponse {
+  fromJSON(object: any): Resources {
     return {
       resources: globalThis.Array.isArray(object?.resources)
-        ? object.resources.map((e: any) => ResourceResponse.fromJSON(e))
+        ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
     };
   },
 
-  toJSON(message: GetResourcesResponse): unknown {
+  toJSON(message: Resources): unknown {
     const obj: any = {};
     if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => ResourceResponse.toJSON(e));
+      obj.resources = message.resources.map((e) => Resource.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetResourcesResponse>, I>>(base?: I): GetResourcesResponse {
-    return GetResourcesResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Resources>, I>>(base?: I): Resources {
+    return Resources.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetResourcesResponse>, I>>(object: I): GetResourcesResponse {
-    const message = createBaseGetResourcesResponse();
-    message.resources = object.resources?.map((e) => ResourceResponse.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseResourceResponse(): ResourceResponse {
-  return { id: 0, name: "", ip: "", resources: [], os: "", status: false, createdBy: "" };
-}
-
-export const ResourceResponse = {
-  encode(message: ResourceResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
-    }
-    if (message.name !== "") {
-      writer.uint32(18).string(message.name);
-    }
-    if (message.ip !== "") {
-      writer.uint32(26).string(message.ip);
-    }
-    for (const v of message.resources) {
-      KeyValue.encode(v!, writer.uint32(34).fork()).ldelim();
-    }
-    if (message.os !== "") {
-      writer.uint32(42).string(message.os);
-    }
-    if (message.status !== false) {
-      writer.uint32(48).bool(message.status);
-    }
-    if (message.createdBy !== "") {
-      writer.uint32(58).string(message.createdBy);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): ResourceResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseResourceResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.id = longToNumber(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.ip = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.resources.push(KeyValue.decode(reader, reader.uint32()));
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.os = reader.string();
-          continue;
-        case 6:
-          if (tag !== 48) {
-            break;
-          }
-
-          message.status = reader.bool();
-          continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.createdBy = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): ResourceResponse {
-    return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      resources: globalThis.Array.isArray(object?.resources)
-        ? object.resources.map((e: any) => KeyValue.fromJSON(e))
-        : [],
-      os: isSet(object.os) ? globalThis.String(object.os) : "",
-      status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
-      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
-    };
-  },
-
-  toJSON(message: ResourceResponse): unknown {
-    const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.ip !== "") {
-      obj.ip = message.ip;
-    }
-    if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => KeyValue.toJSON(e));
-    }
-    if (message.os !== "") {
-      obj.os = message.os;
-    }
-    if (message.status !== false) {
-      obj.status = message.status;
-    }
-    if (message.createdBy !== "") {
-      obj.createdBy = message.createdBy;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<ResourceResponse>, I>>(base?: I): ResourceResponse {
-    return ResourceResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<ResourceResponse>, I>>(object: I): ResourceResponse {
-    const message = createBaseResourceResponse();
-    message.id = object.id ?? 0;
-    message.name = object.name ?? "";
-    message.ip = object.ip ?? "";
-    message.resources = object.resources?.map((e) => KeyValue.fromPartial(e)) || [];
-    message.os = object.os ?? "";
-    message.status = object.status ?? false;
-    message.createdBy = object.createdBy ?? "";
+  fromPartial<I extends Exact<DeepPartial<Resources>, I>>(object: I): Resources {
+    const message = createBaseResources();
+    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     return message;
   },
 };
@@ -872,9 +657,9 @@ export interface ResourceService {
     metadata?: grpc.Metadata,
   ): Promise<CreateResourceResponse>;
   GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse>;
-  PatchResource(request: DeepPartial<PatchResourceRequest>, metadata?: grpc.Metadata): Promise<ResourceResponse>;
-  GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<ResourceResponse>;
-  GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetResourcesResponse>;
+  PatchResource(request: DeepPartial<PatchResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
+  GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
+  GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources>;
 }
 
 export class ResourceServiceClientImpl implements ResourceService {
@@ -900,15 +685,15 @@ export class ResourceServiceClientImpl implements ResourceService {
     return this.rpc.unary(ResourceServiceGenerateTokenDesc, GenerateTokenRequest.fromPartial(request), metadata);
   }
 
-  PatchResource(request: DeepPartial<PatchResourceRequest>, metadata?: grpc.Metadata): Promise<ResourceResponse> {
+  PatchResource(request: DeepPartial<PatchResourceRequest>, metadata?: grpc.Metadata): Promise<Resource> {
     return this.rpc.unary(ResourceServicePatchResourceDesc, PatchResourceRequest.fromPartial(request), metadata);
   }
 
-  GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<ResourceResponse> {
+  GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource> {
     return this.rpc.unary(ResourceServiceGetResourceDesc, GetResourceRequest.fromPartial(request), metadata);
   }
 
-  GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetResourcesResponse> {
+  GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources> {
     return this.rpc.unary(ResourceServiceGetResourcesDesc, Empty.fromPartial(request), metadata);
   }
 }
@@ -973,7 +758,7 @@ export const ResourceServicePatchResourceDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = ResourceResponse.decode(data);
+      const value = Resource.decode(data);
       return {
         ...value,
         toObject() {
@@ -996,7 +781,7 @@ export const ResourceServiceGetResourceDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = ResourceResponse.decode(data);
+      const value = Resource.decode(data);
       return {
         ...value,
         toObject() {
@@ -1019,7 +804,7 @@ export const ResourceServiceGetResourcesDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GetResourcesResponse.decode(data);
+      const value = Resources.decode(data);
       return {
         ...value,
         toObject() {
@@ -1031,10 +816,7 @@ export const ResourceServiceGetResourcesDesc: UnaryMethodDefinitionish = {
 };
 
 export interface ResourceDetailService {
-  AddNewSourcesForResource(
-    request: DeepPartial<AddNewSourcesForResourceRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<Empty>;
+  AddNewSrcsForResource(request: DeepPartial<AddNewSrcsForResourceRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   AddFleets(request: DeepPartial<AddFleetsRequest>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
@@ -1043,17 +825,14 @@ export class ResourceDetailServiceClientImpl implements ResourceDetailService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.AddNewSourcesForResource = this.AddNewSourcesForResource.bind(this);
+    this.AddNewSrcsForResource = this.AddNewSrcsForResource.bind(this);
     this.AddFleets = this.AddFleets.bind(this);
   }
 
-  AddNewSourcesForResource(
-    request: DeepPartial<AddNewSourcesForResourceRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<Empty> {
+  AddNewSrcsForResource(request: DeepPartial<AddNewSrcsForResourceRequest>, metadata?: grpc.Metadata): Promise<Empty> {
     return this.rpc.unary(
-      ResourceDetailServiceAddNewSourcesForResourceDesc,
-      AddNewSourcesForResourceRequest.fromPartial(request),
+      ResourceDetailServiceAddNewSrcsForResourceDesc,
+      AddNewSrcsForResourceRequest.fromPartial(request),
       metadata,
     );
   }
@@ -1065,14 +844,14 @@ export class ResourceDetailServiceClientImpl implements ResourceDetailService {
 
 export const ResourceDetailServiceDesc = { serviceName: "protos.ResourceDetailService" };
 
-export const ResourceDetailServiceAddNewSourcesForResourceDesc: UnaryMethodDefinitionish = {
-  methodName: "AddNewSourcesForResource",
+export const ResourceDetailServiceAddNewSrcsForResourceDesc: UnaryMethodDefinitionish = {
+  methodName: "AddNewSrcsForResource",
   service: ResourceDetailServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return AddNewSourcesForResourceRequest.encode(this).finish();
+      return AddNewSrcsForResourceRequest.encode(this).finish();
     },
   } as any,
   responseType: {

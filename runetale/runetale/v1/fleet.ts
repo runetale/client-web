@@ -4,8 +4,7 @@ import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
-import { KeyValue } from "./key_value";
-import { DeploymentMethod, deploymentMethodFromJSON, deploymentMethodToJSON } from "./resource";
+import { DeploymentMethod, deploymentMethodFromJSON, deploymentMethodToJSON, Fleet } from "./common";
 
 export const protobufPackage = "protos";
 
@@ -32,23 +31,11 @@ export interface GetFleetRequest {
   id: number;
 }
 
-export interface GetFleetsResponse {
-  fleets: FleetResponse[];
+export interface Fleets {
+  fleets: Fleet[];
 }
 
-export interface FleetResponse {
-  id: number;
-  name: string;
-  desc: string;
-  resources: KeyValue[];
-  proto: string;
-  port: string;
-  /** created by domain */
-  domain: string;
-  age: string;
-}
-
-export interface AddNewSourcesForFleetRequest {
+export interface AddNewSrcsForFleetRequest {
   /** fleet id */
   id: number;
   userIds: number[];
@@ -408,22 +395,22 @@ export const GetFleetRequest = {
   },
 };
 
-function createBaseGetFleetsResponse(): GetFleetsResponse {
+function createBaseFleets(): Fleets {
   return { fleets: [] };
 }
 
-export const GetFleetsResponse = {
-  encode(message: GetFleetsResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Fleets = {
+  encode(message: Fleets, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.fleets) {
-      FleetResponse.encode(v!, writer.uint32(10).fork()).ldelim();
+      Fleet.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetFleetsResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Fleets {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetFleetsResponse();
+    const message = createBaseFleets();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -432,7 +419,7 @@ export const GetFleetsResponse = {
             break;
           }
 
-          message.fleets.push(FleetResponse.decode(reader, reader.uint32()));
+          message.fleets.push(Fleet.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -443,202 +430,34 @@ export const GetFleetsResponse = {
     return message;
   },
 
-  fromJSON(object: any): GetFleetsResponse {
-    return {
-      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => FleetResponse.fromJSON(e)) : [],
-    };
+  fromJSON(object: any): Fleets {
+    return { fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [] };
   },
 
-  toJSON(message: GetFleetsResponse): unknown {
+  toJSON(message: Fleets): unknown {
     const obj: any = {};
     if (message.fleets?.length) {
-      obj.fleets = message.fleets.map((e) => FleetResponse.toJSON(e));
+      obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetFleetsResponse>, I>>(base?: I): GetFleetsResponse {
-    return GetFleetsResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Fleets>, I>>(base?: I): Fleets {
+    return Fleets.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetFleetsResponse>, I>>(object: I): GetFleetsResponse {
-    const message = createBaseGetFleetsResponse();
-    message.fleets = object.fleets?.map((e) => FleetResponse.fromPartial(e)) || [];
+  fromPartial<I extends Exact<DeepPartial<Fleets>, I>>(object: I): Fleets {
+    const message = createBaseFleets();
+    message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseFleetResponse(): FleetResponse {
-  return { id: 0, name: "", desc: "", resources: [], proto: "", port: "", domain: "", age: "" };
-}
-
-export const FleetResponse = {
-  encode(message: FleetResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
-    }
-    if (message.name !== "") {
-      writer.uint32(18).string(message.name);
-    }
-    if (message.desc !== "") {
-      writer.uint32(26).string(message.desc);
-    }
-    for (const v of message.resources) {
-      KeyValue.encode(v!, writer.uint32(34).fork()).ldelim();
-    }
-    if (message.proto !== "") {
-      writer.uint32(42).string(message.proto);
-    }
-    if (message.port !== "") {
-      writer.uint32(50).string(message.port);
-    }
-    if (message.domain !== "") {
-      writer.uint32(58).string(message.domain);
-    }
-    if (message.age !== "") {
-      writer.uint32(66).string(message.age);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): FleetResponse {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseFleetResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.id = longToNumber(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.desc = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.resources.push(KeyValue.decode(reader, reader.uint32()));
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.proto = reader.string();
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.port = reader.string();
-          continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.domain = reader.string();
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.age = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): FleetResponse {
-    return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      resources: globalThis.Array.isArray(object?.resources)
-        ? object.resources.map((e: any) => KeyValue.fromJSON(e))
-        : [],
-      proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
-      domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
-      age: isSet(object.age) ? globalThis.String(object.age) : "",
-    };
-  },
-
-  toJSON(message: FleetResponse): unknown {
-    const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.desc !== "") {
-      obj.desc = message.desc;
-    }
-    if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => KeyValue.toJSON(e));
-    }
-    if (message.proto !== "") {
-      obj.proto = message.proto;
-    }
-    if (message.port !== "") {
-      obj.port = message.port;
-    }
-    if (message.domain !== "") {
-      obj.domain = message.domain;
-    }
-    if (message.age !== "") {
-      obj.age = message.age;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<FleetResponse>, I>>(base?: I): FleetResponse {
-    return FleetResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<FleetResponse>, I>>(object: I): FleetResponse {
-    const message = createBaseFleetResponse();
-    message.id = object.id ?? 0;
-    message.name = object.name ?? "";
-    message.desc = object.desc ?? "";
-    message.resources = object.resources?.map((e) => KeyValue.fromPartial(e)) || [];
-    message.proto = object.proto ?? "";
-    message.port = object.port ?? "";
-    message.domain = object.domain ?? "";
-    message.age = object.age ?? "";
-    return message;
-  },
-};
-
-function createBaseAddNewSourcesForFleetRequest(): AddNewSourcesForFleetRequest {
+function createBaseAddNewSrcsForFleetRequest(): AddNewSrcsForFleetRequest {
   return { id: 0, userIds: [], groupIds: [] };
 }
 
-export const AddNewSourcesForFleetRequest = {
-  encode(message: AddNewSourcesForFleetRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const AddNewSrcsForFleetRequest = {
+  encode(message: AddNewSrcsForFleetRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.id !== 0) {
       writer.uint32(8).uint64(message.id);
     }
@@ -655,10 +474,10 @@ export const AddNewSourcesForFleetRequest = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewSourcesForFleetRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewSrcsForFleetRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAddNewSourcesForFleetRequest();
+    const message = createBaseAddNewSrcsForFleetRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -712,7 +531,7 @@ export const AddNewSourcesForFleetRequest = {
     return message;
   },
 
-  fromJSON(object: any): AddNewSourcesForFleetRequest {
+  fromJSON(object: any): AddNewSrcsForFleetRequest {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       userIds: globalThis.Array.isArray(object?.userIds) ? object.userIds.map((e: any) => globalThis.Number(e)) : [],
@@ -720,7 +539,7 @@ export const AddNewSourcesForFleetRequest = {
     };
   },
 
-  toJSON(message: AddNewSourcesForFleetRequest): unknown {
+  toJSON(message: AddNewSrcsForFleetRequest): unknown {
     const obj: any = {};
     if (message.id !== 0) {
       obj.id = Math.round(message.id);
@@ -734,11 +553,11 @@ export const AddNewSourcesForFleetRequest = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<AddNewSourcesForFleetRequest>, I>>(base?: I): AddNewSourcesForFleetRequest {
-    return AddNewSourcesForFleetRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<AddNewSrcsForFleetRequest>, I>>(base?: I): AddNewSrcsForFleetRequest {
+    return AddNewSrcsForFleetRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<AddNewSourcesForFleetRequest>, I>>(object: I): AddNewSourcesForFleetRequest {
-    const message = createBaseAddNewSourcesForFleetRequest();
+  fromPartial<I extends Exact<DeepPartial<AddNewSrcsForFleetRequest>, I>>(object: I): AddNewSrcsForFleetRequest {
+    const message = createBaseAddNewSrcsForFleetRequest();
     message.id = object.id ?? 0;
     message.userIds = object.userIds?.map((e) => e) || [];
     message.groupIds = object.groupIds?.map((e) => e) || [];
@@ -747,10 +566,10 @@ export const AddNewSourcesForFleetRequest = {
 };
 
 export interface FleetService {
-  CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<FleetResponse>;
-  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<FleetResponse>;
-  GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<FleetResponse>;
-  GetFleets(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetFleetsResponse>;
+  CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
+  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
+  GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
+  GetFleets(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Fleets>;
 }
 
 export class FleetServiceClientImpl implements FleetService {
@@ -764,19 +583,19 @@ export class FleetServiceClientImpl implements FleetService {
     this.GetFleets = this.GetFleets.bind(this);
   }
 
-  CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<FleetResponse> {
+  CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
     return this.rpc.unary(FleetServiceCreateFleetDesc, CreateFleetRequest.fromPartial(request), metadata);
   }
 
-  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<FleetResponse> {
+  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
     return this.rpc.unary(FleetServicePatchFleetDesc, PatchFleetRequest.fromPartial(request), metadata);
   }
 
-  GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<FleetResponse> {
+  GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
     return this.rpc.unary(FleetServiceGetFleetDesc, GetFleetRequest.fromPartial(request), metadata);
   }
 
-  GetFleets(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetFleetsResponse> {
+  GetFleets(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Fleets> {
     return this.rpc.unary(FleetServiceGetFleetsDesc, Empty.fromPartial(request), metadata);
   }
 }
@@ -795,7 +614,7 @@ export const FleetServiceCreateFleetDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = FleetResponse.decode(data);
+      const value = Fleet.decode(data);
       return {
         ...value,
         toObject() {
@@ -818,7 +637,7 @@ export const FleetServicePatchFleetDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = FleetResponse.decode(data);
+      const value = Fleet.decode(data);
       return {
         ...value,
         toObject() {
@@ -841,7 +660,7 @@ export const FleetServiceGetFleetDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = FleetResponse.decode(data);
+      const value = Fleet.decode(data);
       return {
         ...value,
         toObject() {
@@ -864,7 +683,7 @@ export const FleetServiceGetFleetsDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GetFleetsResponse.decode(data);
+      const value = Fleets.decode(data);
       return {
         ...value,
         toObject() {
@@ -876,7 +695,7 @@ export const FleetServiceGetFleetsDesc: UnaryMethodDefinitionish = {
 };
 
 export interface FleetDetailService {
-  AddNewSourcesForFleet(request: DeepPartial<AddNewSourcesForFleetRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+  AddNewSrcsForFleet(request: DeepPartial<AddNewSrcsForFleetRequest>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
 export class FleetDetailServiceClientImpl implements FleetDetailService {
@@ -884,13 +703,13 @@ export class FleetDetailServiceClientImpl implements FleetDetailService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.AddNewSourcesForFleet = this.AddNewSourcesForFleet.bind(this);
+    this.AddNewSrcsForFleet = this.AddNewSrcsForFleet.bind(this);
   }
 
-  AddNewSourcesForFleet(request: DeepPartial<AddNewSourcesForFleetRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+  AddNewSrcsForFleet(request: DeepPartial<AddNewSrcsForFleetRequest>, metadata?: grpc.Metadata): Promise<Empty> {
     return this.rpc.unary(
-      FleetDetailServiceAddNewSourcesForFleetDesc,
-      AddNewSourcesForFleetRequest.fromPartial(request),
+      FleetDetailServiceAddNewSrcsForFleetDesc,
+      AddNewSrcsForFleetRequest.fromPartial(request),
       metadata,
     );
   }
@@ -898,14 +717,14 @@ export class FleetDetailServiceClientImpl implements FleetDetailService {
 
 export const FleetDetailServiceDesc = { serviceName: "protos.FleetDetailService" };
 
-export const FleetDetailServiceAddNewSourcesForFleetDesc: UnaryMethodDefinitionish = {
-  methodName: "AddNewSourcesForFleet",
+export const FleetDetailServiceAddNewSrcsForFleetDesc: UnaryMethodDefinitionish = {
+  methodName: "AddNewSrcsForFleet",
   service: FleetDetailServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return AddNewSourcesForFleetRequest.encode(this).finish();
+      return AddNewSrcsForFleetRequest.encode(this).finish();
     },
   } as any,
   responseType: {
