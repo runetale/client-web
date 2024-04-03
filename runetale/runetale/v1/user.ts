@@ -25,6 +25,7 @@ export interface GetUserRequest {
 export interface User {
   id: number;
   name: string;
+  picture: string;
   email: string;
   role: string;
   joined: string;
@@ -204,6 +205,7 @@ function createBaseUser(): User {
   return {
     id: 0,
     name: "",
+    picture: "",
     email: "",
     role: "",
     joined: "",
@@ -223,29 +225,32 @@ export const User = {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
+    if (message.picture !== "") {
+      writer.uint32(26).string(message.picture);
+    }
     if (message.email !== "") {
-      writer.uint32(26).string(message.email);
+      writer.uint32(34).string(message.email);
     }
     if (message.role !== "") {
-      writer.uint32(34).string(message.role);
+      writer.uint32(42).string(message.role);
     }
     if (message.joined !== "") {
-      writer.uint32(42).string(message.joined);
+      writer.uint32(50).string(message.joined);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(50).string(message.lastSeen);
+      writer.uint32(58).string(message.lastSeen);
     }
     for (const v of message.fleets) {
-      FleetResponse.encode(v!, writer.uint32(58).fork()).ldelim();
+      FleetResponse.encode(v!, writer.uint32(66).fork()).ldelim();
     }
     for (const v of message.resources) {
-      ResourceResponse.encode(v!, writer.uint32(66).fork()).ldelim();
+      ResourceResponse.encode(v!, writer.uint32(74).fork()).ldelim();
     }
     for (const v of message.devices) {
-      DeviceResponse.encode(v!, writer.uint32(74).fork()).ldelim();
+      DeviceResponse.encode(v!, writer.uint32(82).fork()).ldelim();
     }
     for (const v of message.groups) {
-      GroupResponse.encode(v!, writer.uint32(82).fork()).ldelim();
+      GroupResponse.encode(v!, writer.uint32(90).fork()).ldelim();
     }
     return writer;
   },
@@ -276,52 +281,59 @@ export const User = {
             break;
           }
 
-          message.email = reader.string();
+          message.picture = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.role = reader.string();
+          message.email = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.joined = reader.string();
+          message.role = reader.string();
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.lastSeen = reader.string();
+          message.joined = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.fleets.push(FleetResponse.decode(reader, reader.uint32()));
+          message.lastSeen = reader.string();
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.resources.push(ResourceResponse.decode(reader, reader.uint32()));
+          message.fleets.push(FleetResponse.decode(reader, reader.uint32()));
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.devices.push(DeviceResponse.decode(reader, reader.uint32()));
+          message.resources.push(ResourceResponse.decode(reader, reader.uint32()));
           continue;
         case 10:
           if (tag !== 82) {
+            break;
+          }
+
+          message.devices.push(DeviceResponse.decode(reader, reader.uint32()));
+          continue;
+        case 11:
+          if (tag !== 90) {
             break;
           }
 
@@ -340,6 +352,7 @@ export const User = {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
+      picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       role: isSet(object.role) ? globalThis.String(object.role) : "",
       joined: isSet(object.joined) ? globalThis.String(object.joined) : "",
@@ -362,6 +375,9 @@ export const User = {
     }
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.picture !== "") {
+      obj.picture = message.picture;
     }
     if (message.email !== "") {
       obj.email = message.email;
@@ -397,6 +413,7 @@ export const User = {
     const message = createBaseUser();
     message.id = object.id ?? 0;
     message.name = object.name ?? "";
+    message.picture = object.picture ?? "";
     message.email = object.email ?? "";
     message.role = object.role ?? "";
     message.joined = object.joined ?? "";

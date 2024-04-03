@@ -26,12 +26,21 @@ export interface GetGroupsResponse {
   groups: GroupResponse[];
 }
 
+export interface UserWithPicture {
+  /** user id */
+  id: string;
+  /** user name */
+  name: string;
+  /** picture url */
+  picture: string;
+}
+
 export interface GroupResponse {
   id: number;
   name: string;
-  users: string[];
+  users: UserWithPicture[];
+  /** count of resources accessible */
   resources: number;
-  linkers: number;
   age: string;
 }
 
@@ -338,8 +347,97 @@ export const GetGroupsResponse = {
   },
 };
 
+function createBaseUserWithPicture(): UserWithPicture {
+  return { id: "", name: "", picture: "" };
+}
+
+export const UserWithPicture = {
+  encode(message: UserWithPicture, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.picture !== "") {
+      writer.uint32(26).string(message.picture);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): UserWithPicture {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUserWithPicture();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.picture = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UserWithPicture {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
+    };
+  },
+
+  toJSON(message: UserWithPicture): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.picture !== "") {
+      obj.picture = message.picture;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UserWithPicture>, I>>(base?: I): UserWithPicture {
+    return UserWithPicture.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UserWithPicture>, I>>(object: I): UserWithPicture {
+    const message = createBaseUserWithPicture();
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.picture = object.picture ?? "";
+    return message;
+  },
+};
+
 function createBaseGroupResponse(): GroupResponse {
-  return { id: 0, name: "", users: [], resources: 0, linkers: 0, age: "" };
+  return { id: 0, name: "", users: [], resources: 0, age: "" };
 }
 
 export const GroupResponse = {
@@ -351,16 +449,13 @@ export const GroupResponse = {
       writer.uint32(18).string(message.name);
     }
     for (const v of message.users) {
-      writer.uint32(26).string(v!);
+      UserWithPicture.encode(v!, writer.uint32(26).fork()).ldelim();
     }
     if (message.resources !== 0) {
       writer.uint32(32).uint64(message.resources);
     }
-    if (message.linkers !== 0) {
-      writer.uint32(40).uint64(message.linkers);
-    }
     if (message.age !== "") {
-      writer.uint32(50).string(message.age);
+      writer.uint32(42).string(message.age);
     }
     return writer;
   },
@@ -391,7 +486,7 @@ export const GroupResponse = {
             break;
           }
 
-          message.users.push(reader.string());
+          message.users.push(UserWithPicture.decode(reader, reader.uint32()));
           continue;
         case 4:
           if (tag !== 32) {
@@ -401,14 +496,7 @@ export const GroupResponse = {
           message.resources = longToNumber(reader.uint64() as Long);
           continue;
         case 5:
-          if (tag !== 40) {
-            break;
-          }
-
-          message.linkers = longToNumber(reader.uint64() as Long);
-          continue;
-        case 6:
-          if (tag !== 50) {
+          if (tag !== 42) {
             break;
           }
 
@@ -427,9 +515,8 @@ export const GroupResponse = {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => globalThis.String(e)) : [],
+      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => UserWithPicture.fromJSON(e)) : [],
       resources: isSet(object.resources) ? globalThis.Number(object.resources) : 0,
-      linkers: isSet(object.linkers) ? globalThis.Number(object.linkers) : 0,
       age: isSet(object.age) ? globalThis.String(object.age) : "",
     };
   },
@@ -443,13 +530,10 @@ export const GroupResponse = {
       obj.name = message.name;
     }
     if (message.users?.length) {
-      obj.users = message.users;
+      obj.users = message.users.map((e) => UserWithPicture.toJSON(e));
     }
     if (message.resources !== 0) {
       obj.resources = Math.round(message.resources);
-    }
-    if (message.linkers !== 0) {
-      obj.linkers = Math.round(message.linkers);
     }
     if (message.age !== "") {
       obj.age = message.age;
@@ -464,9 +548,8 @@ export const GroupResponse = {
     const message = createBaseGroupResponse();
     message.id = object.id ?? 0;
     message.name = object.name ?? "";
-    message.users = object.users?.map((e) => e) || [];
+    message.users = object.users?.map((e) => UserWithPicture.fromPartial(e)) || [];
     message.resources = object.resources ?? 0;
-    message.linkers = object.linkers ?? 0;
     message.age = object.age ?? "";
     return message;
   },
