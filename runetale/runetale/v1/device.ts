@@ -18,10 +18,11 @@ export interface GetDevicesResponse {
 export interface DeviceResponse {
   id: number;
   name: string;
+  email: string;
   ip: string;
   os: string;
   status: boolean;
-  /** only when false */
+  /** only when status false */
   lastSeen: string;
 }
 
@@ -144,7 +145,7 @@ export const GetDevicesResponse = {
 };
 
 function createBaseDeviceResponse(): DeviceResponse {
-  return { id: 0, name: "", ip: "", os: "", status: false, lastSeen: "" };
+  return { id: 0, name: "", email: "", ip: "", os: "", status: false, lastSeen: "" };
 }
 
 export const DeviceResponse = {
@@ -155,17 +156,20 @@ export const DeviceResponse = {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
+    if (message.email !== "") {
+      writer.uint32(26).string(message.email);
+    }
     if (message.ip !== "") {
-      writer.uint32(26).string(message.ip);
+      writer.uint32(34).string(message.ip);
     }
     if (message.os !== "") {
-      writer.uint32(34).string(message.os);
+      writer.uint32(42).string(message.os);
     }
     if (message.status !== false) {
-      writer.uint32(40).bool(message.status);
+      writer.uint32(48).bool(message.status);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(50).string(message.lastSeen);
+      writer.uint32(58).string(message.lastSeen);
     }
     return writer;
   },
@@ -196,24 +200,31 @@ export const DeviceResponse = {
             break;
           }
 
-          message.ip = reader.string();
+          message.email = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.os = reader.string();
+          message.ip = reader.string();
           continue;
         case 5:
-          if (tag !== 40) {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.os = reader.string();
+          continue;
+        case 6:
+          if (tag !== 48) {
             break;
           }
 
           message.status = reader.bool();
           continue;
-        case 6:
-          if (tag !== 50) {
+        case 7:
+          if (tag !== 58) {
             break;
           }
 
@@ -232,6 +243,7 @@ export const DeviceResponse = {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
@@ -246,6 +258,9 @@ export const DeviceResponse = {
     }
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
     }
     if (message.ip !== "") {
       obj.ip = message.ip;
@@ -269,6 +284,7 @@ export const DeviceResponse = {
     const message = createBaseDeviceResponse();
     message.id = object.id ?? 0;
     message.name = object.name ?? "";
+    message.email = object.email ?? "";
     message.ip = object.ip ?? "";
     message.os = object.os ?? "";
     message.status = object.status ?? false;
