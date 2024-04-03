@@ -41,7 +41,16 @@ export interface GroupResponse {
   users: UserWithPicture[];
   /** count of resources accessible */
   resources: number;
+  /** count of fleets accessible */
+  fleets: number;
   age: string;
+}
+
+export interface AddNewDstForGroupRequest {
+  /** group id */
+  id: number;
+  resourceIds: number[];
+  fleetIds: number[];
 }
 
 function createBaseCreateGroupRequest(): CreateGroupRequest {
@@ -437,7 +446,7 @@ export const UserWithPicture = {
 };
 
 function createBaseGroupResponse(): GroupResponse {
-  return { id: 0, name: "", users: [], resources: 0, age: "" };
+  return { id: 0, name: "", users: [], resources: 0, fleets: 0, age: "" };
 }
 
 export const GroupResponse = {
@@ -454,8 +463,11 @@ export const GroupResponse = {
     if (message.resources !== 0) {
       writer.uint32(32).uint64(message.resources);
     }
+    if (message.fleets !== 0) {
+      writer.uint32(40).uint64(message.fleets);
+    }
     if (message.age !== "") {
-      writer.uint32(42).string(message.age);
+      writer.uint32(50).string(message.age);
     }
     return writer;
   },
@@ -496,7 +508,14 @@ export const GroupResponse = {
           message.resources = longToNumber(reader.uint64() as Long);
           continue;
         case 5:
-          if (tag !== 42) {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.fleets = longToNumber(reader.uint64() as Long);
+          continue;
+        case 6:
+          if (tag !== 50) {
             break;
           }
 
@@ -517,6 +536,7 @@ export const GroupResponse = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => UserWithPicture.fromJSON(e)) : [],
       resources: isSet(object.resources) ? globalThis.Number(object.resources) : 0,
+      fleets: isSet(object.fleets) ? globalThis.Number(object.fleets) : 0,
       age: isSet(object.age) ? globalThis.String(object.age) : "",
     };
   },
@@ -535,6 +555,9 @@ export const GroupResponse = {
     if (message.resources !== 0) {
       obj.resources = Math.round(message.resources);
     }
+    if (message.fleets !== 0) {
+      obj.fleets = Math.round(message.fleets);
+    }
     if (message.age !== "") {
       obj.age = message.age;
     }
@@ -550,7 +573,123 @@ export const GroupResponse = {
     message.name = object.name ?? "";
     message.users = object.users?.map((e) => UserWithPicture.fromPartial(e)) || [];
     message.resources = object.resources ?? 0;
+    message.fleets = object.fleets ?? 0;
     message.age = object.age ?? "";
+    return message;
+  },
+};
+
+function createBaseAddNewDstForGroupRequest(): AddNewDstForGroupRequest {
+  return { id: 0, resourceIds: [], fleetIds: [] };
+}
+
+export const AddNewDstForGroupRequest = {
+  encode(message: AddNewDstForGroupRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
+    writer.uint32(18).fork();
+    for (const v of message.resourceIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
+    writer.uint32(26).fork();
+    for (const v of message.fleetIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewDstForGroupRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAddNewDstForGroupRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag === 16) {
+            message.resourceIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 18) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.resourceIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+        case 3:
+          if (tag === 24) {
+            message.fleetIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.fleetIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AddNewDstForGroupRequest {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      resourceIds: globalThis.Array.isArray(object?.resourceIds)
+        ? object.resourceIds.map((e: any) => globalThis.Number(e))
+        : [],
+      fleetIds: globalThis.Array.isArray(object?.fleetIds) ? object.fleetIds.map((e: any) => globalThis.Number(e)) : [],
+    };
+  },
+
+  toJSON(message: AddNewDstForGroupRequest): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.resourceIds?.length) {
+      obj.resourceIds = message.resourceIds.map((e) => Math.round(e));
+    }
+    if (message.fleetIds?.length) {
+      obj.fleetIds = message.fleetIds.map((e) => Math.round(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AddNewDstForGroupRequest>, I>>(base?: I): AddNewDstForGroupRequest {
+    return AddNewDstForGroupRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AddNewDstForGroupRequest>, I>>(object: I): AddNewDstForGroupRequest {
+    const message = createBaseAddNewDstForGroupRequest();
+    message.id = object.id ?? 0;
+    message.resourceIds = object.resourceIds?.map((e) => e) || [];
+    message.fleetIds = object.fleetIds?.map((e) => e) || [];
     return message;
   },
 };
@@ -674,6 +813,52 @@ export const GroupServiceGetGroupsDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetGroupsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export interface GroupDetailService {
+  AddNewDstForGroup(request: DeepPartial<AddNewDstForGroupRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+}
+
+export class GroupDetailServiceClientImpl implements GroupDetailService {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.AddNewDstForGroup = this.AddNewDstForGroup.bind(this);
+  }
+
+  AddNewDstForGroup(request: DeepPartial<AddNewDstForGroupRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(
+      GroupDetailServiceAddNewDstForGroupDesc,
+      AddNewDstForGroupRequest.fromPartial(request),
+      metadata,
+    );
+  }
+}
+
+export const GroupDetailServiceDesc = { serviceName: "protos.GroupDetailService" };
+
+export const GroupDetailServiceAddNewDstForGroupDesc: UnaryMethodDefinitionish = {
+  methodName: "AddNewDstForGroup",
+  service: GroupDetailServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return AddNewDstForGroupRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
       return {
         ...value,
         toObject() {

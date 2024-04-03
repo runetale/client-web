@@ -55,12 +55,6 @@ export interface AddNewSourcesForFleetRequest {
   groupIds: number[];
 }
 
-export interface AddResourcesRequest {
-  /** fleet id */
-  id: number;
-  resourceIds: number[];
-}
-
 function createBaseCreateFleetRequest(): CreateFleetRequest {
   return { name: "", desc: "", resourceIds: [], proto: "", port: "", type: 0 };
 }
@@ -752,94 +746,6 @@ export const AddNewSourcesForFleetRequest = {
   },
 };
 
-function createBaseAddResourcesRequest(): AddResourcesRequest {
-  return { id: 0, resourceIds: [] };
-}
-
-export const AddResourcesRequest = {
-  encode(message: AddResourcesRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
-    }
-    writer.uint32(18).fork();
-    for (const v of message.resourceIds) {
-      writer.uint64(v);
-    }
-    writer.ldelim();
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): AddResourcesRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAddResourcesRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.id = longToNumber(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag === 16) {
-            message.resourceIds.push(longToNumber(reader.uint64() as Long));
-
-            continue;
-          }
-
-          if (tag === 18) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.resourceIds.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): AddResourcesRequest {
-    return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      resourceIds: globalThis.Array.isArray(object?.resourceIds)
-        ? object.resourceIds.map((e: any) => globalThis.Number(e))
-        : [],
-    };
-  },
-
-  toJSON(message: AddResourcesRequest): unknown {
-    const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
-    }
-    if (message.resourceIds?.length) {
-      obj.resourceIds = message.resourceIds.map((e) => Math.round(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<AddResourcesRequest>, I>>(base?: I): AddResourcesRequest {
-    return AddResourcesRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<AddResourcesRequest>, I>>(object: I): AddResourcesRequest {
-    const message = createBaseAddResourcesRequest();
-    message.id = object.id ?? 0;
-    message.resourceIds = object.resourceIds?.map((e) => e) || [];
-    return message;
-  },
-};
-
 export interface FleetService {
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<FleetResponse>;
   PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<FleetResponse>;
@@ -971,7 +877,6 @@ export const FleetServiceGetFleetsDesc: UnaryMethodDefinitionish = {
 
 export interface FleetDetailService {
   AddNewSourcesForFleet(request: DeepPartial<AddNewSourcesForFleetRequest>, metadata?: grpc.Metadata): Promise<Empty>;
-  AddResources(request: DeepPartial<AddResourcesRequest>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
 export class FleetDetailServiceClientImpl implements FleetDetailService {
@@ -980,7 +885,6 @@ export class FleetDetailServiceClientImpl implements FleetDetailService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.AddNewSourcesForFleet = this.AddNewSourcesForFleet.bind(this);
-    this.AddResources = this.AddResources.bind(this);
   }
 
   AddNewSourcesForFleet(request: DeepPartial<AddNewSourcesForFleetRequest>, metadata?: grpc.Metadata): Promise<Empty> {
@@ -989,10 +893,6 @@ export class FleetDetailServiceClientImpl implements FleetDetailService {
       AddNewSourcesForFleetRequest.fromPartial(request),
       metadata,
     );
-  }
-
-  AddResources(request: DeepPartial<AddResourcesRequest>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(FleetDetailServiceAddResourcesDesc, AddResourcesRequest.fromPartial(request), metadata);
   }
 }
 
@@ -1006,29 +906,6 @@ export const FleetDetailServiceAddNewSourcesForFleetDesc: UnaryMethodDefinitioni
   requestType: {
     serializeBinary() {
       return AddNewSourcesForFleetRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const FleetDetailServiceAddResourcesDesc: UnaryMethodDefinitionish = {
-  methodName: "AddResources",
-  service: FleetDetailServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return AddResourcesRequest.encode(this).finish();
     },
   } as any,
   responseType: {
