@@ -21,6 +21,8 @@ export interface DeviceResponse {
   ip: string;
   os: string;
   status: boolean;
+  /** only when false */
+  lastSeen: string;
 }
 
 function createBaseGetDevicesRequest(): GetDevicesRequest {
@@ -142,7 +144,7 @@ export const GetDevicesResponse = {
 };
 
 function createBaseDeviceResponse(): DeviceResponse {
-  return { id: 0, name: "", ip: "", os: "", status: false };
+  return { id: 0, name: "", ip: "", os: "", status: false, lastSeen: "" };
 }
 
 export const DeviceResponse = {
@@ -161,6 +163,9 @@ export const DeviceResponse = {
     }
     if (message.status !== false) {
       writer.uint32(40).bool(message.status);
+    }
+    if (message.lastSeen !== "") {
+      writer.uint32(50).string(message.lastSeen);
     }
     return writer;
   },
@@ -207,6 +212,13 @@ export const DeviceResponse = {
 
           message.status = reader.bool();
           continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.lastSeen = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -223,6 +235,7 @@ export const DeviceResponse = {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
+      lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
     };
   },
 
@@ -243,6 +256,9 @@ export const DeviceResponse = {
     if (message.status !== false) {
       obj.status = message.status;
     }
+    if (message.lastSeen !== "") {
+      obj.lastSeen = message.lastSeen;
+    }
     return obj;
   },
 
@@ -256,6 +272,7 @@ export const DeviceResponse = {
     message.ip = object.ip ?? "";
     message.os = object.os ?? "";
     message.status = object.status ?? false;
+    message.lastSeen = object.lastSeen ?? "";
     return message;
   },
 };

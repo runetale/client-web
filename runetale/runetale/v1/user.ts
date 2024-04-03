@@ -11,6 +11,7 @@ export interface GetMeResponse {
   username: string;
   email: string;
   picture: string;
+  isOwner: boolean;
 }
 
 export interface GetUserRequest {
@@ -34,7 +35,7 @@ export interface GetUsersResponse {
 }
 
 function createBaseGetMeResponse(): GetMeResponse {
-  return { username: "", email: "", picture: "" };
+  return { username: "", email: "", picture: "", isOwner: false };
 }
 
 export const GetMeResponse = {
@@ -47,6 +48,9 @@ export const GetMeResponse = {
     }
     if (message.picture !== "") {
       writer.uint32(26).string(message.picture);
+    }
+    if (message.isOwner !== false) {
+      writer.uint32(32).bool(message.isOwner);
     }
     return writer;
   },
@@ -79,6 +83,13 @@ export const GetMeResponse = {
 
           message.picture = reader.string();
           continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.isOwner = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -93,6 +104,7 @@ export const GetMeResponse = {
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
+      isOwner: isSet(object.isOwner) ? globalThis.Boolean(object.isOwner) : false,
     };
   },
 
@@ -107,6 +119,9 @@ export const GetMeResponse = {
     if (message.picture !== "") {
       obj.picture = message.picture;
     }
+    if (message.isOwner !== false) {
+      obj.isOwner = message.isOwner;
+    }
     return obj;
   },
 
@@ -118,6 +133,7 @@ export const GetMeResponse = {
     message.username = object.username ?? "";
     message.email = object.email ?? "";
     message.picture = object.picture ?? "";
+    message.isOwner = object.isOwner ?? false;
     return message;
   },
 };

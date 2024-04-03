@@ -59,7 +59,22 @@ export function deploymentMethodToJSON(object: DeploymentMethod): string {
   }
 }
 
+export interface AddNewSourcesForResourceRequest {
+  id: number;
+  userIds: number[];
+  groupIds: number[];
+}
+
+export interface AddFleetsRequest {
+  id: number;
+  fleetIds: number[];
+}
+
 export interface CreateResourceRequest {
+  name: string;
+}
+
+export interface CreateResourceResponse {
   name: string;
 }
 
@@ -87,11 +102,213 @@ export interface ResourceResponse {
   id: number;
   name: string;
   ip: string;
-  fleets: KeyValue[];
+  resources: KeyValue[];
   os: string;
   status: boolean;
+  /** if made with token, managedBy is returned. */
   createdBy: string;
 }
+
+function createBaseAddNewSourcesForResourceRequest(): AddNewSourcesForResourceRequest {
+  return { id: 0, userIds: [], groupIds: [] };
+}
+
+export const AddNewSourcesForResourceRequest = {
+  encode(message: AddNewSourcesForResourceRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
+    writer.uint32(18).fork();
+    for (const v of message.userIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
+    writer.uint32(26).fork();
+    for (const v of message.groupIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewSourcesForResourceRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAddNewSourcesForResourceRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag === 16) {
+            message.userIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 18) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.userIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+        case 3:
+          if (tag === 24) {
+            message.groupIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.groupIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AddNewSourcesForResourceRequest {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      userIds: globalThis.Array.isArray(object?.userIds) ? object.userIds.map((e: any) => globalThis.Number(e)) : [],
+      groupIds: globalThis.Array.isArray(object?.groupIds) ? object.groupIds.map((e: any) => globalThis.Number(e)) : [],
+    };
+  },
+
+  toJSON(message: AddNewSourcesForResourceRequest): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.userIds?.length) {
+      obj.userIds = message.userIds.map((e) => Math.round(e));
+    }
+    if (message.groupIds?.length) {
+      obj.groupIds = message.groupIds.map((e) => Math.round(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AddNewSourcesForResourceRequest>, I>>(base?: I): AddNewSourcesForResourceRequest {
+    return AddNewSourcesForResourceRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AddNewSourcesForResourceRequest>, I>>(
+    object: I,
+  ): AddNewSourcesForResourceRequest {
+    const message = createBaseAddNewSourcesForResourceRequest();
+    message.id = object.id ?? 0;
+    message.userIds = object.userIds?.map((e) => e) || [];
+    message.groupIds = object.groupIds?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseAddFleetsRequest(): AddFleetsRequest {
+  return { id: 0, fleetIds: [] };
+}
+
+export const AddFleetsRequest = {
+  encode(message: AddFleetsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
+    writer.uint32(26).fork();
+    for (const v of message.fleetIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AddFleetsRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAddFleetsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64() as Long);
+          continue;
+        case 3:
+          if (tag === 24) {
+            message.fleetIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.fleetIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AddFleetsRequest {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      fleetIds: globalThis.Array.isArray(object?.fleetIds) ? object.fleetIds.map((e: any) => globalThis.Number(e)) : [],
+    };
+  },
+
+  toJSON(message: AddFleetsRequest): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.fleetIds?.length) {
+      obj.fleetIds = message.fleetIds.map((e) => Math.round(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AddFleetsRequest>, I>>(base?: I): AddFleetsRequest {
+    return AddFleetsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AddFleetsRequest>, I>>(object: I): AddFleetsRequest {
+    const message = createBaseAddFleetsRequest();
+    message.id = object.id ?? 0;
+    message.fleetIds = object.fleetIds?.map((e) => e) || [];
+    return message;
+  },
+};
 
 function createBaseCreateResourceRequest(): CreateResourceRequest {
   return { name: "" };
@@ -145,6 +362,63 @@ export const CreateResourceRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<CreateResourceRequest>, I>>(object: I): CreateResourceRequest {
     const message = createBaseCreateResourceRequest();
+    message.name = object.name ?? "";
+    return message;
+  },
+};
+
+function createBaseCreateResourceResponse(): CreateResourceResponse {
+  return { name: "" };
+}
+
+export const CreateResourceResponse = {
+  encode(message: CreateResourceResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateResourceResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateResourceResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateResourceResponse {
+    return { name: isSet(object.name) ? globalThis.String(object.name) : "" };
+  },
+
+  toJSON(message: CreateResourceResponse): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateResourceResponse>, I>>(base?: I): CreateResourceResponse {
+    return CreateResourceResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateResourceResponse>, I>>(object: I): CreateResourceResponse {
+    const message = createBaseCreateResourceResponse();
     message.name = object.name ?? "";
     return message;
   },
@@ -440,7 +714,7 @@ export const GetResourcesResponse = {
 };
 
 function createBaseResourceResponse(): ResourceResponse {
-  return { id: 0, name: "", ip: "", fleets: [], os: "", status: false, createdBy: "" };
+  return { id: 0, name: "", ip: "", resources: [], os: "", status: false, createdBy: "" };
 }
 
 export const ResourceResponse = {
@@ -454,7 +728,7 @@ export const ResourceResponse = {
     if (message.ip !== "") {
       writer.uint32(26).string(message.ip);
     }
-    for (const v of message.fleets) {
+    for (const v of message.resources) {
       KeyValue.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     if (message.os !== "") {
@@ -502,7 +776,7 @@ export const ResourceResponse = {
             break;
           }
 
-          message.fleets.push(KeyValue.decode(reader, reader.uint32()));
+          message.resources.push(KeyValue.decode(reader, reader.uint32()));
           continue;
         case 5:
           if (tag !== 42) {
@@ -539,7 +813,9 @@ export const ResourceResponse = {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => KeyValue.fromJSON(e)) : [],
+      resources: globalThis.Array.isArray(object?.resources)
+        ? object.resources.map((e: any) => KeyValue.fromJSON(e))
+        : [],
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
@@ -557,8 +833,8 @@ export const ResourceResponse = {
     if (message.ip !== "") {
       obj.ip = message.ip;
     }
-    if (message.fleets?.length) {
-      obj.fleets = message.fleets.map((e) => KeyValue.toJSON(e));
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => KeyValue.toJSON(e));
     }
     if (message.os !== "") {
       obj.os = message.os;
@@ -580,7 +856,7 @@ export const ResourceResponse = {
     message.id = object.id ?? 0;
     message.name = object.name ?? "";
     message.ip = object.ip ?? "";
-    message.fleets = object.fleets?.map((e) => KeyValue.fromPartial(e)) || [];
+    message.resources = object.resources?.map((e) => KeyValue.fromPartial(e)) || [];
     message.os = object.os ?? "";
     message.status = object.status ?? false;
     message.createdBy = object.createdBy ?? "";
@@ -589,7 +865,10 @@ export const ResourceResponse = {
 };
 
 export interface ResourceService {
-  CreateResource(request: DeepPartial<CreateResourceRequest>, metadata?: grpc.Metadata): Promise<ResourceResponse>;
+  CreateResource(
+    request: DeepPartial<CreateResourceRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<CreateResourceResponse>;
   GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse>;
   PatchResource(request: DeepPartial<PatchResourceRequest>, metadata?: grpc.Metadata): Promise<ResourceResponse>;
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<ResourceResponse>;
@@ -608,7 +887,10 @@ export class ResourceServiceClientImpl implements ResourceService {
     this.GetResources = this.GetResources.bind(this);
   }
 
-  CreateResource(request: DeepPartial<CreateResourceRequest>, metadata?: grpc.Metadata): Promise<ResourceResponse> {
+  CreateResource(
+    request: DeepPartial<CreateResourceRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<CreateResourceResponse> {
     return this.rpc.unary(ResourceServiceCreateResourceDesc, CreateResourceRequest.fromPartial(request), metadata);
   }
 
@@ -643,7 +925,7 @@ export const ResourceServiceCreateResourceDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = ResourceResponse.decode(data);
+      const value = CreateResourceResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -736,6 +1018,87 @@ export const ResourceServiceGetResourcesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetResourcesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export interface ResourceDetailService {
+  AddNewSourcesForResource(
+    request: DeepPartial<AddNewSourcesForResourceRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<Empty>;
+  AddFleets(request: DeepPartial<AddFleetsRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+}
+
+export class ResourceDetailServiceClientImpl implements ResourceDetailService {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.AddNewSourcesForResource = this.AddNewSourcesForResource.bind(this);
+    this.AddFleets = this.AddFleets.bind(this);
+  }
+
+  AddNewSourcesForResource(
+    request: DeepPartial<AddNewSourcesForResourceRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<Empty> {
+    return this.rpc.unary(
+      ResourceDetailServiceAddNewSourcesForResourceDesc,
+      AddNewSourcesForResourceRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  AddFleets(request: DeepPartial<AddFleetsRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(ResourceDetailServiceAddFleetsDesc, AddFleetsRequest.fromPartial(request), metadata);
+  }
+}
+
+export const ResourceDetailServiceDesc = { serviceName: "protos.ResourceDetailService" };
+
+export const ResourceDetailServiceAddNewSourcesForResourceDesc: UnaryMethodDefinitionish = {
+  methodName: "AddNewSourcesForResource",
+  service: ResourceDetailServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return AddNewSourcesForResourceRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const ResourceDetailServiceAddFleetsDesc: UnaryMethodDefinitionish = {
+  methodName: "AddFleets",
+  service: ResourceDetailServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return AddFleetsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
       return {
         ...value,
         toObject() {
