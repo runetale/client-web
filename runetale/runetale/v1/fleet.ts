@@ -4,6 +4,7 @@ import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
+import { DeploymentMethod, deploymentMethodFromJSON, deploymentMethodToJSON } from "./resource";
 
 export const protobufPackage = "protos";
 
@@ -13,6 +14,7 @@ export interface CreateFleetRequest {
   resourceIds: number[];
   proto: string;
   port: string;
+  type: DeploymentMethod;
 }
 
 export interface PatchFleetRequest {
@@ -44,7 +46,7 @@ export interface FleetResponse {
 }
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", resourceIds: [], proto: "", port: "" };
+  return { name: "", desc: "", resourceIds: [], proto: "", port: "", type: 0 };
 }
 
 export const CreateFleetRequest = {
@@ -65,6 +67,9 @@ export const CreateFleetRequest = {
     }
     if (message.port !== "") {
       writer.uint32(42).string(message.port);
+    }
+    if (message.type !== 0) {
+      writer.uint32(48).int32(message.type);
     }
     return writer;
   },
@@ -121,6 +126,13 @@ export const CreateFleetRequest = {
 
           message.port = reader.string();
           continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.type = reader.int32() as any;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -139,6 +151,7 @@ export const CreateFleetRequest = {
         : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
+      type: isSet(object.type) ? deploymentMethodFromJSON(object.type) : 0,
     };
   },
 
@@ -159,6 +172,9 @@ export const CreateFleetRequest = {
     if (message.port !== "") {
       obj.port = message.port;
     }
+    if (message.type !== 0) {
+      obj.type = deploymentMethodToJSON(message.type);
+    }
     return obj;
   },
 
@@ -172,6 +188,7 @@ export const CreateFleetRequest = {
     message.resourceIds = object.resourceIds?.map((e) => e) || [];
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
+    message.type = object.type ?? 0;
     return message;
   },
 };
