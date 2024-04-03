@@ -4,6 +4,9 @@ import { BrowserHeaders } from "browser-headers";
 import Long from "long";
 import _m0 from "protobufjs/minimal";
 import { Empty } from "../../../google/protobuf/empty";
+import { FleetResponse } from "./fleet";
+import { GroupResponse } from "./group";
+import { ResourceResponse } from "./resource";
 
 export const protobufPackage = "protos";
 
@@ -24,6 +27,14 @@ export interface DeviceResponse {
   status: boolean;
   /** only when status false */
   lastSeen: string;
+  createdBy: string;
+  version: string;
+  nodeKey: string;
+  createdAt: string;
+  keyExpiry: string;
+  fleets: FleetResponse[];
+  resources: ResourceResponse[];
+  groups: GroupResponse[];
 }
 
 function createBaseGetDevicesRequest(): GetDevicesRequest {
@@ -145,7 +156,23 @@ export const GetDevicesResponse = {
 };
 
 function createBaseDeviceResponse(): DeviceResponse {
-  return { id: 0, name: "", email: "", ip: "", os: "", status: false, lastSeen: "" };
+  return {
+    id: 0,
+    name: "",
+    email: "",
+    ip: "",
+    os: "",
+    status: false,
+    lastSeen: "",
+    createdBy: "",
+    version: "",
+    nodeKey: "",
+    createdAt: "",
+    keyExpiry: "",
+    fleets: [],
+    resources: [],
+    groups: [],
+  };
 }
 
 export const DeviceResponse = {
@@ -170,6 +197,30 @@ export const DeviceResponse = {
     }
     if (message.lastSeen !== "") {
       writer.uint32(58).string(message.lastSeen);
+    }
+    if (message.createdBy !== "") {
+      writer.uint32(66).string(message.createdBy);
+    }
+    if (message.version !== "") {
+      writer.uint32(74).string(message.version);
+    }
+    if (message.nodeKey !== "") {
+      writer.uint32(82).string(message.nodeKey);
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(90).string(message.createdAt);
+    }
+    if (message.keyExpiry !== "") {
+      writer.uint32(98).string(message.keyExpiry);
+    }
+    for (const v of message.fleets) {
+      FleetResponse.encode(v!, writer.uint32(106).fork()).ldelim();
+    }
+    for (const v of message.resources) {
+      ResourceResponse.encode(v!, writer.uint32(114).fork()).ldelim();
+    }
+    for (const v of message.groups) {
+      GroupResponse.encode(v!, writer.uint32(122).fork()).ldelim();
     }
     return writer;
   },
@@ -230,6 +281,62 @@ export const DeviceResponse = {
 
           message.lastSeen = reader.string();
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.createdBy = reader.string();
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.version = reader.string();
+          continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.nodeKey = reader.string();
+          continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.keyExpiry = reader.string();
+          continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.fleets.push(FleetResponse.decode(reader, reader.uint32()));
+          continue;
+        case 14:
+          if (tag !== 114) {
+            break;
+          }
+
+          message.resources.push(ResourceResponse.decode(reader, reader.uint32()));
+          continue;
+        case 15:
+          if (tag !== 122) {
+            break;
+          }
+
+          message.groups.push(GroupResponse.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -248,6 +355,16 @@ export const DeviceResponse = {
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
+      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
+      version: isSet(object.version) ? globalThis.String(object.version) : "",
+      nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      keyExpiry: isSet(object.keyExpiry) ? globalThis.String(object.keyExpiry) : "",
+      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => FleetResponse.fromJSON(e)) : [],
+      resources: globalThis.Array.isArray(object?.resources)
+        ? object.resources.map((e: any) => ResourceResponse.fromJSON(e))
+        : [],
+      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => GroupResponse.fromJSON(e)) : [],
     };
   },
 
@@ -274,6 +391,30 @@ export const DeviceResponse = {
     if (message.lastSeen !== "") {
       obj.lastSeen = message.lastSeen;
     }
+    if (message.createdBy !== "") {
+      obj.createdBy = message.createdBy;
+    }
+    if (message.version !== "") {
+      obj.version = message.version;
+    }
+    if (message.nodeKey !== "") {
+      obj.nodeKey = message.nodeKey;
+    }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
+    if (message.keyExpiry !== "") {
+      obj.keyExpiry = message.keyExpiry;
+    }
+    if (message.fleets?.length) {
+      obj.fleets = message.fleets.map((e) => FleetResponse.toJSON(e));
+    }
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => ResourceResponse.toJSON(e));
+    }
+    if (message.groups?.length) {
+      obj.groups = message.groups.map((e) => GroupResponse.toJSON(e));
+    }
     return obj;
   },
 
@@ -289,6 +430,14 @@ export const DeviceResponse = {
     message.os = object.os ?? "";
     message.status = object.status ?? false;
     message.lastSeen = object.lastSeen ?? "";
+    message.createdBy = object.createdBy ?? "";
+    message.version = object.version ?? "";
+    message.nodeKey = object.nodeKey ?? "";
+    message.createdAt = object.createdAt ?? "";
+    message.keyExpiry = object.keyExpiry ?? "";
+    message.fleets = object.fleets?.map((e) => FleetResponse.fromPartial(e)) || [];
+    message.resources = object.resources?.map((e) => ResourceResponse.fromPartial(e)) || [];
+    message.groups = object.groups?.map((e) => GroupResponse.fromPartial(e)) || [];
     return message;
   },
 };
