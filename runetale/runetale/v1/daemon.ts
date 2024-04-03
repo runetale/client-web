@@ -68,7 +68,6 @@ export const GetConnectionStatusResponse = {
 };
 
 export interface DaemonService {
-  /** connections */
   Connect(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse>;
   Disconnect(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse>;
   GetConnectionStatus(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetConnectionStatusResponse>;
