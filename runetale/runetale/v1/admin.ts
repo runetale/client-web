@@ -290,7 +290,9 @@ export interface User {
   email: string;
   role: string;
   joined: string;
+  /** only when status false */
   lastSeen: string;
+  status: boolean;
   fleets: Fleet[];
   resources: Resource[];
   devices: Device[];
@@ -3589,6 +3591,7 @@ function createBaseUser(): User {
     role: "",
     joined: "",
     lastSeen: "",
+    status: false,
     fleets: [],
     resources: [],
     devices: [],
@@ -3619,17 +3622,20 @@ export const User = {
     if (message.lastSeen !== "") {
       writer.uint32(58).string(message.lastSeen);
     }
+    if (message.status !== false) {
+      writer.uint32(64).bool(message.status);
+    }
     for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(66).fork()).ldelim();
+      Fleet.encode(v!, writer.uint32(74).fork()).ldelim();
     }
     for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(74).fork()).ldelim();
+      Resource.encode(v!, writer.uint32(82).fork()).ldelim();
     }
     for (const v of message.devices) {
-      Device.encode(v!, writer.uint32(82).fork()).ldelim();
+      Device.encode(v!, writer.uint32(90).fork()).ldelim();
     }
     for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(90).fork()).ldelim();
+      Group.encode(v!, writer.uint32(98).fork()).ldelim();
     }
     return writer;
   },
@@ -3691,28 +3697,35 @@ export const User = {
           message.lastSeen = reader.string();
           continue;
         case 8:
-          if (tag !== 66) {
+          if (tag !== 64) {
             break;
           }
 
-          message.fleets.push(Fleet.decode(reader, reader.uint32()));
+          message.status = reader.bool();
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.resources.push(Resource.decode(reader, reader.uint32()));
+          message.fleets.push(Fleet.decode(reader, reader.uint32()));
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.devices.push(Device.decode(reader, reader.uint32()));
+          message.resources.push(Resource.decode(reader, reader.uint32()));
           continue;
         case 11:
           if (tag !== 90) {
+            break;
+          }
+
+          message.devices.push(Device.decode(reader, reader.uint32()));
+          continue;
+        case 12:
+          if (tag !== 98) {
             break;
           }
 
@@ -3736,6 +3749,7 @@ export const User = {
       role: isSet(object.role) ? globalThis.String(object.role) : "",
       joined: isSet(object.joined) ? globalThis.String(object.joined) : "",
       lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
+      status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
       resources: globalThis.Array.isArray(object?.resources)
         ? object.resources.map((e: any) => Resource.fromJSON(e))
@@ -3768,6 +3782,9 @@ export const User = {
     if (message.lastSeen !== "") {
       obj.lastSeen = message.lastSeen;
     }
+    if (message.status !== false) {
+      obj.status = message.status;
+    }
     if (message.fleets?.length) {
       obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
     }
@@ -3795,6 +3812,7 @@ export const User = {
     message.role = object.role ?? "";
     message.joined = object.joined ?? "";
     message.lastSeen = object.lastSeen ?? "";
+    message.status = object.status ?? false;
     message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
