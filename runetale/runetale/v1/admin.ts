@@ -266,6 +266,8 @@ export interface Resource {
   ip: string;
   os: string;
   status: boolean;
+  /** only when status false */
+  lastSeen: string;
   /** if made with token, managedBy is returned. */
   createdBy: string;
   fleets: Fleet[];
@@ -3268,7 +3270,18 @@ export const Fleet = {
 };
 
 function createBaseResource(): Resource {
-  return { id: 0, name: "", ip: "", os: "", status: false, createdBy: "", fleets: [], users: [], groups: [] };
+  return {
+    id: 0,
+    name: "",
+    ip: "",
+    os: "",
+    status: false,
+    lastSeen: "",
+    createdBy: "",
+    fleets: [],
+    users: [],
+    groups: [],
+  };
 }
 
 export const Resource = {
@@ -3288,17 +3301,20 @@ export const Resource = {
     if (message.status !== false) {
       writer.uint32(40).bool(message.status);
     }
+    if (message.lastSeen !== "") {
+      writer.uint32(50).string(message.lastSeen);
+    }
     if (message.createdBy !== "") {
-      writer.uint32(50).string(message.createdBy);
+      writer.uint32(58).string(message.createdBy);
     }
     for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(58).fork()).ldelim();
+      Fleet.encode(v!, writer.uint32(66).fork()).ldelim();
     }
     for (const v of message.users) {
-      User.encode(v!, writer.uint32(66).fork()).ldelim();
+      User.encode(v!, writer.uint32(74).fork()).ldelim();
     }
     for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(74).fork()).ldelim();
+      Group.encode(v!, writer.uint32(82).fork()).ldelim();
     }
     return writer;
   },
@@ -3350,24 +3366,31 @@ export const Resource = {
             break;
           }
 
-          message.createdBy = reader.string();
+          message.lastSeen = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.fleets.push(Fleet.decode(reader, reader.uint32()));
+          message.createdBy = reader.string();
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.users.push(User.decode(reader, reader.uint32()));
+          message.fleets.push(Fleet.decode(reader, reader.uint32()));
           continue;
         case 9:
           if (tag !== 74) {
+            break;
+          }
+
+          message.users.push(User.decode(reader, reader.uint32()));
+          continue;
+        case 10:
+          if (tag !== 82) {
             break;
           }
 
@@ -3389,6 +3412,7 @@ export const Resource = {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
+      lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
       fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
       users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
@@ -3412,6 +3436,9 @@ export const Resource = {
     }
     if (message.status !== false) {
       obj.status = message.status;
+    }
+    if (message.lastSeen !== "") {
+      obj.lastSeen = message.lastSeen;
     }
     if (message.createdBy !== "") {
       obj.createdBy = message.createdBy;
@@ -3438,6 +3465,7 @@ export const Resource = {
     message.ip = object.ip ?? "";
     message.os = object.os ?? "";
     message.status = object.status ?? false;
+    message.lastSeen = object.lastSeen ?? "";
     message.createdBy = object.createdBy ?? "";
     message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
