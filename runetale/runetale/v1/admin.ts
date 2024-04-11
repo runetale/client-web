@@ -302,7 +302,6 @@ export interface Resource {
 export interface Group {
   id: number;
   name: string;
-  /** 参照できるようにする */
   users: User[];
   fleets: Fleet[];
   resources: Resource[];
