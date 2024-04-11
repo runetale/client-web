@@ -13,6 +13,10 @@ export enum DeploymentMethod {
   LINUX = 2,
   GCP = 3,
   MANUAL = 4,
+  AWS = 5,
+  Azure = 6,
+  Onprem = 7,
+  Other = 8,
   UNRECOGNIZED = -1,
 }
 
@@ -33,6 +37,18 @@ export function deploymentMethodFromJSON(object: any): DeploymentMethod {
     case 4:
     case "MANUAL":
       return DeploymentMethod.MANUAL;
+    case 5:
+    case "AWS":
+      return DeploymentMethod.AWS;
+    case 6:
+    case "Azure":
+      return DeploymentMethod.Azure;
+    case 7:
+    case "Onprem":
+      return DeploymentMethod.Onprem;
+    case 8:
+    case "Other":
+      return DeploymentMethod.Other;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -52,6 +68,14 @@ export function deploymentMethodToJSON(object: DeploymentMethod): string {
       return "GCP";
     case DeploymentMethod.MANUAL:
       return "MANUAL";
+    case DeploymentMethod.AWS:
+      return "AWS";
+    case DeploymentMethod.Azure:
+      return "Azure";
+    case DeploymentMethod.Onprem:
+      return "Onprem";
+    case DeploymentMethod.Other:
+      return "Other";
     case DeploymentMethod.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
