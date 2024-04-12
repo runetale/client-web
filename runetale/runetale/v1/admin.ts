@@ -82,6 +82,39 @@ export function deploymentMethodToJSON(object: DeploymentMethod): string {
   }
 }
 
+export enum GroupType {
+  Default = 0,
+  Custom = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function groupTypeFromJSON(object: any): GroupType {
+  switch (object) {
+    case 0:
+    case "Default":
+      return GroupType.Default;
+    case 1:
+    case "Custom":
+      return GroupType.Custom;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return GroupType.UNRECOGNIZED;
+  }
+}
+
+export function groupTypeToJSON(object: GroupType): string {
+  switch (object) {
+    case GroupType.Default:
+      return "Default";
+    case GroupType.Custom:
+      return "Custom";
+    case GroupType.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface CreateAclRequest {
   name: string;
   /** user ids */
@@ -139,24 +172,7 @@ export interface Users {
   users: User[];
 }
 
-export interface AddNewDstsForUserRequest {
-  aclID: string;
-  machineIds: number[];
-  fleetIds: string[];
-}
-
-export interface AddGroupsRequest {
-  aclID: string;
-  machineIds: number[];
-}
-
 export interface CreateGroupRequest {
-  name: string;
-  machineIds: number[];
-}
-
-export interface PatchGroupRequest {
-  aclID: string;
   name: string;
   machineIds: number[];
 }
@@ -178,10 +194,10 @@ export interface UserWithPicture {
   picture: string;
 }
 
-export interface AddNewDstForGroupRequest {
-  aclID: string;
+export interface PatchGroupRequest {
+  name: string;
+  /** device id or user id (common machine ids) */
   machineIds: number[];
-  fleetIds: string[];
 }
 
 export interface GetDevicesRequest {
@@ -209,10 +225,6 @@ export interface GenerateTokenResponse {
   token: string;
 }
 
-export interface PatchResourceRequest {
-  name: string;
-}
-
 export interface GetResourceRequest {
   id: number;
 }
@@ -221,33 +233,11 @@ export interface Resources {
   resources: Resource[];
 }
 
-export interface AddNewSrcsForResourceRequest {
-  aclID: string;
-  machineIds: number[];
-  groupIds: string[];
-}
-
-export interface AddFleetsRequest {
-  aclID: string;
-  fleetIds: string[];
-}
-
 export interface CreateFleetRequest {
   name: string;
   desc: string;
   machineIds: number[];
-  proto: string;
-  port: string;
   type: DeploymentMethod;
-}
-
-export interface PatchFleetRequest {
-  aclID: string;
-  name: string;
-  desc: string;
-  machineIds: number[];
-  proto: string;
-  port: string;
 }
 
 export interface GetFleetRequest {
@@ -258,10 +248,12 @@ export interface Fleets {
   fleets: Fleet[];
 }
 
-export interface AddNewSrcsForFleetRequest {
-  aclID: string;
+export interface PatchFleetRequest {
+  name: string;
+  desc: string;
+  /** resource id */
   machineIds: number[];
-  groupIds: string[];
+  type: DeploymentMethod;
 }
 
 export interface Fleet {
@@ -291,6 +283,7 @@ export interface Resource {
   fleets: Fleet[];
   users: User[];
   groups: Group[];
+  resources: Resource[];
 }
 
 export interface Group {
@@ -300,6 +293,7 @@ export interface Group {
   fleets: Fleet[];
   resources: Resource[];
   age: string;
+  type: GroupType;
 }
 
 export interface User {
@@ -335,6 +329,7 @@ export interface Device {
   fleets: Fleet[];
   resources: Resource[];
   groups: Group[];
+  devices: Device[];
 }
 
 function createBaseCreateAclRequest(): CreateAclRequest {
@@ -1143,197 +1138,6 @@ export const Users = {
   },
 };
 
-function createBaseAddNewDstsForUserRequest(): AddNewDstsForUserRequest {
-  return { aclID: "", machineIds: [], fleetIds: [] };
-}
-
-export const AddNewDstsForUserRequest = {
-  encode(message: AddNewDstsForUserRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.aclID !== "") {
-      writer.uint32(10).string(message.aclID);
-    }
-    writer.uint32(18).fork();
-    for (const v of message.machineIds) {
-      writer.uint64(v);
-    }
-    writer.ldelim();
-    for (const v of message.fleetIds) {
-      writer.uint32(26).string(v!);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewDstsForUserRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAddNewDstsForUserRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.aclID = reader.string();
-          continue;
-        case 2:
-          if (tag === 16) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
-
-            continue;
-          }
-
-          if (tag === 18) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.fleetIds.push(reader.string());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): AddNewDstsForUserRequest {
-    return {
-      aclID: isSet(object.aclID) ? globalThis.String(object.aclID) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
-      fleetIds: globalThis.Array.isArray(object?.fleetIds) ? object.fleetIds.map((e: any) => globalThis.String(e)) : [],
-    };
-  },
-
-  toJSON(message: AddNewDstsForUserRequest): unknown {
-    const obj: any = {};
-    if (message.aclID !== "") {
-      obj.aclID = message.aclID;
-    }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
-    }
-    if (message.fleetIds?.length) {
-      obj.fleetIds = message.fleetIds;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<AddNewDstsForUserRequest>, I>>(base?: I): AddNewDstsForUserRequest {
-    return AddNewDstsForUserRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<AddNewDstsForUserRequest>, I>>(object: I): AddNewDstsForUserRequest {
-    const message = createBaseAddNewDstsForUserRequest();
-    message.aclID = object.aclID ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
-    message.fleetIds = object.fleetIds?.map((e) => e) || [];
-    return message;
-  },
-};
-
-function createBaseAddGroupsRequest(): AddGroupsRequest {
-  return { aclID: "", machineIds: [] };
-}
-
-export const AddGroupsRequest = {
-  encode(message: AddGroupsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.aclID !== "") {
-      writer.uint32(10).string(message.aclID);
-    }
-    writer.uint32(18).fork();
-    for (const v of message.machineIds) {
-      writer.uint64(v);
-    }
-    writer.ldelim();
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): AddGroupsRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAddGroupsRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.aclID = reader.string();
-          continue;
-        case 2:
-          if (tag === 16) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
-
-            continue;
-          }
-
-          if (tag === 18) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): AddGroupsRequest {
-    return {
-      aclID: isSet(object.aclID) ? globalThis.String(object.aclID) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
-    };
-  },
-
-  toJSON(message: AddGroupsRequest): unknown {
-    const obj: any = {};
-    if (message.aclID !== "") {
-      obj.aclID = message.aclID;
-    }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<AddGroupsRequest>, I>>(base?: I): AddGroupsRequest {
-    return AddGroupsRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<AddGroupsRequest>, I>>(object: I): AddGroupsRequest {
-    const message = createBaseAddGroupsRequest();
-    message.aclID = object.aclID ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
-    return message;
-  },
-};
-
 function createBaseCreateGroupRequest(): CreateGroupRequest {
   return { name: "", machineIds: [] };
 }
@@ -1416,109 +1220,6 @@ export const CreateGroupRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<CreateGroupRequest>, I>>(object: I): CreateGroupRequest {
     const message = createBaseCreateGroupRequest();
-    message.name = object.name ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
-    return message;
-  },
-};
-
-function createBasePatchGroupRequest(): PatchGroupRequest {
-  return { aclID: "", name: "", machineIds: [] };
-}
-
-export const PatchGroupRequest = {
-  encode(message: PatchGroupRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.aclID !== "") {
-      writer.uint32(10).string(message.aclID);
-    }
-    if (message.name !== "") {
-      writer.uint32(18).string(message.name);
-    }
-    writer.uint32(26).fork();
-    for (const v of message.machineIds) {
-      writer.uint64(v);
-    }
-    writer.ldelim();
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): PatchGroupRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePatchGroupRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.aclID = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 3:
-          if (tag === 24) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
-
-            continue;
-          }
-
-          if (tag === 26) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): PatchGroupRequest {
-    return {
-      aclID: isSet(object.aclID) ? globalThis.String(object.aclID) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
-    };
-  },
-
-  toJSON(message: PatchGroupRequest): unknown {
-    const obj: any = {};
-    if (message.aclID !== "") {
-      obj.aclID = message.aclID;
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<PatchGroupRequest>, I>>(base?: I): PatchGroupRequest {
-    return PatchGroupRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<PatchGroupRequest>, I>>(object: I): PatchGroupRequest {
-    const message = createBasePatchGroupRequest();
-    message.aclID = object.aclID ?? "";
     message.name = object.name ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
     return message;
@@ -1728,30 +1429,27 @@ export const UserWithPicture = {
   },
 };
 
-function createBaseAddNewDstForGroupRequest(): AddNewDstForGroupRequest {
-  return { aclID: "", machineIds: [], fleetIds: [] };
+function createBasePatchGroupRequest(): PatchGroupRequest {
+  return { name: "", machineIds: [] };
 }
 
-export const AddNewDstForGroupRequest = {
-  encode(message: AddNewDstForGroupRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.aclID !== "") {
-      writer.uint32(10).string(message.aclID);
+export const PatchGroupRequest = {
+  encode(message: PatchGroupRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
     }
     writer.uint32(18).fork();
     for (const v of message.machineIds) {
       writer.uint64(v);
     }
     writer.ldelim();
-    for (const v of message.fleetIds) {
-      writer.uint32(26).string(v!);
-    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewDstForGroupRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): PatchGroupRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAddNewDstForGroupRequest();
+    const message = createBasePatchGroupRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1760,7 +1458,7 @@ export const AddNewDstForGroupRequest = {
             break;
           }
 
-          message.aclID = reader.string();
+          message.name = reader.string();
           continue;
         case 2:
           if (tag === 16) {
@@ -1779,13 +1477,6 @@ export const AddNewDstForGroupRequest = {
           }
 
           break;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.fleetIds.push(reader.string());
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1795,38 +1486,33 @@ export const AddNewDstForGroupRequest = {
     return message;
   },
 
-  fromJSON(object: any): AddNewDstForGroupRequest {
+  fromJSON(object: any): PatchGroupRequest {
     return {
-      aclID: isSet(object.aclID) ? globalThis.String(object.aclID) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
       machineIds: globalThis.Array.isArray(object?.machineIds)
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
-      fleetIds: globalThis.Array.isArray(object?.fleetIds) ? object.fleetIds.map((e: any) => globalThis.String(e)) : [],
     };
   },
 
-  toJSON(message: AddNewDstForGroupRequest): unknown {
+  toJSON(message: PatchGroupRequest): unknown {
     const obj: any = {};
-    if (message.aclID !== "") {
-      obj.aclID = message.aclID;
+    if (message.name !== "") {
+      obj.name = message.name;
     }
     if (message.machineIds?.length) {
       obj.machineIds = message.machineIds.map((e) => Math.round(e));
     }
-    if (message.fleetIds?.length) {
-      obj.fleetIds = message.fleetIds;
-    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<AddNewDstForGroupRequest>, I>>(base?: I): AddNewDstForGroupRequest {
-    return AddNewDstForGroupRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<PatchGroupRequest>, I>>(base?: I): PatchGroupRequest {
+    return PatchGroupRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<AddNewDstForGroupRequest>, I>>(object: I): AddNewDstForGroupRequest {
-    const message = createBaseAddNewDstForGroupRequest();
-    message.aclID = object.aclID ?? "";
+  fromPartial<I extends Exact<DeepPartial<PatchGroupRequest>, I>>(object: I): PatchGroupRequest {
+    const message = createBasePatchGroupRequest();
+    message.name = object.name ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
-    message.fleetIds = object.fleetIds?.map((e) => e) || [];
     return message;
   },
 };
@@ -2175,63 +1861,6 @@ export const GenerateTokenResponse = {
   },
 };
 
-function createBasePatchResourceRequest(): PatchResourceRequest {
-  return { name: "" };
-}
-
-export const PatchResourceRequest = {
-  encode(message: PatchResourceRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): PatchResourceRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePatchResourceRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): PatchResourceRequest {
-    return { name: isSet(object.name) ? globalThis.String(object.name) : "" };
-  },
-
-  toJSON(message: PatchResourceRequest): unknown {
-    const obj: any = {};
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<PatchResourceRequest>, I>>(base?: I): PatchResourceRequest {
-    return PatchResourceRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<PatchResourceRequest>, I>>(object: I): PatchResourceRequest {
-    const message = createBasePatchResourceRequest();
-    message.name = object.name ?? "";
-    return message;
-  },
-};
-
 function createBaseGetResourceRequest(): GetResourceRequest {
   return { id: 0 };
 }
@@ -2350,185 +1979,8 @@ export const Resources = {
   },
 };
 
-function createBaseAddNewSrcsForResourceRequest(): AddNewSrcsForResourceRequest {
-  return { aclID: "", machineIds: [], groupIds: [] };
-}
-
-export const AddNewSrcsForResourceRequest = {
-  encode(message: AddNewSrcsForResourceRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.aclID !== "") {
-      writer.uint32(10).string(message.aclID);
-    }
-    writer.uint32(18).fork();
-    for (const v of message.machineIds) {
-      writer.uint64(v);
-    }
-    writer.ldelim();
-    for (const v of message.groupIds) {
-      writer.uint32(26).string(v!);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewSrcsForResourceRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAddNewSrcsForResourceRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.aclID = reader.string();
-          continue;
-        case 2:
-          if (tag === 16) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
-
-            continue;
-          }
-
-          if (tag === 18) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.groupIds.push(reader.string());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): AddNewSrcsForResourceRequest {
-    return {
-      aclID: isSet(object.aclID) ? globalThis.String(object.aclID) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
-      groupIds: globalThis.Array.isArray(object?.groupIds) ? object.groupIds.map((e: any) => globalThis.String(e)) : [],
-    };
-  },
-
-  toJSON(message: AddNewSrcsForResourceRequest): unknown {
-    const obj: any = {};
-    if (message.aclID !== "") {
-      obj.aclID = message.aclID;
-    }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
-    }
-    if (message.groupIds?.length) {
-      obj.groupIds = message.groupIds;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<AddNewSrcsForResourceRequest>, I>>(base?: I): AddNewSrcsForResourceRequest {
-    return AddNewSrcsForResourceRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<AddNewSrcsForResourceRequest>, I>>(object: I): AddNewSrcsForResourceRequest {
-    const message = createBaseAddNewSrcsForResourceRequest();
-    message.aclID = object.aclID ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
-    message.groupIds = object.groupIds?.map((e) => e) || [];
-    return message;
-  },
-};
-
-function createBaseAddFleetsRequest(): AddFleetsRequest {
-  return { aclID: "", fleetIds: [] };
-}
-
-export const AddFleetsRequest = {
-  encode(message: AddFleetsRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.aclID !== "") {
-      writer.uint32(10).string(message.aclID);
-    }
-    for (const v of message.fleetIds) {
-      writer.uint32(18).string(v!);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): AddFleetsRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAddFleetsRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.aclID = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.fleetIds.push(reader.string());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): AddFleetsRequest {
-    return {
-      aclID: isSet(object.aclID) ? globalThis.String(object.aclID) : "",
-      fleetIds: globalThis.Array.isArray(object?.fleetIds) ? object.fleetIds.map((e: any) => globalThis.String(e)) : [],
-    };
-  },
-
-  toJSON(message: AddFleetsRequest): unknown {
-    const obj: any = {};
-    if (message.aclID !== "") {
-      obj.aclID = message.aclID;
-    }
-    if (message.fleetIds?.length) {
-      obj.fleetIds = message.fleetIds;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<AddFleetsRequest>, I>>(base?: I): AddFleetsRequest {
-    return AddFleetsRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<AddFleetsRequest>, I>>(object: I): AddFleetsRequest {
-    const message = createBaseAddFleetsRequest();
-    message.aclID = object.aclID ?? "";
-    message.fleetIds = object.fleetIds?.map((e) => e) || [];
-    return message;
-  },
-};
-
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", machineIds: [], proto: "", port: "", type: 0 };
+  return { name: "", desc: "", machineIds: [], type: 0 };
 }
 
 export const CreateFleetRequest = {
@@ -2544,14 +1996,8 @@ export const CreateFleetRequest = {
       writer.uint64(v);
     }
     writer.ldelim();
-    if (message.proto !== "") {
-      writer.uint32(34).string(message.proto);
-    }
-    if (message.port !== "") {
-      writer.uint32(42).string(message.port);
-    }
     if (message.type !== 0) {
-      writer.uint32(48).int32(message.type);
+      writer.uint32(32).int32(message.type);
     }
     return writer;
   },
@@ -2595,21 +2041,7 @@ export const CreateFleetRequest = {
 
           break;
         case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.proto = reader.string();
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.port = reader.string();
-          continue;
-        case 6:
-          if (tag !== 48) {
+          if (tag !== 32) {
             break;
           }
 
@@ -2631,8 +2063,6 @@ export const CreateFleetRequest = {
       machineIds: globalThis.Array.isArray(object?.machineIds)
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
-      proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
       type: isSet(object.type) ? deploymentMethodFromJSON(object.type) : 0,
     };
   },
@@ -2648,12 +2078,6 @@ export const CreateFleetRequest = {
     if (message.machineIds?.length) {
       obj.machineIds = message.machineIds.map((e) => Math.round(e));
     }
-    if (message.proto !== "") {
-      obj.proto = message.proto;
-    }
-    if (message.port !== "") {
-      obj.port = message.port;
-    }
     if (message.type !== 0) {
       obj.type = deploymentMethodToJSON(message.type);
     }
@@ -2668,157 +2092,7 @@ export const CreateFleetRequest = {
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
-    message.proto = object.proto ?? "";
-    message.port = object.port ?? "";
     message.type = object.type ?? 0;
-    return message;
-  },
-};
-
-function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { aclID: "", name: "", desc: "", machineIds: [], proto: "", port: "" };
-}
-
-export const PatchFleetRequest = {
-  encode(message: PatchFleetRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.aclID !== "") {
-      writer.uint32(10).string(message.aclID);
-    }
-    if (message.name !== "") {
-      writer.uint32(18).string(message.name);
-    }
-    if (message.desc !== "") {
-      writer.uint32(26).string(message.desc);
-    }
-    writer.uint32(34).fork();
-    for (const v of message.machineIds) {
-      writer.uint64(v);
-    }
-    writer.ldelim();
-    if (message.proto !== "") {
-      writer.uint32(42).string(message.proto);
-    }
-    if (message.port !== "") {
-      writer.uint32(50).string(message.port);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): PatchFleetRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePatchFleetRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.aclID = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.desc = reader.string();
-          continue;
-        case 4:
-          if (tag === 32) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
-
-            continue;
-          }
-
-          if (tag === 34) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.proto = reader.string();
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.port = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): PatchFleetRequest {
-    return {
-      aclID: isSet(object.aclID) ? globalThis.String(object.aclID) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
-      proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
-    };
-  },
-
-  toJSON(message: PatchFleetRequest): unknown {
-    const obj: any = {};
-    if (message.aclID !== "") {
-      obj.aclID = message.aclID;
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.desc !== "") {
-      obj.desc = message.desc;
-    }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
-    }
-    if (message.proto !== "") {
-      obj.proto = message.proto;
-    }
-    if (message.port !== "") {
-      obj.port = message.port;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<PatchFleetRequest>, I>>(base?: I): PatchFleetRequest {
-    return PatchFleetRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<PatchFleetRequest>, I>>(object: I): PatchFleetRequest {
-    const message = createBasePatchFleetRequest();
-    message.aclID = object.aclID ?? "";
-    message.name = object.name ?? "";
-    message.desc = object.desc ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
-    message.proto = object.proto ?? "";
-    message.port = object.port ?? "";
     return message;
   },
 };
@@ -2937,30 +2211,33 @@ export const Fleets = {
   },
 };
 
-function createBaseAddNewSrcsForFleetRequest(): AddNewSrcsForFleetRequest {
-  return { aclID: "", machineIds: [], groupIds: [] };
+function createBasePatchFleetRequest(): PatchFleetRequest {
+  return { name: "", desc: "", machineIds: [], type: 0 };
 }
 
-export const AddNewSrcsForFleetRequest = {
-  encode(message: AddNewSrcsForFleetRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.aclID !== "") {
-      writer.uint32(10).string(message.aclID);
+export const PatchFleetRequest = {
+  encode(message: PatchFleetRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
     }
-    writer.uint32(18).fork();
+    if (message.desc !== "") {
+      writer.uint32(18).string(message.desc);
+    }
+    writer.uint32(26).fork();
     for (const v of message.machineIds) {
       writer.uint64(v);
     }
     writer.ldelim();
-    for (const v of message.groupIds) {
-      writer.uint32(26).string(v!);
+    if (message.type !== 0) {
+      writer.uint32(32).int32(message.type);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): AddNewSrcsForFleetRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): PatchFleetRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAddNewSrcsForFleetRequest();
+    const message = createBasePatchFleetRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2969,16 +2246,23 @@ export const AddNewSrcsForFleetRequest = {
             break;
           }
 
-          message.aclID = reader.string();
+          message.name = reader.string();
           continue;
         case 2:
-          if (tag === 16) {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 3:
+          if (tag === 24) {
             message.machineIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
 
-          if (tag === 18) {
+          if (tag === 26) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
               message.machineIds.push(longToNumber(reader.uint64() as Long));
@@ -2988,12 +2272,12 @@ export const AddNewSrcsForFleetRequest = {
           }
 
           break;
-        case 3:
-          if (tag !== 26) {
+        case 4:
+          if (tag !== 32) {
             break;
           }
 
-          message.groupIds.push(reader.string());
+          message.type = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3004,38 +2288,43 @@ export const AddNewSrcsForFleetRequest = {
     return message;
   },
 
-  fromJSON(object: any): AddNewSrcsForFleetRequest {
+  fromJSON(object: any): PatchFleetRequest {
     return {
-      aclID: isSet(object.aclID) ? globalThis.String(object.aclID) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       machineIds: globalThis.Array.isArray(object?.machineIds)
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
-      groupIds: globalThis.Array.isArray(object?.groupIds) ? object.groupIds.map((e: any) => globalThis.String(e)) : [],
+      type: isSet(object.type) ? deploymentMethodFromJSON(object.type) : 0,
     };
   },
 
-  toJSON(message: AddNewSrcsForFleetRequest): unknown {
+  toJSON(message: PatchFleetRequest): unknown {
     const obj: any = {};
-    if (message.aclID !== "") {
-      obj.aclID = message.aclID;
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
     }
     if (message.machineIds?.length) {
       obj.machineIds = message.machineIds.map((e) => Math.round(e));
     }
-    if (message.groupIds?.length) {
-      obj.groupIds = message.groupIds;
+    if (message.type !== 0) {
+      obj.type = deploymentMethodToJSON(message.type);
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<AddNewSrcsForFleetRequest>, I>>(base?: I): AddNewSrcsForFleetRequest {
-    return AddNewSrcsForFleetRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<PatchFleetRequest>, I>>(base?: I): PatchFleetRequest {
+    return PatchFleetRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<AddNewSrcsForFleetRequest>, I>>(object: I): AddNewSrcsForFleetRequest {
-    const message = createBaseAddNewSrcsForFleetRequest();
-    message.aclID = object.aclID ?? "";
+  fromPartial<I extends Exact<DeepPartial<PatchFleetRequest>, I>>(object: I): PatchFleetRequest {
+    const message = createBasePatchFleetRequest();
+    message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
-    message.groupIds = object.groupIds?.map((e) => e) || [];
+    message.type = object.type ?? 0;
     return message;
   },
 };
@@ -3220,6 +2509,7 @@ function createBaseResource(): Resource {
     fleets: [],
     users: [],
     groups: [],
+    resources: [],
   };
 }
 
@@ -3260,6 +2550,9 @@ export const Resource = {
     }
     for (const v of message.groups) {
       Group.encode(v!, writer.uint32(98).fork()).ldelim();
+    }
+    for (const v of message.resources) {
+      Resource.encode(v!, writer.uint32(106).fork()).ldelim();
     }
     return writer;
   },
@@ -3355,6 +2648,13 @@ export const Resource = {
 
           message.groups.push(Group.decode(reader, reader.uint32()));
           continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.resources.push(Resource.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3378,6 +2678,9 @@ export const Resource = {
       fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
       users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
       groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
+      resources: globalThis.Array.isArray(object?.resources)
+        ? object.resources.map((e: any) => Resource.fromJSON(e))
+        : [],
     };
   },
 
@@ -3419,6 +2722,9 @@ export const Resource = {
     if (message.groups?.length) {
       obj.groups = message.groups.map((e) => Group.toJSON(e));
     }
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => Resource.toJSON(e));
+    }
     return obj;
   },
 
@@ -3439,12 +2745,13 @@ export const Resource = {
     message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
     message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
+    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseGroup(): Group {
-  return { id: "", name: "", users: [], fleets: [], resources: [], age: "" };
+  return { id: "", name: "", users: [], fleets: [], resources: [], age: "", type: 0 };
 }
 
 export const Group = {
@@ -3466,6 +2773,9 @@ export const Group = {
     }
     if (message.age !== "") {
       writer.uint32(50).string(message.age);
+    }
+    if (message.type !== 0) {
+      writer.uint32(56).int32(message.type);
     }
     return writer;
   },
@@ -3519,6 +2829,13 @@ export const Group = {
 
           message.age = reader.string();
           continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.type = reader.int32() as any;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3538,6 +2855,7 @@ export const Group = {
         ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
       age: isSet(object.age) ? globalThis.String(object.age) : "",
+      type: isSet(object.type) ? groupTypeFromJSON(object.type) : 0,
     };
   },
 
@@ -3561,6 +2879,9 @@ export const Group = {
     if (message.age !== "") {
       obj.age = message.age;
     }
+    if (message.type !== 0) {
+      obj.type = groupTypeToJSON(message.type);
+    }
     return obj;
   },
 
@@ -3575,6 +2896,7 @@ export const Group = {
     message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     message.age = object.age ?? "";
+    message.type = object.type ?? 0;
     return message;
   },
 };
@@ -3835,6 +3157,7 @@ function createBaseDevice(): Device {
     fleets: [],
     resources: [],
     groups: [],
+    devices: [],
   };
 }
 
@@ -3884,6 +3207,9 @@ export const Device = {
     }
     for (const v of message.groups) {
       Group.encode(v!, writer.uint32(122).fork()).ldelim();
+    }
+    for (const v of message.devices) {
+      Device.encode(v!, writer.uint32(130).fork()).ldelim();
     }
     return writer;
   },
@@ -4000,6 +3326,13 @@ export const Device = {
 
           message.groups.push(Group.decode(reader, reader.uint32()));
           continue;
+        case 16:
+          if (tag !== 130) {
+            break;
+          }
+
+          message.devices.push(Device.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4028,6 +3361,7 @@ export const Device = {
         ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
       groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
+      devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
     };
   },
 
@@ -4078,6 +3412,9 @@ export const Device = {
     if (message.groups?.length) {
       obj.groups = message.groups.map((e) => Group.toJSON(e));
     }
+    if (message.devices?.length) {
+      obj.devices = message.devices.map((e) => Device.toJSON(e));
+    }
     return obj;
   },
 
@@ -4101,6 +3438,7 @@ export const Device = {
     message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
+    message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
     return message;
   },
 };
@@ -4334,84 +3672,8 @@ export const UserServiceGetUsersDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export interface UserDetailService {
-  AddNewDstsForUser(request: DeepPartial<AddNewDstsForUserRequest>, metadata?: grpc.Metadata): Promise<Empty>;
-  AddGroups(request: DeepPartial<AddGroupsRequest>, metadata?: grpc.Metadata): Promise<Empty>;
-}
-
-export class UserDetailServiceClientImpl implements UserDetailService {
-  private readonly rpc: Rpc;
-
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.AddNewDstsForUser = this.AddNewDstsForUser.bind(this);
-    this.AddGroups = this.AddGroups.bind(this);
-  }
-
-  AddNewDstsForUser(request: DeepPartial<AddNewDstsForUserRequest>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(
-      UserDetailServiceAddNewDstsForUserDesc,
-      AddNewDstsForUserRequest.fromPartial(request),
-      metadata,
-    );
-  }
-
-  AddGroups(request: DeepPartial<AddGroupsRequest>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(UserDetailServiceAddGroupsDesc, AddGroupsRequest.fromPartial(request), metadata);
-  }
-}
-
-export const UserDetailServiceDesc = { serviceName: "protos.UserDetailService" };
-
-export const UserDetailServiceAddNewDstsForUserDesc: UnaryMethodDefinitionish = {
-  methodName: "AddNewDstsForUser",
-  service: UserDetailServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return AddNewDstsForUserRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const UserDetailServiceAddGroupsDesc: UnaryMethodDefinitionish = {
-  methodName: "AddGroups",
-  service: UserDetailServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return AddGroupsRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
 export interface GroupService {
   CreateGroup(request: DeepPartial<CreateGroupRequest>, metadata?: grpc.Metadata): Promise<Group>;
-  PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<Group>;
   GetGroup(request: DeepPartial<GetGroupRequest>, metadata?: grpc.Metadata): Promise<Group>;
   GetGroups(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Groups>;
 }
@@ -4422,17 +3684,12 @@ export class GroupServiceClientImpl implements GroupService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.CreateGroup = this.CreateGroup.bind(this);
-    this.PatchGroup = this.PatchGroup.bind(this);
     this.GetGroup = this.GetGroup.bind(this);
     this.GetGroups = this.GetGroups.bind(this);
   }
 
   CreateGroup(request: DeepPartial<CreateGroupRequest>, metadata?: grpc.Metadata): Promise<Group> {
     return this.rpc.unary(GroupServiceCreateGroupDesc, CreateGroupRequest.fromPartial(request), metadata);
-  }
-
-  PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<Group> {
-    return this.rpc.unary(GroupServicePatchGroupDesc, PatchGroupRequest.fromPartial(request), metadata);
   }
 
   GetGroup(request: DeepPartial<GetGroupRequest>, metadata?: grpc.Metadata): Promise<Group> {
@@ -4454,29 +3711,6 @@ export const GroupServiceCreateGroupDesc: UnaryMethodDefinitionish = {
   requestType: {
     serializeBinary() {
       return CreateGroupRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Group.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const GroupServicePatchGroupDesc: UnaryMethodDefinitionish = {
-  methodName: "PatchGroup",
-  service: GroupServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return PatchGroupRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -4539,7 +3773,7 @@ export const GroupServiceGetGroupsDesc: UnaryMethodDefinitionish = {
 };
 
 export interface GroupDetailService {
-  AddNewDstForGroup(request: DeepPartial<AddNewDstForGroupRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+  PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<Group>;
 }
 
 export class GroupDetailServiceClientImpl implements GroupDetailService {
@@ -4547,33 +3781,29 @@ export class GroupDetailServiceClientImpl implements GroupDetailService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.AddNewDstForGroup = this.AddNewDstForGroup.bind(this);
+    this.PatchGroup = this.PatchGroup.bind(this);
   }
 
-  AddNewDstForGroup(request: DeepPartial<AddNewDstForGroupRequest>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(
-      GroupDetailServiceAddNewDstForGroupDesc,
-      AddNewDstForGroupRequest.fromPartial(request),
-      metadata,
-    );
+  PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<Group> {
+    return this.rpc.unary(GroupDetailServicePatchGroupDesc, PatchGroupRequest.fromPartial(request), metadata);
   }
 }
 
 export const GroupDetailServiceDesc = { serviceName: "protos.GroupDetailService" };
 
-export const GroupDetailServiceAddNewDstForGroupDesc: UnaryMethodDefinitionish = {
-  methodName: "AddNewDstForGroup",
+export const GroupDetailServicePatchGroupDesc: UnaryMethodDefinitionish = {
+  methodName: "PatchGroup",
   service: GroupDetailServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return AddNewDstForGroupRequest.encode(this).finish();
+      return PatchGroupRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
+      const value = Group.decode(data);
       return {
         ...value,
         toObject() {
@@ -4661,7 +3891,6 @@ export interface ResourceService {
     metadata?: grpc.Metadata,
   ): Promise<CreateResourceResponse>;
   GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse>;
-  PatchResource(request: DeepPartial<PatchResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
   GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources>;
 }
@@ -4673,7 +3902,6 @@ export class ResourceServiceClientImpl implements ResourceService {
     this.rpc = rpc;
     this.CreateResource = this.CreateResource.bind(this);
     this.GenerateToken = this.GenerateToken.bind(this);
-    this.PatchResource = this.PatchResource.bind(this);
     this.GetResource = this.GetResource.bind(this);
     this.GetResources = this.GetResources.bind(this);
   }
@@ -4687,10 +3915,6 @@ export class ResourceServiceClientImpl implements ResourceService {
 
   GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse> {
     return this.rpc.unary(ResourceServiceGenerateTokenDesc, GenerateTokenRequest.fromPartial(request), metadata);
-  }
-
-  PatchResource(request: DeepPartial<PatchResourceRequest>, metadata?: grpc.Metadata): Promise<Resource> {
-    return this.rpc.unary(ResourceServicePatchResourceDesc, PatchResourceRequest.fromPartial(request), metadata);
   }
 
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource> {
@@ -4750,29 +3974,6 @@ export const ResourceServiceGenerateTokenDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const ResourceServicePatchResourceDesc: UnaryMethodDefinitionish = {
-  methodName: "PatchResource",
-  service: ResourceServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return PatchResourceRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Resource.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
 export const ResourceServiceGetResourceDesc: UnaryMethodDefinitionish = {
   methodName: "GetResource",
   service: ResourceServiceDesc,
@@ -4819,84 +4020,8 @@ export const ResourceServiceGetResourcesDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export interface ResourceDetailService {
-  AddNewSrcsForResource(request: DeepPartial<AddNewSrcsForResourceRequest>, metadata?: grpc.Metadata): Promise<Empty>;
-  AddFleets(request: DeepPartial<AddFleetsRequest>, metadata?: grpc.Metadata): Promise<Empty>;
-}
-
-export class ResourceDetailServiceClientImpl implements ResourceDetailService {
-  private readonly rpc: Rpc;
-
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.AddNewSrcsForResource = this.AddNewSrcsForResource.bind(this);
-    this.AddFleets = this.AddFleets.bind(this);
-  }
-
-  AddNewSrcsForResource(request: DeepPartial<AddNewSrcsForResourceRequest>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(
-      ResourceDetailServiceAddNewSrcsForResourceDesc,
-      AddNewSrcsForResourceRequest.fromPartial(request),
-      metadata,
-    );
-  }
-
-  AddFleets(request: DeepPartial<AddFleetsRequest>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(ResourceDetailServiceAddFleetsDesc, AddFleetsRequest.fromPartial(request), metadata);
-  }
-}
-
-export const ResourceDetailServiceDesc = { serviceName: "protos.ResourceDetailService" };
-
-export const ResourceDetailServiceAddNewSrcsForResourceDesc: UnaryMethodDefinitionish = {
-  methodName: "AddNewSrcsForResource",
-  service: ResourceDetailServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return AddNewSrcsForResourceRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const ResourceDetailServiceAddFleetsDesc: UnaryMethodDefinitionish = {
-  methodName: "AddFleets",
-  service: ResourceDetailServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return AddFleetsRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
 export interface FleetService {
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
-  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleets(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Fleets>;
 }
@@ -4907,17 +4032,12 @@ export class FleetServiceClientImpl implements FleetService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.CreateFleet = this.CreateFleet.bind(this);
-    this.PatchFleet = this.PatchFleet.bind(this);
     this.GetFleet = this.GetFleet.bind(this);
     this.GetFleets = this.GetFleets.bind(this);
   }
 
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
     return this.rpc.unary(FleetServiceCreateFleetDesc, CreateFleetRequest.fromPartial(request), metadata);
-  }
-
-  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
-    return this.rpc.unary(FleetServicePatchFleetDesc, PatchFleetRequest.fromPartial(request), metadata);
   }
 
   GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
@@ -4939,29 +4059,6 @@ export const FleetServiceCreateFleetDesc: UnaryMethodDefinitionish = {
   requestType: {
     serializeBinary() {
       return CreateFleetRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Fleet.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const FleetServicePatchFleetDesc: UnaryMethodDefinitionish = {
-  methodName: "PatchFleet",
-  service: FleetServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return PatchFleetRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -5024,7 +4121,7 @@ export const FleetServiceGetFleetsDesc: UnaryMethodDefinitionish = {
 };
 
 export interface FleetDetailService {
-  AddNewSrcsForFleet(request: DeepPartial<AddNewSrcsForFleetRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Group>;
 }
 
 export class FleetDetailServiceClientImpl implements FleetDetailService {
@@ -5032,33 +4129,29 @@ export class FleetDetailServiceClientImpl implements FleetDetailService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.AddNewSrcsForFleet = this.AddNewSrcsForFleet.bind(this);
+    this.PatchFleet = this.PatchFleet.bind(this);
   }
 
-  AddNewSrcsForFleet(request: DeepPartial<AddNewSrcsForFleetRequest>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(
-      FleetDetailServiceAddNewSrcsForFleetDesc,
-      AddNewSrcsForFleetRequest.fromPartial(request),
-      metadata,
-    );
+  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Group> {
+    return this.rpc.unary(FleetDetailServicePatchFleetDesc, PatchFleetRequest.fromPartial(request), metadata);
   }
 }
 
 export const FleetDetailServiceDesc = { serviceName: "protos.FleetDetailService" };
 
-export const FleetDetailServiceAddNewSrcsForFleetDesc: UnaryMethodDefinitionish = {
-  methodName: "AddNewSrcsForFleet",
+export const FleetDetailServicePatchFleetDesc: UnaryMethodDefinitionish = {
+  methodName: "PatchFleet",
   service: FleetDetailServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return AddNewSrcsForFleetRequest.encode(this).finish();
+      return PatchFleetRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
+      const value = Group.decode(data);
       return {
         ...value,
         toObject() {
