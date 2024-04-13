@@ -7,6 +7,39 @@ import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
+export enum Action {
+  Accept = 0,
+  Denied = 1,
+  UNRECOGNIZED = -1,
+}
+
+export function actionFromJSON(object: any): Action {
+  switch (object) {
+    case 0:
+    case "Accept":
+      return Action.Accept;
+    case 1:
+    case "Denied":
+      return Action.Denied;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return Action.UNRECOGNIZED;
+  }
+}
+
+export function actionToJSON(object: Action): string {
+  switch (object) {
+    case Action.Accept:
+      return "Accept";
+    case Action.Denied:
+      return "Denied";
+    case Action.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export enum DeploymentMethod {
   DOCKER = 0,
   CLI = 1,
@@ -238,6 +271,7 @@ export interface CreateFleetRequest {
   desc: string;
   machineIds: number[];
   type: DeploymentMethod;
+  action: Action;
 }
 
 export interface GetFleetRequest {
@@ -255,6 +289,7 @@ export interface PatchFleetRequest {
   /** resource ids */
   machineIds: number[];
   type: DeploymentMethod;
+  action: Action;
 }
 
 export interface Fleet {
@@ -1979,7 +2014,7 @@ export const Resources = {
 };
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", machineIds: [], type: 0 };
+  return { name: "", desc: "", machineIds: [], type: 0, action: 0 };
 }
 
 export const CreateFleetRequest = {
@@ -1997,6 +2032,9 @@ export const CreateFleetRequest = {
     writer.ldelim();
     if (message.type !== 0) {
       writer.uint32(32).int32(message.type);
+    }
+    if (message.action !== 0) {
+      writer.uint32(40).int32(message.action);
     }
     return writer;
   },
@@ -2046,6 +2084,13 @@ export const CreateFleetRequest = {
 
           message.type = reader.int32() as any;
           continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.action = reader.int32() as any;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2063,6 +2108,7 @@ export const CreateFleetRequest = {
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
       type: isSet(object.type) ? deploymentMethodFromJSON(object.type) : 0,
+      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
 
@@ -2080,6 +2126,9 @@ export const CreateFleetRequest = {
     if (message.type !== 0) {
       obj.type = deploymentMethodToJSON(message.type);
     }
+    if (message.action !== 0) {
+      obj.action = actionToJSON(message.action);
+    }
     return obj;
   },
 
@@ -2092,6 +2141,7 @@ export const CreateFleetRequest = {
     message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
     message.type = object.type ?? 0;
+    message.action = object.action ?? 0;
     return message;
   },
 };
@@ -2211,7 +2261,7 @@ export const Fleets = {
 };
 
 function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { id: "", name: "", desc: "", machineIds: [], type: 0 };
+  return { id: "", name: "", desc: "", machineIds: [], type: 0, action: 0 };
 }
 
 export const PatchFleetRequest = {
@@ -2232,6 +2282,9 @@ export const PatchFleetRequest = {
     writer.ldelim();
     if (message.type !== 0) {
       writer.uint32(40).int32(message.type);
+    }
+    if (message.action !== 0) {
+      writer.uint32(48).int32(message.action);
     }
     return writer;
   },
@@ -2288,6 +2341,13 @@ export const PatchFleetRequest = {
 
           message.type = reader.int32() as any;
           continue;
+        case 6:
+          if (tag !== 48) {
+            break;
+          }
+
+          message.action = reader.int32() as any;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2306,6 +2366,7 @@ export const PatchFleetRequest = {
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
       type: isSet(object.type) ? deploymentMethodFromJSON(object.type) : 0,
+      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
 
@@ -2326,6 +2387,9 @@ export const PatchFleetRequest = {
     if (message.type !== 0) {
       obj.type = deploymentMethodToJSON(message.type);
     }
+    if (message.action !== 0) {
+      obj.action = actionToJSON(message.action);
+    }
     return obj;
   },
 
@@ -2339,6 +2403,7 @@ export const PatchFleetRequest = {
     message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
     message.type = object.type ?? 0;
+    message.action = object.action ?? 0;
     return message;
   },
 };
