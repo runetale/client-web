@@ -275,7 +275,7 @@ export interface CreateFleetRequest {
 }
 
 export interface GetFleetRequest {
-  aclID: string;
+  id: string;
 }
 
 export interface Fleets {
@@ -2147,13 +2147,13 @@ export const CreateFleetRequest = {
 };
 
 function createBaseGetFleetRequest(): GetFleetRequest {
-  return { aclID: "" };
+  return { id: "" };
 }
 
 export const GetFleetRequest = {
   encode(message: GetFleetRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.aclID !== "") {
-      writer.uint32(10).string(message.aclID);
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
     }
     return writer;
   },
@@ -2170,7 +2170,7 @@ export const GetFleetRequest = {
             break;
           }
 
-          message.aclID = reader.string();
+          message.id = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2182,13 +2182,13 @@ export const GetFleetRequest = {
   },
 
   fromJSON(object: any): GetFleetRequest {
-    return { aclID: isSet(object.aclID) ? globalThis.String(object.aclID) : "" };
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
   },
 
   toJSON(message: GetFleetRequest): unknown {
     const obj: any = {};
-    if (message.aclID !== "") {
-      obj.aclID = message.aclID;
+    if (message.id !== "") {
+      obj.id = message.id;
     }
     return obj;
   },
@@ -2198,7 +2198,7 @@ export const GetFleetRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<GetFleetRequest>, I>>(object: I): GetFleetRequest {
     const message = createBaseGetFleetRequest();
-    message.aclID = object.aclID ?? "";
+    message.id = object.id ?? "";
     return message;
   },
 };
