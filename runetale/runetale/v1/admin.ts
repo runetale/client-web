@@ -249,9 +249,10 @@ export interface Fleets {
 }
 
 export interface PatchFleetRequest {
+  id: string;
   name: string;
   desc: string;
-  /** resource id */
+  /** resource ids */
   machineIds: number[];
   type: DeploymentMethod;
 }
@@ -264,8 +265,6 @@ export interface Fleet {
   domain: string;
   age: string;
   resources: Resource[];
-  users: User[];
-  groups: Group[];
 }
 
 export interface Resource {
@@ -2212,24 +2211,27 @@ export const Fleets = {
 };
 
 function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { name: "", desc: "", machineIds: [], type: 0 };
+  return { id: "", name: "", desc: "", machineIds: [], type: 0 };
 }
 
 export const PatchFleetRequest = {
   encode(message: PatchFleetRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
     if (message.name !== "") {
-      writer.uint32(10).string(message.name);
+      writer.uint32(18).string(message.name);
     }
     if (message.desc !== "") {
-      writer.uint32(18).string(message.desc);
+      writer.uint32(26).string(message.desc);
     }
-    writer.uint32(26).fork();
+    writer.uint32(34).fork();
     for (const v of message.machineIds) {
       writer.uint64(v);
     }
     writer.ldelim();
     if (message.type !== 0) {
-      writer.uint32(32).int32(message.type);
+      writer.uint32(40).int32(message.type);
     }
     return writer;
   },
@@ -2246,23 +2248,30 @@ export const PatchFleetRequest = {
             break;
           }
 
-          message.name = reader.string();
+          message.id = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.desc = reader.string();
+          message.name = reader.string();
           continue;
         case 3:
-          if (tag === 24) {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 4:
+          if (tag === 32) {
             message.machineIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
 
-          if (tag === 26) {
+          if (tag === 34) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
               message.machineIds.push(longToNumber(reader.uint64() as Long));
@@ -2272,8 +2281,8 @@ export const PatchFleetRequest = {
           }
 
           break;
-        case 4:
-          if (tag !== 32) {
+        case 5:
+          if (tag !== 40) {
             break;
           }
 
@@ -2290,6 +2299,7 @@ export const PatchFleetRequest = {
 
   fromJSON(object: any): PatchFleetRequest {
     return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       machineIds: globalThis.Array.isArray(object?.machineIds)
@@ -2301,6 +2311,9 @@ export const PatchFleetRequest = {
 
   toJSON(message: PatchFleetRequest): unknown {
     const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
     if (message.name !== "") {
       obj.name = message.name;
     }
@@ -2321,6 +2334,7 @@ export const PatchFleetRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<PatchFleetRequest>, I>>(object: I): PatchFleetRequest {
     const message = createBasePatchFleetRequest();
+    message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
@@ -2330,7 +2344,7 @@ export const PatchFleetRequest = {
 };
 
 function createBaseFleet(): Fleet {
-  return { id: "", name: "", desc: "", domain: "", age: "", resources: [], users: [], groups: [] };
+  return { id: "", name: "", desc: "", domain: "", age: "", resources: [] };
 }
 
 export const Fleet = {
@@ -2352,12 +2366,6 @@ export const Fleet = {
     }
     for (const v of message.resources) {
       Resource.encode(v!, writer.uint32(50).fork()).ldelim();
-    }
-    for (const v of message.users) {
-      User.encode(v!, writer.uint32(58).fork()).ldelim();
-    }
-    for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(66).fork()).ldelim();
     }
     return writer;
   },
@@ -2411,20 +2419,6 @@ export const Fleet = {
 
           message.resources.push(Resource.decode(reader, reader.uint32()));
           continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.users.push(User.decode(reader, reader.uint32()));
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.groups.push(Group.decode(reader, reader.uint32()));
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2444,8 +2438,6 @@ export const Fleet = {
       resources: globalThis.Array.isArray(object?.resources)
         ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
-      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
-      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
     };
   },
 
@@ -2469,12 +2461,6 @@ export const Fleet = {
     if (message.resources?.length) {
       obj.resources = message.resources.map((e) => Resource.toJSON(e));
     }
-    if (message.users?.length) {
-      obj.users = message.users.map((e) => User.toJSON(e));
-    }
-    if (message.groups?.length) {
-      obj.groups = message.groups.map((e) => Group.toJSON(e));
-    }
     return obj;
   },
 
@@ -2489,8 +2475,6 @@ export const Fleet = {
     message.domain = object.domain ?? "";
     message.age = object.age ?? "";
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
-    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
-    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
     return message;
   },
 };
