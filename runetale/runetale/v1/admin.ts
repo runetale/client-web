@@ -300,6 +300,8 @@ export interface Fleet {
   domain: string;
   age: string;
   resources: Resource[];
+  users: User[];
+  groups: Group[];
 }
 
 export interface Resource {
@@ -2409,7 +2411,7 @@ export const PatchFleetRequest = {
 };
 
 function createBaseFleet(): Fleet {
-  return { id: "", name: "", desc: "", domain: "", age: "", resources: [] };
+  return { id: "", name: "", desc: "", domain: "", age: "", resources: [], users: [], groups: [] };
 }
 
 export const Fleet = {
@@ -2431,6 +2433,12 @@ export const Fleet = {
     }
     for (const v of message.resources) {
       Resource.encode(v!, writer.uint32(50).fork()).ldelim();
+    }
+    for (const v of message.users) {
+      User.encode(v!, writer.uint32(58).fork()).ldelim();
+    }
+    for (const v of message.groups) {
+      Group.encode(v!, writer.uint32(66).fork()).ldelim();
     }
     return writer;
   },
@@ -2484,6 +2492,20 @@ export const Fleet = {
 
           message.resources.push(Resource.decode(reader, reader.uint32()));
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.users.push(User.decode(reader, reader.uint32()));
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.groups.push(Group.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2503,6 +2525,8 @@ export const Fleet = {
       resources: globalThis.Array.isArray(object?.resources)
         ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
+      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
     };
   },
 
@@ -2526,6 +2550,12 @@ export const Fleet = {
     if (message.resources?.length) {
       obj.resources = message.resources.map((e) => Resource.toJSON(e));
     }
+    if (message.users?.length) {
+      obj.users = message.users.map((e) => User.toJSON(e));
+    }
+    if (message.groups?.length) {
+      obj.groups = message.groups.map((e) => Group.toJSON(e));
+    }
     return obj;
   },
 
@@ -2540,6 +2570,8 @@ export const Fleet = {
     message.domain = object.domain ?? "";
     message.age = object.age ?? "";
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
+    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
+    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
     return message;
   },
 };
