@@ -115,39 +115,6 @@ export function deploymentMethodToJSON(object: DeploymentMethod): string {
   }
 }
 
-export enum GroupType {
-  Default = 0,
-  Custom = 1,
-  UNRECOGNIZED = -1,
-}
-
-export function groupTypeFromJSON(object: any): GroupType {
-  switch (object) {
-    case 0:
-    case "Default":
-      return GroupType.Default;
-    case 1:
-    case "Custom":
-      return GroupType.Custom;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return GroupType.UNRECOGNIZED;
-  }
-}
-
-export function groupTypeToJSON(object: GroupType): string {
-  switch (object) {
-    case GroupType.Default:
-      return "Default";
-    case GroupType.Custom:
-      return "Custom";
-    case GroupType.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
 export interface CreateAclRequest {
   name: string;
   /** user ids */
@@ -330,7 +297,7 @@ export interface Group {
   fleets: Fleet[];
   resources: Resource[];
   age: string;
-  type: GroupType;
+  type: string;
 }
 
 export interface User {
@@ -2848,7 +2815,7 @@ export const Resource = {
 };
 
 function createBaseGroup(): Group {
-  return { id: "", name: "", users: [], fleets: [], resources: [], age: "", type: 0 };
+  return { id: "", name: "", users: [], fleets: [], resources: [], age: "", type: "" };
 }
 
 export const Group = {
@@ -2871,8 +2838,8 @@ export const Group = {
     if (message.age !== "") {
       writer.uint32(50).string(message.age);
     }
-    if (message.type !== 0) {
-      writer.uint32(56).int32(message.type);
+    if (message.type !== "") {
+      writer.uint32(58).string(message.type);
     }
     return writer;
   },
@@ -2927,11 +2894,11 @@ export const Group = {
           message.age = reader.string();
           continue;
         case 7:
-          if (tag !== 56) {
+          if (tag !== 58) {
             break;
           }
 
-          message.type = reader.int32() as any;
+          message.type = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2952,7 +2919,7 @@ export const Group = {
         ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      type: isSet(object.type) ? groupTypeFromJSON(object.type) : 0,
+      type: isSet(object.type) ? globalThis.String(object.type) : "",
     };
   },
 
@@ -2976,8 +2943,8 @@ export const Group = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.type !== 0) {
-      obj.type = groupTypeToJSON(message.type);
+    if (message.type !== "") {
+      obj.type = message.type;
     }
     return obj;
   },
@@ -2993,7 +2960,7 @@ export const Group = {
     message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     message.age = object.age ?? "";
-    message.type = object.type ?? 0;
+    message.type = object.type ?? "";
     return message;
   },
 };
