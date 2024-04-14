@@ -196,7 +196,9 @@ export interface UserWithPicture {
 }
 
 export interface PatchGroupRequest {
+  id: string;
   name: string;
+  desc: string;
   /** device id or user id (common machine ids) */
   machineIds: number[];
 }
@@ -1449,15 +1451,21 @@ export const UserWithPicture = {
 };
 
 function createBasePatchGroupRequest(): PatchGroupRequest {
-  return { name: "", machineIds: [] };
+  return { id: "", name: "", desc: "", machineIds: [] };
 }
 
 export const PatchGroupRequest = {
   encode(message: PatchGroupRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
     }
-    writer.uint32(18).fork();
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.desc !== "") {
+      writer.uint32(26).string(message.desc);
+    }
+    writer.uint32(34).fork();
     for (const v of message.machineIds) {
       writer.uint64(v);
     }
@@ -1477,16 +1485,30 @@ export const PatchGroupRequest = {
             break;
           }
 
-          message.name = reader.string();
+          message.id = reader.string();
           continue;
         case 2:
-          if (tag === 16) {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 4:
+          if (tag === 32) {
             message.machineIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
 
-          if (tag === 18) {
+          if (tag === 34) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
               message.machineIds.push(longToNumber(reader.uint64() as Long));
@@ -1507,7 +1529,9 @@ export const PatchGroupRequest = {
 
   fromJSON(object: any): PatchGroupRequest {
     return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       machineIds: globalThis.Array.isArray(object?.machineIds)
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
@@ -1516,8 +1540,14 @@ export const PatchGroupRequest = {
 
   toJSON(message: PatchGroupRequest): unknown {
     const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
     }
     if (message.machineIds?.length) {
       obj.machineIds = message.machineIds.map((e) => Math.round(e));
@@ -1530,7 +1560,9 @@ export const PatchGroupRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<PatchGroupRequest>, I>>(object: I): PatchGroupRequest {
     const message = createBasePatchGroupRequest();
+    message.id = object.id ?? "";
     message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
     return message;
   },
