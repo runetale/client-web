@@ -179,7 +179,7 @@ export interface CreateGroupRequest {
 }
 
 export interface GetGroupRequest {
-  aclID: string;
+  id: number;
 }
 
 export interface Groups {
@@ -1248,13 +1248,13 @@ export const CreateGroupRequest = {
 };
 
 function createBaseGetGroupRequest(): GetGroupRequest {
-  return { aclID: "" };
+  return { id: 0 };
 }
 
 export const GetGroupRequest = {
   encode(message: GetGroupRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.aclID !== "") {
-      writer.uint32(10).string(message.aclID);
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
     }
     return writer;
   },
@@ -1267,11 +1267,11 @@ export const GetGroupRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.aclID = reader.string();
+          message.id = longToNumber(reader.uint64() as Long);
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1283,13 +1283,13 @@ export const GetGroupRequest = {
   },
 
   fromJSON(object: any): GetGroupRequest {
-    return { aclID: isSet(object.aclID) ? globalThis.String(object.aclID) : "" };
+    return { id: isSet(object.id) ? globalThis.Number(object.id) : 0 };
   },
 
   toJSON(message: GetGroupRequest): unknown {
     const obj: any = {};
-    if (message.aclID !== "") {
-      obj.aclID = message.aclID;
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
     }
     return obj;
   },
@@ -1299,7 +1299,7 @@ export const GetGroupRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<GetGroupRequest>, I>>(object: I): GetGroupRequest {
     const message = createBaseGetGroupRequest();
-    message.aclID = object.aclID ?? "";
+    message.id = object.id ?? 0;
     return message;
   },
 };
