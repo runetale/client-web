@@ -207,6 +207,7 @@ export interface Users {
 
 export interface CreateGroupRequest {
   name: string;
+  desc: string;
   machineIds: number[];
 }
 
@@ -1175,7 +1176,7 @@ export const Users = {
 };
 
 function createBaseCreateGroupRequest(): CreateGroupRequest {
-  return { name: "", machineIds: [] };
+  return { name: "", desc: "", machineIds: [] };
 }
 
 export const CreateGroupRequest = {
@@ -1183,7 +1184,10 @@ export const CreateGroupRequest = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
-    writer.uint32(18).fork();
+    if (message.desc !== "") {
+      writer.uint32(18).string(message.desc);
+    }
+    writer.uint32(26).fork();
     for (const v of message.machineIds) {
       writer.uint64(v);
     }
@@ -1206,13 +1210,20 @@ export const CreateGroupRequest = {
           message.name = reader.string();
           continue;
         case 2:
-          if (tag === 16) {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 3:
+          if (tag === 24) {
             message.machineIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
 
-          if (tag === 18) {
+          if (tag === 26) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
               message.machineIds.push(longToNumber(reader.uint64() as Long));
@@ -1234,6 +1245,7 @@ export const CreateGroupRequest = {
   fromJSON(object: any): CreateGroupRequest {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       machineIds: globalThis.Array.isArray(object?.machineIds)
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
@@ -1244,6 +1256,9 @@ export const CreateGroupRequest = {
     const obj: any = {};
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
     }
     if (message.machineIds?.length) {
       obj.machineIds = message.machineIds.map((e) => Math.round(e));
@@ -1257,6 +1272,7 @@ export const CreateGroupRequest = {
   fromPartial<I extends Exact<DeepPartial<CreateGroupRequest>, I>>(object: I): CreateGroupRequest {
     const message = createBaseCreateGroupRequest();
     message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
     return message;
   },
@@ -4223,6 +4239,148 @@ export const FleetDetailServiceDesc = { serviceName: "protos.FleetDetailService"
 export const FleetDetailServicePatchFleetDesc: UnaryMethodDefinitionish = {
   methodName: "PatchFleet",
   service: FleetDetailServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return PatchFleetRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Group.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export interface InkService {
+  CreateInk(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
+  GetInk(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
+  GetInks(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Fleets>;
+}
+
+export class InkServiceClientImpl implements InkService {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.CreateInk = this.CreateInk.bind(this);
+    this.GetInk = this.GetInk.bind(this);
+    this.GetInks = this.GetInks.bind(this);
+  }
+
+  CreateInk(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
+    return this.rpc.unary(InkServiceCreateInkDesc, CreateFleetRequest.fromPartial(request), metadata);
+  }
+
+  GetInk(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
+    return this.rpc.unary(InkServiceGetInkDesc, GetFleetRequest.fromPartial(request), metadata);
+  }
+
+  GetInks(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Fleets> {
+    return this.rpc.unary(InkServiceGetInksDesc, Empty.fromPartial(request), metadata);
+  }
+}
+
+export const InkServiceDesc = { serviceName: "protos.InkService" };
+
+export const InkServiceCreateInkDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateInk",
+  service: InkServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return CreateFleetRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Fleet.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const InkServiceGetInkDesc: UnaryMethodDefinitionish = {
+  methodName: "GetInk",
+  service: InkServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetFleetRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Fleet.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const InkServiceGetInksDesc: UnaryMethodDefinitionish = {
+  methodName: "GetInks",
+  service: InkServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Fleets.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export interface InkDetailService {
+  PatchInk(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Group>;
+}
+
+export class InkDetailServiceClientImpl implements InkDetailService {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.PatchInk = this.PatchInk.bind(this);
+  }
+
+  PatchInk(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Group> {
+    return this.rpc.unary(InkDetailServicePatchInkDesc, PatchFleetRequest.fromPartial(request), metadata);
+  }
+}
+
+export const InkDetailServiceDesc = { serviceName: "protos.InkDetailService" };
+
+export const InkDetailServicePatchInkDesc: UnaryMethodDefinitionish = {
+  methodName: "PatchInk",
+  service: InkDetailServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
