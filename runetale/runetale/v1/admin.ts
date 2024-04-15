@@ -212,6 +212,21 @@ export interface Devices {
   devices: Device[];
 }
 
+export interface Inks {
+  inks: Ink[];
+}
+
+export interface Ink {
+  id: string;
+  name: string;
+  desc: string;
+  domain: string;
+  devices: Device[];
+  fleets: Fleet[];
+  resources: Resource[];
+  age: string;
+}
+
 export interface CreateResourceRequest {
   name: string;
 }
@@ -1680,6 +1695,229 @@ export const Devices = {
   fromPartial<I extends Exact<DeepPartial<Devices>, I>>(object: I): Devices {
     const message = createBaseDevices();
     message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseInks(): Inks {
+  return { inks: [] };
+}
+
+export const Inks = {
+  encode(message: Inks, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.inks) {
+      Ink.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Inks {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseInks();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.inks.push(Ink.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Inks {
+    return { inks: globalThis.Array.isArray(object?.inks) ? object.inks.map((e: any) => Ink.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: Inks): unknown {
+    const obj: any = {};
+    if (message.inks?.length) {
+      obj.inks = message.inks.map((e) => Ink.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Inks>, I>>(base?: I): Inks {
+    return Inks.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Inks>, I>>(object: I): Inks {
+    const message = createBaseInks();
+    message.inks = object.inks?.map((e) => Ink.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseInk(): Ink {
+  return { id: "", name: "", desc: "", domain: "", devices: [], fleets: [], resources: [], age: "" };
+}
+
+export const Ink = {
+  encode(message: Ink, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.desc !== "") {
+      writer.uint32(26).string(message.desc);
+    }
+    if (message.domain !== "") {
+      writer.uint32(34).string(message.domain);
+    }
+    for (const v of message.devices) {
+      Device.encode(v!, writer.uint32(42).fork()).ldelim();
+    }
+    for (const v of message.fleets) {
+      Fleet.encode(v!, writer.uint32(50).fork()).ldelim();
+    }
+    for (const v of message.resources) {
+      Resource.encode(v!, writer.uint32(58).fork()).ldelim();
+    }
+    if (message.age !== "") {
+      writer.uint32(66).string(message.age);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Ink {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseInk();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.domain = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.devices.push(Device.decode(reader, reader.uint32()));
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.fleets.push(Fleet.decode(reader, reader.uint32()));
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.resources.push(Resource.decode(reader, reader.uint32()));
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.age = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Ink {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
+      devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
+      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
+      resources: globalThis.Array.isArray(object?.resources)
+        ? object.resources.map((e: any) => Resource.fromJSON(e))
+        : [],
+      age: isSet(object.age) ? globalThis.String(object.age) : "",
+    };
+  },
+
+  toJSON(message: Ink): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
+    }
+    if (message.domain !== "") {
+      obj.domain = message.domain;
+    }
+    if (message.devices?.length) {
+      obj.devices = message.devices.map((e) => Device.toJSON(e));
+    }
+    if (message.fleets?.length) {
+      obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
+    }
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => Resource.toJSON(e));
+    }
+    if (message.age !== "") {
+      obj.age = message.age;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Ink>, I>>(base?: I): Ink {
+    return Ink.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Ink>, I>>(object: I): Ink {
+    const message = createBaseInk();
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
+    message.domain = object.domain ?? "";
+    message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
+    message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
+    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
+    message.age = object.age ?? "";
     return message;
   },
 };
@@ -3981,6 +4219,148 @@ export const DeviceServiceGetDevicesDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
+export interface InkService {
+  CreateInk(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Ink>;
+  GetInk(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Ink>;
+  GetInks(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Inks>;
+}
+
+export class InkServiceClientImpl implements InkService {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.CreateInk = this.CreateInk.bind(this);
+    this.GetInk = this.GetInk.bind(this);
+    this.GetInks = this.GetInks.bind(this);
+  }
+
+  CreateInk(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Ink> {
+    return this.rpc.unary(InkServiceCreateInkDesc, CreateFleetRequest.fromPartial(request), metadata);
+  }
+
+  GetInk(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Ink> {
+    return this.rpc.unary(InkServiceGetInkDesc, GetFleetRequest.fromPartial(request), metadata);
+  }
+
+  GetInks(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Inks> {
+    return this.rpc.unary(InkServiceGetInksDesc, Empty.fromPartial(request), metadata);
+  }
+}
+
+export const InkServiceDesc = { serviceName: "protos.InkService" };
+
+export const InkServiceCreateInkDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateInk",
+  service: InkServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return CreateFleetRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Ink.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const InkServiceGetInkDesc: UnaryMethodDefinitionish = {
+  methodName: "GetInk",
+  service: InkServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetFleetRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Ink.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const InkServiceGetInksDesc: UnaryMethodDefinitionish = {
+  methodName: "GetInks",
+  service: InkServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Inks.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export interface InkDetailService {
+  PatchInk(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Ink>;
+}
+
+export class InkDetailServiceClientImpl implements InkDetailService {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.PatchInk = this.PatchInk.bind(this);
+  }
+
+  PatchInk(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Ink> {
+    return this.rpc.unary(InkDetailServicePatchInkDesc, PatchFleetRequest.fromPartial(request), metadata);
+  }
+}
+
+export const InkDetailServiceDesc = { serviceName: "protos.InkDetailService" };
+
+export const InkDetailServicePatchInkDesc: UnaryMethodDefinitionish = {
+  methodName: "PatchInk",
+  service: InkDetailServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return PatchFleetRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Ink.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
 export interface ResourceService {
   CreateResource(
     request: DeepPartial<CreateResourceRequest>,
@@ -4238,148 +4618,6 @@ export const FleetDetailServiceDesc = { serviceName: "protos.FleetDetailService"
 export const FleetDetailServicePatchFleetDesc: UnaryMethodDefinitionish = {
   methodName: "PatchFleet",
   service: FleetDetailServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return PatchFleetRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Group.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export interface InkService {
-  CreateInk(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
-  GetInk(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
-  GetInks(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Fleets>;
-}
-
-export class InkServiceClientImpl implements InkService {
-  private readonly rpc: Rpc;
-
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.CreateInk = this.CreateInk.bind(this);
-    this.GetInk = this.GetInk.bind(this);
-    this.GetInks = this.GetInks.bind(this);
-  }
-
-  CreateInk(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
-    return this.rpc.unary(InkServiceCreateInkDesc, CreateFleetRequest.fromPartial(request), metadata);
-  }
-
-  GetInk(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
-    return this.rpc.unary(InkServiceGetInkDesc, GetFleetRequest.fromPartial(request), metadata);
-  }
-
-  GetInks(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Fleets> {
-    return this.rpc.unary(InkServiceGetInksDesc, Empty.fromPartial(request), metadata);
-  }
-}
-
-export const InkServiceDesc = { serviceName: "protos.InkService" };
-
-export const InkServiceCreateInkDesc: UnaryMethodDefinitionish = {
-  methodName: "CreateInk",
-  service: InkServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return CreateFleetRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Fleet.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const InkServiceGetInkDesc: UnaryMethodDefinitionish = {
-  methodName: "GetInk",
-  service: InkServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return GetFleetRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Fleet.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const InkServiceGetInksDesc: UnaryMethodDefinitionish = {
-  methodName: "GetInks",
-  service: InkServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return Empty.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Fleets.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export interface InkDetailService {
-  PatchInk(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Group>;
-}
-
-export class InkDetailServiceClientImpl implements InkDetailService {
-  private readonly rpc: Rpc;
-
-  constructor(rpc: Rpc) {
-    this.rpc = rpc;
-    this.PatchInk = this.PatchInk.bind(this);
-  }
-
-  PatchInk(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Group> {
-    return this.rpc.unary(InkDetailServicePatchInkDesc, PatchFleetRequest.fromPartial(request), metadata);
-  }
-}
-
-export const InkDetailServiceDesc = { serviceName: "protos.InkDetailService" };
-
-export const InkDetailServicePatchInkDesc: UnaryMethodDefinitionish = {
-  methodName: "PatchInk",
-  service: InkDetailServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
