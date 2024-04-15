@@ -212,6 +212,25 @@ export interface Devices {
   devices: Device[];
 }
 
+export interface CreateInkRequest {
+  name: string;
+  desc: string;
+  /** device id or user id (common machine ids) */
+  machineIds: number[];
+}
+
+export interface GetInkRequest {
+  id: string;
+}
+
+export interface PatchInkRequest {
+  id: string;
+  name: string;
+  desc: string;
+  /** device id or user id (common machine ids) */
+  machineIds: number[];
+}
+
 export interface Inks {
   inks: Ink[];
 }
@@ -1695,6 +1714,284 @@ export const Devices = {
   fromPartial<I extends Exact<DeepPartial<Devices>, I>>(object: I): Devices {
     const message = createBaseDevices();
     message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseCreateInkRequest(): CreateInkRequest {
+  return { name: "", desc: "", machineIds: [] };
+}
+
+export const CreateInkRequest = {
+  encode(message: CreateInkRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.desc !== "") {
+      writer.uint32(18).string(message.desc);
+    }
+    writer.uint32(26).fork();
+    for (const v of message.machineIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateInkRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateInkRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 3:
+          if (tag === 24) {
+            message.machineIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.machineIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateInkRequest {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      machineIds: globalThis.Array.isArray(object?.machineIds)
+        ? object.machineIds.map((e: any) => globalThis.Number(e))
+        : [],
+    };
+  },
+
+  toJSON(message: CreateInkRequest): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
+    }
+    if (message.machineIds?.length) {
+      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateInkRequest>, I>>(base?: I): CreateInkRequest {
+    return CreateInkRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateInkRequest>, I>>(object: I): CreateInkRequest {
+    const message = createBaseCreateInkRequest();
+    message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
+    message.machineIds = object.machineIds?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseGetInkRequest(): GetInkRequest {
+  return { id: "" };
+}
+
+export const GetInkRequest = {
+  encode(message: GetInkRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetInkRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetInkRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetInkRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: GetInkRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetInkRequest>, I>>(base?: I): GetInkRequest {
+    return GetInkRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetInkRequest>, I>>(object: I): GetInkRequest {
+    const message = createBaseGetInkRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBasePatchInkRequest(): PatchInkRequest {
+  return { id: "", name: "", desc: "", machineIds: [] };
+}
+
+export const PatchInkRequest = {
+  encode(message: PatchInkRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.desc !== "") {
+      writer.uint32(26).string(message.desc);
+    }
+    writer.uint32(34).fork();
+    for (const v of message.machineIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): PatchInkRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePatchInkRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 4:
+          if (tag === 32) {
+            message.machineIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 34) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.machineIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PatchInkRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      machineIds: globalThis.Array.isArray(object?.machineIds)
+        ? object.machineIds.map((e: any) => globalThis.Number(e))
+        : [],
+    };
+  },
+
+  toJSON(message: PatchInkRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
+    }
+    if (message.machineIds?.length) {
+      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PatchInkRequest>, I>>(base?: I): PatchInkRequest {
+    return PatchInkRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PatchInkRequest>, I>>(object: I): PatchInkRequest {
+    const message = createBasePatchInkRequest();
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
+    message.machineIds = object.machineIds?.map((e) => e) || [];
     return message;
   },
 };
@@ -4220,8 +4517,8 @@ export const DeviceServiceGetDevicesDesc: UnaryMethodDefinitionish = {
 };
 
 export interface InkService {
-  CreateInk(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Ink>;
-  GetInk(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Ink>;
+  CreateInk(request: DeepPartial<CreateInkRequest>, metadata?: grpc.Metadata): Promise<Ink>;
+  GetInk(request: DeepPartial<GetInkRequest>, metadata?: grpc.Metadata): Promise<Ink>;
   GetInks(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Inks>;
 }
 
@@ -4235,12 +4532,12 @@ export class InkServiceClientImpl implements InkService {
     this.GetInks = this.GetInks.bind(this);
   }
 
-  CreateInk(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Ink> {
-    return this.rpc.unary(InkServiceCreateInkDesc, CreateFleetRequest.fromPartial(request), metadata);
+  CreateInk(request: DeepPartial<CreateInkRequest>, metadata?: grpc.Metadata): Promise<Ink> {
+    return this.rpc.unary(InkServiceCreateInkDesc, CreateInkRequest.fromPartial(request), metadata);
   }
 
-  GetInk(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Ink> {
-    return this.rpc.unary(InkServiceGetInkDesc, GetFleetRequest.fromPartial(request), metadata);
+  GetInk(request: DeepPartial<GetInkRequest>, metadata?: grpc.Metadata): Promise<Ink> {
+    return this.rpc.unary(InkServiceGetInkDesc, GetInkRequest.fromPartial(request), metadata);
   }
 
   GetInks(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Inks> {
@@ -4257,7 +4554,7 @@ export const InkServiceCreateInkDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return CreateFleetRequest.encode(this).finish();
+      return CreateInkRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -4280,7 +4577,7 @@ export const InkServiceGetInkDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return GetFleetRequest.encode(this).finish();
+      return GetInkRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -4320,7 +4617,7 @@ export const InkServiceGetInksDesc: UnaryMethodDefinitionish = {
 };
 
 export interface InkDetailService {
-  PatchInk(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Ink>;
+  PatchInk(request: DeepPartial<PatchInkRequest>, metadata?: grpc.Metadata): Promise<Ink>;
 }
 
 export class InkDetailServiceClientImpl implements InkDetailService {
@@ -4331,8 +4628,8 @@ export class InkDetailServiceClientImpl implements InkDetailService {
     this.PatchInk = this.PatchInk.bind(this);
   }
 
-  PatchInk(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Ink> {
-    return this.rpc.unary(InkDetailServicePatchInkDesc, PatchFleetRequest.fromPartial(request), metadata);
+  PatchInk(request: DeepPartial<PatchInkRequest>, metadata?: grpc.Metadata): Promise<Ink> {
+    return this.rpc.unary(InkDetailServicePatchInkDesc, PatchInkRequest.fromPartial(request), metadata);
   }
 }
 
@@ -4345,7 +4642,7 @@ export const InkDetailServicePatchInkDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return PatchFleetRequest.encode(this).finish();
+      return PatchInkRequest.encode(this).finish();
     },
   } as any,
   responseType: {
