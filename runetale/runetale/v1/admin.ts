@@ -7,6 +7,63 @@ import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
+export enum AclResourceType {
+  FLEET = 0,
+  RESOURCE = 1,
+  GROUP = 2,
+  USER = 3,
+  INK = 4,
+  DEVICE = 5,
+  UNRECOGNIZED = -1,
+}
+
+export function aclResourceTypeFromJSON(object: any): AclResourceType {
+  switch (object) {
+    case 0:
+    case "FLEET":
+      return AclResourceType.FLEET;
+    case 1:
+    case "RESOURCE":
+      return AclResourceType.RESOURCE;
+    case 2:
+    case "GROUP":
+      return AclResourceType.GROUP;
+    case 3:
+    case "USER":
+      return AclResourceType.USER;
+    case 4:
+    case "INK":
+      return AclResourceType.INK;
+    case 5:
+    case "DEVICE":
+      return AclResourceType.DEVICE;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return AclResourceType.UNRECOGNIZED;
+  }
+}
+
+export function aclResourceTypeToJSON(object: AclResourceType): string {
+  switch (object) {
+    case AclResourceType.FLEET:
+      return "FLEET";
+    case AclResourceType.RESOURCE:
+      return "RESOURCE";
+    case AclResourceType.GROUP:
+      return "GROUP";
+    case AclResourceType.USER:
+      return "USER";
+    case AclResourceType.INK:
+      return "INK";
+    case AclResourceType.DEVICE:
+      return "DEVICE";
+    case AclResourceType.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export enum Action {
   Accept = 0,
   Denied = 1,
@@ -125,14 +182,17 @@ export interface CreateAclRequest {
   port: string;
 }
 
+export interface AclResources {
+  id: number;
+  type: AclResourceType;
+}
+
 export interface PatchAclRequest {
   /** acl id */
   id: number;
   name: string;
-  /** user ids */
-  src: number[];
-  /** user ids */
-  dst: number[];
+  src: AclResources[];
+  dst: AclResources[];
   proto: string;
   port: string;
 }
@@ -153,6 +213,7 @@ export interface AclResponse {
   proto: string;
   port: string;
   age: string;
+  type: string;
 }
 
 export interface GetMeResponse {
@@ -522,6 +583,80 @@ export const CreateAclRequest = {
   },
 };
 
+function createBaseAclResources(): AclResources {
+  return { id: 0, type: 0 };
+}
+
+export const AclResources = {
+  encode(message: AclResources, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
+    if (message.type !== 0) {
+      writer.uint32(16).int32(message.type);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): AclResources {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAclResources();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.type = reader.int32() as any;
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AclResources {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      type: isSet(object.type) ? aclResourceTypeFromJSON(object.type) : 0,
+    };
+  },
+
+  toJSON(message: AclResources): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.type !== 0) {
+      obj.type = aclResourceTypeToJSON(message.type);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AclResources>, I>>(base?: I): AclResources {
+    return AclResources.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AclResources>, I>>(object: I): AclResources {
+    const message = createBaseAclResources();
+    message.id = object.id ?? 0;
+    message.type = object.type ?? 0;
+    return message;
+  },
+};
+
 function createBasePatchAclRequest(): PatchAclRequest {
   return { id: 0, name: "", src: [], dst: [], proto: "", port: "" };
 }
@@ -534,16 +669,12 @@ export const PatchAclRequest = {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
-    writer.uint32(26).fork();
     for (const v of message.src) {
-      writer.uint64(v);
+      AclResources.encode(v!, writer.uint32(26).fork()).ldelim();
     }
-    writer.ldelim();
-    writer.uint32(34).fork();
     for (const v of message.dst) {
-      writer.uint64(v);
+      AclResources.encode(v!, writer.uint32(34).fork()).ldelim();
     }
-    writer.ldelim();
     if (message.proto !== "") {
       writer.uint32(42).string(message.proto);
     }
@@ -575,39 +706,19 @@ export const PatchAclRequest = {
           message.name = reader.string();
           continue;
         case 3:
-          if (tag === 24) {
-            message.src.push(longToNumber(reader.uint64() as Long));
-
-            continue;
+          if (tag !== 26) {
+            break;
           }
 
-          if (tag === 26) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.src.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
+          message.src.push(AclResources.decode(reader, reader.uint32()));
+          continue;
         case 4:
-          if (tag === 32) {
-            message.dst.push(longToNumber(reader.uint64() as Long));
-
-            continue;
+          if (tag !== 34) {
+            break;
           }
 
-          if (tag === 34) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.dst.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
+          message.dst.push(AclResources.decode(reader, reader.uint32()));
+          continue;
         case 5:
           if (tag !== 42) {
             break;
@@ -635,8 +746,8 @@ export const PatchAclRequest = {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => globalThis.Number(e)) : [],
-      dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => globalThis.Number(e)) : [],
+      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
+      dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
     };
@@ -651,10 +762,10 @@ export const PatchAclRequest = {
       obj.name = message.name;
     }
     if (message.src?.length) {
-      obj.src = message.src.map((e) => Math.round(e));
+      obj.src = message.src.map((e) => AclResources.toJSON(e));
     }
     if (message.dst?.length) {
-      obj.dst = message.dst.map((e) => Math.round(e));
+      obj.dst = message.dst.map((e) => AclResources.toJSON(e));
     }
     if (message.proto !== "") {
       obj.proto = message.proto;
@@ -672,8 +783,8 @@ export const PatchAclRequest = {
     const message = createBasePatchAclRequest();
     message.id = object.id ?? 0;
     message.name = object.name ?? "";
-    message.src = object.src?.map((e) => e) || [];
-    message.dst = object.dst?.map((e) => e) || [];
+    message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
+    message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
     return message;
@@ -795,7 +906,7 @@ export const GetAclsResponse = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: 0, name: "", src: undefined, dst: undefined, proto: "", port: "", age: "" };
+  return { id: 0, name: "", src: undefined, dst: undefined, proto: "", port: "", age: "", type: "" };
 }
 
 export const AclResponse = {
@@ -820,6 +931,9 @@ export const AclResponse = {
     }
     if (message.age !== "") {
       writer.uint32(58).string(message.age);
+    }
+    if (message.type !== "") {
+      writer.uint32(66).string(message.type);
     }
     return writer;
   },
@@ -880,6 +994,13 @@ export const AclResponse = {
 
           message.age = reader.string();
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -898,6 +1019,7 @@ export const AclResponse = {
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
+      type: isSet(object.type) ? globalThis.String(object.type) : "",
     };
   },
 
@@ -924,6 +1046,9 @@ export const AclResponse = {
     if (message.age !== "") {
       obj.age = message.age;
     }
+    if (message.type !== "") {
+      obj.type = message.type;
+    }
     return obj;
   },
 
@@ -939,6 +1064,7 @@ export const AclResponse = {
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
     message.age = object.age ?? "";
+    message.type = object.type ?? "";
     return message;
   },
 };
@@ -4195,7 +4321,6 @@ export const Device = {
 
 export interface AclService {
   CreateAcl(request: DeepPartial<CreateAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
-  PatchAcl(request: DeepPartial<PatchAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
   GetAcl(request: DeepPartial<GetAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
   GetAcls(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetAclsResponse>;
 }
@@ -4206,17 +4331,12 @@ export class AclServiceClientImpl implements AclService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.CreateAcl = this.CreateAcl.bind(this);
-    this.PatchAcl = this.PatchAcl.bind(this);
     this.GetAcl = this.GetAcl.bind(this);
     this.GetAcls = this.GetAcls.bind(this);
   }
 
   CreateAcl(request: DeepPartial<CreateAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse> {
     return this.rpc.unary(AclServiceCreateAclDesc, CreateAclRequest.fromPartial(request), metadata);
-  }
-
-  PatchAcl(request: DeepPartial<PatchAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse> {
-    return this.rpc.unary(AclServicePatchAclDesc, PatchAclRequest.fromPartial(request), metadata);
   }
 
   GetAcl(request: DeepPartial<GetAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse> {
@@ -4238,29 +4358,6 @@ export const AclServiceCreateAclDesc: UnaryMethodDefinitionish = {
   requestType: {
     serializeBinary() {
       return CreateAclRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = AclResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const AclServicePatchAclDesc: UnaryMethodDefinitionish = {
-  methodName: "PatchAcl",
-  service: AclServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return PatchAclRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -4312,6 +4409,48 @@ export const AclServiceGetAclsDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetAclsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export interface AclDetailService {
+  PatchAcl(request: DeepPartial<PatchAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
+}
+
+export class AclDetailServiceClientImpl implements AclDetailService {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.PatchAcl = this.PatchAcl.bind(this);
+  }
+
+  PatchAcl(request: DeepPartial<PatchAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse> {
+    return this.rpc.unary(AclDetailServicePatchAclDesc, PatchAclRequest.fromPartial(request), metadata);
+  }
+}
+
+export const AclDetailServiceDesc = { serviceName: "protos.AclDetailService" };
+
+export const AclDetailServicePatchAclDesc: UnaryMethodDefinitionish = {
+  methodName: "PatchAcl",
+  service: AclDetailServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return PatchAclRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = AclResponse.decode(data);
       return {
         ...value,
         toObject() {
