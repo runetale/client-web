@@ -148,10 +148,8 @@ export interface GetAclsResponse {
 export interface AclResponse {
   id: number;
   name: string;
-  /** user ids */
-  src: number[];
-  /** user ids */
-  dst: number[];
+  src: Node | undefined;
+  dst: Node | undefined;
   proto: string;
   port: string;
   age: string;
@@ -294,6 +292,15 @@ export interface PatchFleetRequest {
   machineIds: number[];
   type: DeploymentMethod;
   action: Action;
+}
+
+export interface Node {
+  fleets: Fleet[];
+  resources: Resource[];
+  groups: Group[];
+  users: User[];
+  Inks: Ink[];
+  deivces: Device[];
 }
 
 export interface Fleet {
@@ -788,7 +795,7 @@ export const GetAclsResponse = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: 0, name: "", src: [], dst: [], proto: "", port: "", age: "" };
+  return { id: 0, name: "", src: undefined, dst: undefined, proto: "", port: "", age: "" };
 }
 
 export const AclResponse = {
@@ -799,16 +806,12 @@ export const AclResponse = {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
-    writer.uint32(26).fork();
-    for (const v of message.src) {
-      writer.uint64(v);
+    if (message.src !== undefined) {
+      Node.encode(message.src, writer.uint32(26).fork()).ldelim();
     }
-    writer.ldelim();
-    writer.uint32(34).fork();
-    for (const v of message.dst) {
-      writer.uint64(v);
+    if (message.dst !== undefined) {
+      Node.encode(message.dst, writer.uint32(34).fork()).ldelim();
     }
-    writer.ldelim();
     if (message.proto !== "") {
       writer.uint32(42).string(message.proto);
     }
@@ -843,39 +846,19 @@ export const AclResponse = {
           message.name = reader.string();
           continue;
         case 3:
-          if (tag === 24) {
-            message.src.push(longToNumber(reader.uint64() as Long));
-
-            continue;
+          if (tag !== 26) {
+            break;
           }
 
-          if (tag === 26) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.src.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
+          message.src = Node.decode(reader, reader.uint32());
+          continue;
         case 4:
-          if (tag === 32) {
-            message.dst.push(longToNumber(reader.uint64() as Long));
-
-            continue;
+          if (tag !== 34) {
+            break;
           }
 
-          if (tag === 34) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.dst.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
+          message.dst = Node.decode(reader, reader.uint32());
+          continue;
         case 5:
           if (tag !== 42) {
             break;
@@ -910,8 +893,8 @@ export const AclResponse = {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => globalThis.Number(e)) : [],
-      dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => globalThis.Number(e)) : [],
+      src: isSet(object.src) ? Node.fromJSON(object.src) : undefined,
+      dst: isSet(object.dst) ? Node.fromJSON(object.dst) : undefined,
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
@@ -926,11 +909,11 @@ export const AclResponse = {
     if (message.name !== "") {
       obj.name = message.name;
     }
-    if (message.src?.length) {
-      obj.src = message.src.map((e) => Math.round(e));
+    if (message.src !== undefined) {
+      obj.src = Node.toJSON(message.src);
     }
-    if (message.dst?.length) {
-      obj.dst = message.dst.map((e) => Math.round(e));
+    if (message.dst !== undefined) {
+      obj.dst = Node.toJSON(message.dst);
     }
     if (message.proto !== "") {
       obj.proto = message.proto;
@@ -951,8 +934,8 @@ export const AclResponse = {
     const message = createBaseAclResponse();
     message.id = object.id ?? 0;
     message.name = object.name ?? "";
-    message.src = object.src?.map((e) => e) || [];
-    message.dst = object.dst?.map((e) => e) || [];
+    message.src = (object.src !== undefined && object.src !== null) ? Node.fromPartial(object.src) : undefined;
+    message.dst = (object.dst !== undefined && object.dst !== null) ? Node.fromPartial(object.dst) : undefined;
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
     message.age = object.age ?? "";
@@ -2956,6 +2939,142 @@ export const PatchFleetRequest = {
     message.machineIds = object.machineIds?.map((e) => e) || [];
     message.type = object.type ?? 0;
     message.action = object.action ?? 0;
+    return message;
+  },
+};
+
+function createBaseNode(): Node {
+  return { fleets: [], resources: [], groups: [], users: [], Inks: [], deivces: [] };
+}
+
+export const Node = {
+  encode(message: Node, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.fleets) {
+      Fleet.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    for (const v of message.resources) {
+      Resource.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    for (const v of message.groups) {
+      Group.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    for (const v of message.users) {
+      User.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    for (const v of message.Inks) {
+      Ink.encode(v!, writer.uint32(42).fork()).ldelim();
+    }
+    for (const v of message.deivces) {
+      Device.encode(v!, writer.uint32(50).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Node {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNode();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.fleets.push(Fleet.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.resources.push(Resource.decode(reader, reader.uint32()));
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.groups.push(Group.decode(reader, reader.uint32()));
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.users.push(User.decode(reader, reader.uint32()));
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.Inks.push(Ink.decode(reader, reader.uint32()));
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.deivces.push(Device.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Node {
+    return {
+      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
+      resources: globalThis.Array.isArray(object?.resources)
+        ? object.resources.map((e: any) => Resource.fromJSON(e))
+        : [],
+      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
+      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
+      Inks: globalThis.Array.isArray(object?.Inks) ? object.Inks.map((e: any) => Ink.fromJSON(e)) : [],
+      deivces: globalThis.Array.isArray(object?.deivces) ? object.deivces.map((e: any) => Device.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: Node): unknown {
+    const obj: any = {};
+    if (message.fleets?.length) {
+      obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
+    }
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => Resource.toJSON(e));
+    }
+    if (message.groups?.length) {
+      obj.groups = message.groups.map((e) => Group.toJSON(e));
+    }
+    if (message.users?.length) {
+      obj.users = message.users.map((e) => User.toJSON(e));
+    }
+    if (message.Inks?.length) {
+      obj.Inks = message.Inks.map((e) => Ink.toJSON(e));
+    }
+    if (message.deivces?.length) {
+      obj.deivces = message.deivces.map((e) => Device.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Node>, I>>(base?: I): Node {
+    return Node.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Node>, I>>(object: I): Node {
+    const message = createBaseNode();
+    message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
+    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
+    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
+    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
+    message.Inks = object.Inks?.map((e) => Ink.fromPartial(e)) || [];
+    message.deivces = object.deivces?.map((e) => Device.fromPartial(e)) || [];
     return message;
   },
 };
