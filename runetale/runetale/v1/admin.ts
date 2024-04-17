@@ -360,8 +360,8 @@ export interface Node {
   resources: Resource[];
   groups: Group[];
   users: User[];
-  Inks: Ink[];
-  deivces: Device[];
+  inks: Ink[];
+  devices: Device[];
 }
 
 export interface Fleet {
@@ -3070,7 +3070,7 @@ export const PatchFleetRequest = {
 };
 
 function createBaseNode(): Node {
-  return { fleets: [], resources: [], groups: [], users: [], Inks: [], deivces: [] };
+  return { fleets: [], resources: [], groups: [], users: [], inks: [], devices: [] };
 }
 
 export const Node = {
@@ -3087,10 +3087,10 @@ export const Node = {
     for (const v of message.users) {
       User.encode(v!, writer.uint32(34).fork()).ldelim();
     }
-    for (const v of message.Inks) {
+    for (const v of message.inks) {
       Ink.encode(v!, writer.uint32(42).fork()).ldelim();
     }
-    for (const v of message.deivces) {
+    for (const v of message.devices) {
       Device.encode(v!, writer.uint32(50).fork()).ldelim();
     }
     return writer;
@@ -3136,14 +3136,14 @@ export const Node = {
             break;
           }
 
-          message.Inks.push(Ink.decode(reader, reader.uint32()));
+          message.inks.push(Ink.decode(reader, reader.uint32()));
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.deivces.push(Device.decode(reader, reader.uint32()));
+          message.devices.push(Device.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3162,8 +3162,8 @@ export const Node = {
         : [],
       groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
       users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
-      Inks: globalThis.Array.isArray(object?.Inks) ? object.Inks.map((e: any) => Ink.fromJSON(e)) : [],
-      deivces: globalThis.Array.isArray(object?.deivces) ? object.deivces.map((e: any) => Device.fromJSON(e)) : [],
+      inks: globalThis.Array.isArray(object?.inks) ? object.inks.map((e: any) => Ink.fromJSON(e)) : [],
+      devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
     };
   },
 
@@ -3181,11 +3181,11 @@ export const Node = {
     if (message.users?.length) {
       obj.users = message.users.map((e) => User.toJSON(e));
     }
-    if (message.Inks?.length) {
-      obj.Inks = message.Inks.map((e) => Ink.toJSON(e));
+    if (message.inks?.length) {
+      obj.inks = message.inks.map((e) => Ink.toJSON(e));
     }
-    if (message.deivces?.length) {
-      obj.deivces = message.deivces.map((e) => Device.toJSON(e));
+    if (message.devices?.length) {
+      obj.devices = message.devices.map((e) => Device.toJSON(e));
     }
     return obj;
   },
@@ -3199,8 +3199,8 @@ export const Node = {
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
-    message.Inks = object.Inks?.map((e) => Ink.fromPartial(e)) || [];
-    message.deivces = object.deivces?.map((e) => Device.fromPartial(e)) || [];
+    message.inks = object.inks?.map((e) => Ink.fromPartial(e)) || [];
+    message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
     return message;
   },
 };
