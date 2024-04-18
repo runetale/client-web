@@ -411,7 +411,7 @@ export interface Group {
 }
 
 export interface User {
-  id: number;
+  machineId: number;
   name: string;
   picture: string;
   email: string;
@@ -3785,7 +3785,7 @@ export const Group = {
 
 function createBaseUser(): User {
   return {
-    id: 0,
+    machineId: 0,
     name: "",
     picture: "",
     email: "",
@@ -3802,8 +3802,8 @@ function createBaseUser(): User {
 
 export const User = {
   encode(message: User, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
+    if (message.machineId !== 0) {
+      writer.uint32(8).uint64(message.machineId);
     }
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
@@ -3853,7 +3853,7 @@ export const User = {
             break;
           }
 
-          message.id = longToNumber(reader.uint64() as Long);
+          message.machineId = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
           if (tag !== 18) {
@@ -3943,7 +3943,7 @@ export const User = {
 
   fromJSON(object: any): User {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
@@ -3962,8 +3962,8 @@ export const User = {
 
   toJSON(message: User): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.machineId !== 0) {
+      obj.machineId = Math.round(message.machineId);
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -4006,7 +4006,7 @@ export const User = {
   },
   fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
     const message = createBaseUser();
-    message.id = object.id ?? 0;
+    message.machineId = object.machineId ?? 0;
     message.name = object.name ?? "";
     message.picture = object.picture ?? "";
     message.email = object.email ?? "";
