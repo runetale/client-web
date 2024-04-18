@@ -201,6 +201,7 @@ export interface PatchAclRequest {
   dst: AclResources[];
   proto: string;
   port: string;
+  action: Action;
 }
 
 export interface GetAclRequest {
@@ -340,7 +341,6 @@ export interface CreateFleetRequest {
   desc: string;
   machineIds: number[];
   type: DeploymentMethod;
-  action: Action;
 }
 
 export interface GetFleetRequest {
@@ -664,7 +664,7 @@ export const AclResources = {
 };
 
 function createBasePatchAclRequest(): PatchAclRequest {
-  return { id: 0, name: "", src: [], dst: [], proto: "", port: "" };
+  return { id: 0, name: "", src: [], dst: [], proto: "", port: "", action: 0 };
 }
 
 export const PatchAclRequest = {
@@ -686,6 +686,9 @@ export const PatchAclRequest = {
     }
     if (message.port !== "") {
       writer.uint32(50).string(message.port);
+    }
+    if (message.action !== 0) {
+      writer.uint32(56).int32(message.action);
     }
     return writer;
   },
@@ -739,6 +742,13 @@ export const PatchAclRequest = {
 
           message.port = reader.string();
           continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.action = reader.int32() as any;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -756,6 +766,7 @@ export const PatchAclRequest = {
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
+      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
 
@@ -779,6 +790,9 @@ export const PatchAclRequest = {
     if (message.port !== "") {
       obj.port = message.port;
     }
+    if (message.action !== 0) {
+      obj.action = actionToJSON(message.action);
+    }
     return obj;
   },
 
@@ -793,6 +807,7 @@ export const PatchAclRequest = {
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
+    message.action = object.action ?? 0;
     return message;
   },
 };
@@ -2681,7 +2696,7 @@ export const Resources = {
 };
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", machineIds: [], type: 0, action: 0 };
+  return { name: "", desc: "", machineIds: [], type: 0 };
 }
 
 export const CreateFleetRequest = {
@@ -2699,9 +2714,6 @@ export const CreateFleetRequest = {
     writer.ldelim();
     if (message.type !== 0) {
       writer.uint32(32).int32(message.type);
-    }
-    if (message.action !== 0) {
-      writer.uint32(40).int32(message.action);
     }
     return writer;
   },
@@ -2751,13 +2763,6 @@ export const CreateFleetRequest = {
 
           message.type = reader.int32() as any;
           continue;
-        case 5:
-          if (tag !== 40) {
-            break;
-          }
-
-          message.action = reader.int32() as any;
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2775,7 +2780,6 @@ export const CreateFleetRequest = {
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
       type: isSet(object.type) ? deploymentMethodFromJSON(object.type) : 0,
-      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
 
@@ -2793,9 +2797,6 @@ export const CreateFleetRequest = {
     if (message.type !== 0) {
       obj.type = deploymentMethodToJSON(message.type);
     }
-    if (message.action !== 0) {
-      obj.action = actionToJSON(message.action);
-    }
     return obj;
   },
 
@@ -2808,7 +2809,6 @@ export const CreateFleetRequest = {
     message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
     message.type = object.type ?? 0;
-    message.action = object.action ?? 0;
     return message;
   },
 };
