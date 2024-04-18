@@ -8,11 +8,17 @@ import { Empty } from "../../../google/protobuf/empty";
 export const protobufPackage = "protos";
 
 export enum AclResourceType {
+  /** FLEET - servers */
   FLEET = 0,
+  /** RESOURCE - server */
   RESOURCE = 1,
+  /** GROUP - users */
   GROUP = 2,
+  /** USER - user */
   USER = 3,
+  /** INK - devices */
   INK = 4,
+  /** DEVICE - device */
   DEVICE = 5,
   UNRECOGNIZED = -1,
 }
