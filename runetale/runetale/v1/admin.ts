@@ -218,7 +218,7 @@ export interface GetAclsResponse {
 }
 
 export interface AclResponse {
-  id: number;
+  id: string;
   name: string;
   desc: string;
   src: Node | undefined;
@@ -983,13 +983,13 @@ export const GetAclsResponse = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: 0, name: "", desc: "", src: undefined, dst: undefined, proto: "", port: "", age: "", type: "" };
+  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: "", port: "", age: "", type: "" };
 }
 
 export const AclResponse = {
   encode(message: AclResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
     }
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
@@ -1026,11 +1026,11 @@ export const AclResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.id = longToNumber(reader.uint64() as Long);
+          message.id = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -1099,7 +1099,7 @@ export const AclResponse = {
 
   fromJSON(object: any): AclResponse {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       src: isSet(object.src) ? Node.fromJSON(object.src) : undefined,
@@ -1113,8 +1113,8 @@ export const AclResponse = {
 
   toJSON(message: AclResponse): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.id !== "") {
+      obj.id = message.id;
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -1148,7 +1148,7 @@ export const AclResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<AclResponse>, I>>(object: I): AclResponse {
     const message = createBaseAclResponse();
-    message.id = object.id ?? 0;
+    message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.src = (object.src !== undefined && object.src !== null) ? Node.fromPartial(object.src) : undefined;
