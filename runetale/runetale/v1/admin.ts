@@ -191,7 +191,9 @@ export interface CreateAclRequest {
 }
 
 export interface AclResources {
-  id: number[];
+  machineIds: number[];
+  /** for fleet or group or ink */
+  policyId: string;
   type: AclResourceType;
 }
 
@@ -600,18 +602,21 @@ export const CreateAclRequest = {
 };
 
 function createBaseAclResources(): AclResources {
-  return { id: [], type: 0 };
+  return { machineIds: [], policyId: "", type: 0 };
 }
 
 export const AclResources = {
   encode(message: AclResources, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     writer.uint32(10).fork();
-    for (const v of message.id) {
+    for (const v of message.machineIds) {
       writer.uint64(v);
     }
     writer.ldelim();
+    if (message.policyId !== "") {
+      writer.uint32(18).string(message.policyId);
+    }
     if (message.type !== 0) {
-      writer.uint32(16).int32(message.type);
+      writer.uint32(24).int32(message.type);
     }
     return writer;
   },
@@ -625,7 +630,7 @@ export const AclResources = {
       switch (tag >>> 3) {
         case 1:
           if (tag === 8) {
-            message.id.push(longToNumber(reader.uint64() as Long));
+            message.machineIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
@@ -633,7 +638,7 @@ export const AclResources = {
           if (tag === 10) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.id.push(longToNumber(reader.uint64() as Long));
+              message.machineIds.push(longToNumber(reader.uint64() as Long));
             }
 
             continue;
@@ -641,7 +646,14 @@ export const AclResources = {
 
           break;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.policyId = reader.string();
+          continue;
+        case 3:
+          if (tag !== 24) {
             break;
           }
 
@@ -658,15 +670,21 @@ export const AclResources = {
 
   fromJSON(object: any): AclResources {
     return {
-      id: globalThis.Array.isArray(object?.id) ? object.id.map((e: any) => globalThis.Number(e)) : [],
+      machineIds: globalThis.Array.isArray(object?.machineIds)
+        ? object.machineIds.map((e: any) => globalThis.Number(e))
+        : [],
+      policyId: isSet(object.policyId) ? globalThis.String(object.policyId) : "",
       type: isSet(object.type) ? aclResourceTypeFromJSON(object.type) : 0,
     };
   },
 
   toJSON(message: AclResources): unknown {
     const obj: any = {};
-    if (message.id?.length) {
-      obj.id = message.id.map((e) => Math.round(e));
+    if (message.machineIds?.length) {
+      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    }
+    if (message.policyId !== "") {
+      obj.policyId = message.policyId;
     }
     if (message.type !== 0) {
       obj.type = aclResourceTypeToJSON(message.type);
@@ -679,7 +697,8 @@ export const AclResources = {
   },
   fromPartial<I extends Exact<DeepPartial<AclResources>, I>>(object: I): AclResources {
     const message = createBaseAclResources();
-    message.id = object.id?.map((e) => e) || [];
+    message.machineIds = object.machineIds?.map((e) => e) || [];
+    message.policyId = object.policyId ?? "";
     message.type = object.type ?? 0;
     return message;
   },
