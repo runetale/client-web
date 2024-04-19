@@ -182,9 +182,9 @@ export interface CreateAclRequest {
   name: string;
   desc: string;
   /** user ids */
-  src: number[];
+  src: AclResources[];
   /** user ids */
-  dst: number[];
+  dst: AclResources[];
   proto: string;
   port: string;
 }
@@ -461,16 +461,12 @@ export const CreateAclRequest = {
     if (message.desc !== "") {
       writer.uint32(18).string(message.desc);
     }
-    writer.uint32(26).fork();
     for (const v of message.src) {
-      writer.uint64(v);
+      AclResources.encode(v!, writer.uint32(26).fork()).ldelim();
     }
-    writer.ldelim();
-    writer.uint32(34).fork();
     for (const v of message.dst) {
-      writer.uint64(v);
+      AclResources.encode(v!, writer.uint32(34).fork()).ldelim();
     }
-    writer.ldelim();
     if (message.proto !== "") {
       writer.uint32(42).string(message.proto);
     }
@@ -502,39 +498,19 @@ export const CreateAclRequest = {
           message.desc = reader.string();
           continue;
         case 3:
-          if (tag === 24) {
-            message.src.push(longToNumber(reader.uint64() as Long));
-
-            continue;
+          if (tag !== 26) {
+            break;
           }
 
-          if (tag === 26) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.src.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
+          message.src.push(AclResources.decode(reader, reader.uint32()));
+          continue;
         case 4:
-          if (tag === 32) {
-            message.dst.push(longToNumber(reader.uint64() as Long));
-
-            continue;
+          if (tag !== 34) {
+            break;
           }
 
-          if (tag === 34) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.dst.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
+          message.dst.push(AclResources.decode(reader, reader.uint32()));
+          continue;
         case 5:
           if (tag !== 42) {
             break;
@@ -562,8 +538,8 @@ export const CreateAclRequest = {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => globalThis.Number(e)) : [],
-      dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => globalThis.Number(e)) : [],
+      src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
+      dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
     };
@@ -578,10 +554,10 @@ export const CreateAclRequest = {
       obj.desc = message.desc;
     }
     if (message.src?.length) {
-      obj.src = message.src.map((e) => Math.round(e));
+      obj.src = message.src.map((e) => AclResources.toJSON(e));
     }
     if (message.dst?.length) {
-      obj.dst = message.dst.map((e) => Math.round(e));
+      obj.dst = message.dst.map((e) => AclResources.toJSON(e));
     }
     if (message.proto !== "") {
       obj.proto = message.proto;
@@ -599,8 +575,8 @@ export const CreateAclRequest = {
     const message = createBaseCreateAclRequest();
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.src = object.src?.map((e) => e) || [];
-    message.dst = object.dst?.map((e) => e) || [];
+    message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
+    message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
     return message;
