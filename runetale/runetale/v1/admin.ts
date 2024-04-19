@@ -190,7 +190,7 @@ export interface CreateAclRequest {
 }
 
 export interface AclResources {
-  id: number;
+  id: number[];
   type: AclResourceType;
 }
 
@@ -584,14 +584,16 @@ export const CreateAclRequest = {
 };
 
 function createBaseAclResources(): AclResources {
-  return { id: 0, type: 0 };
+  return { id: [], type: 0 };
 }
 
 export const AclResources = {
   encode(message: AclResources, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
+    writer.uint32(10).fork();
+    for (const v of message.id) {
+      writer.uint64(v);
     }
+    writer.ldelim();
     if (message.type !== 0) {
       writer.uint32(16).int32(message.type);
     }
@@ -606,12 +608,22 @@ export const AclResources = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
-            break;
+          if (tag === 8) {
+            message.id.push(longToNumber(reader.uint64() as Long));
+
+            continue;
           }
 
-          message.id = longToNumber(reader.uint64() as Long);
-          continue;
+          if (tag === 10) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.id.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
         case 2:
           if (tag !== 16) {
             break;
@@ -630,15 +642,15 @@ export const AclResources = {
 
   fromJSON(object: any): AclResources {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      id: globalThis.Array.isArray(object?.id) ? object.id.map((e: any) => globalThis.Number(e)) : [],
       type: isSet(object.type) ? aclResourceTypeFromJSON(object.type) : 0,
     };
   },
 
   toJSON(message: AclResources): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.id?.length) {
+      obj.id = message.id.map((e) => Math.round(e));
     }
     if (message.type !== 0) {
       obj.type = aclResourceTypeToJSON(message.type);
@@ -651,7 +663,7 @@ export const AclResources = {
   },
   fromPartial<I extends Exact<DeepPartial<AclResources>, I>>(object: I): AclResources {
     const message = createBaseAclResources();
-    message.id = object.id ?? 0;
+    message.id = object.id?.map((e) => e) || [];
     message.type = object.type ?? 0;
     return message;
   },
