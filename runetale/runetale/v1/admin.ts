@@ -186,7 +186,7 @@ export interface CreateAclRequest {
   /** user ids */
   dst: AclResources[];
   proto: string;
-  port: string;
+  port: number;
   action: Action;
 }
 
@@ -205,7 +205,7 @@ export interface PatchAclRequest {
   src: AclResources[];
   dst: AclResources[];
   proto: string;
-  port: string;
+  port: number;
   action: Action;
 }
 
@@ -453,7 +453,7 @@ export interface Device {
 }
 
 function createBaseCreateAclRequest(): CreateAclRequest {
-  return { name: "", desc: "", src: [], dst: [], proto: "", port: "", action: 0 };
+  return { name: "", desc: "", src: [], dst: [], proto: "", port: 0, action: 0 };
 }
 
 export const CreateAclRequest = {
@@ -473,8 +473,8 @@ export const CreateAclRequest = {
     if (message.proto !== "") {
       writer.uint32(42).string(message.proto);
     }
-    if (message.port !== "") {
-      writer.uint32(50).string(message.port);
+    if (message.port !== 0) {
+      writer.uint32(48).uint64(message.port);
     }
     if (message.action !== 0) {
       writer.uint32(56).int32(message.action);
@@ -525,11 +525,11 @@ export const CreateAclRequest = {
           message.proto = reader.string();
           continue;
         case 6:
-          if (tag !== 50) {
+          if (tag !== 48) {
             break;
           }
 
-          message.port = reader.string();
+          message.port = longToNumber(reader.uint64() as Long);
           continue;
         case 7:
           if (tag !== 56) {
@@ -554,7 +554,7 @@ export const CreateAclRequest = {
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
+      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
@@ -576,8 +576,8 @@ export const CreateAclRequest = {
     if (message.proto !== "") {
       obj.proto = message.proto;
     }
-    if (message.port !== "") {
-      obj.port = message.port;
+    if (message.port !== 0) {
+      obj.port = Math.round(message.port);
     }
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
@@ -595,7 +595,7 @@ export const CreateAclRequest = {
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.proto = object.proto ?? "";
-    message.port = object.port ?? "";
+    message.port = object.port ?? 0;
     message.action = object.action ?? 0;
     return message;
   },
@@ -705,7 +705,7 @@ export const AclResources = {
 };
 
 function createBasePatchAclRequest(): PatchAclRequest {
-  return { id: 0, name: "", desc: "", src: [], dst: [], proto: "", port: "", action: 0 };
+  return { id: 0, name: "", desc: "", src: [], dst: [], proto: "", port: 0, action: 0 };
 }
 
 export const PatchAclRequest = {
@@ -728,8 +728,8 @@ export const PatchAclRequest = {
     if (message.proto !== "") {
       writer.uint32(50).string(message.proto);
     }
-    if (message.port !== "") {
-      writer.uint32(58).string(message.port);
+    if (message.port !== 0) {
+      writer.uint32(56).uint64(message.port);
     }
     if (message.action !== 0) {
       writer.uint32(64).int32(message.action);
@@ -787,11 +787,11 @@ export const PatchAclRequest = {
           message.proto = reader.string();
           continue;
         case 7:
-          if (tag !== 58) {
+          if (tag !== 56) {
             break;
           }
 
-          message.port = reader.string();
+          message.port = longToNumber(reader.uint64() as Long);
           continue;
         case 8:
           if (tag !== 64) {
@@ -817,7 +817,7 @@ export const PatchAclRequest = {
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
+      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
@@ -842,8 +842,8 @@ export const PatchAclRequest = {
     if (message.proto !== "") {
       obj.proto = message.proto;
     }
-    if (message.port !== "") {
-      obj.port = message.port;
+    if (message.port !== 0) {
+      obj.port = Math.round(message.port);
     }
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
@@ -862,7 +862,7 @@ export const PatchAclRequest = {
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.proto = object.proto ?? "";
-    message.port = object.port ?? "";
+    message.port = object.port ?? 0;
     message.action = object.action ?? 0;
     return message;
   },
