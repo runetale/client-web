@@ -224,7 +224,7 @@ export interface AclResponse {
   src: Node | undefined;
   dst: Node | undefined;
   proto: string;
-  port: string;
+  port: number;
   age: string;
   type: string;
 }
@@ -983,7 +983,7 @@ export const GetAclsResponse = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: "", port: "", age: "", type: "" };
+  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: "", port: 0, age: "", type: "" };
 }
 
 export const AclResponse = {
@@ -1006,8 +1006,8 @@ export const AclResponse = {
     if (message.proto !== "") {
       writer.uint32(50).string(message.proto);
     }
-    if (message.port !== "") {
-      writer.uint32(58).string(message.port);
+    if (message.port !== 0) {
+      writer.uint32(56).uint64(message.port);
     }
     if (message.age !== "") {
       writer.uint32(66).string(message.age);
@@ -1068,11 +1068,11 @@ export const AclResponse = {
           message.proto = reader.string();
           continue;
         case 7:
-          if (tag !== 58) {
+          if (tag !== 56) {
             break;
           }
 
-          message.port = reader.string();
+          message.port = longToNumber(reader.uint64() as Long);
           continue;
         case 8:
           if (tag !== 66) {
@@ -1105,7 +1105,7 @@ export const AclResponse = {
       src: isSet(object.src) ? Node.fromJSON(object.src) : undefined,
       dst: isSet(object.dst) ? Node.fromJSON(object.dst) : undefined,
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
+      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       type: isSet(object.type) ? globalThis.String(object.type) : "",
     };
@@ -1131,8 +1131,8 @@ export const AclResponse = {
     if (message.proto !== "") {
       obj.proto = message.proto;
     }
-    if (message.port !== "") {
-      obj.port = message.port;
+    if (message.port !== 0) {
+      obj.port = Math.round(message.port);
     }
     if (message.age !== "") {
       obj.age = message.age;
@@ -1154,7 +1154,7 @@ export const AclResponse = {
     message.src = (object.src !== undefined && object.src !== null) ? Node.fromPartial(object.src) : undefined;
     message.dst = (object.dst !== undefined && object.dst !== null) ? Node.fromPartial(object.dst) : undefined;
     message.proto = object.proto ?? "";
-    message.port = object.port ?? "";
+    message.port = object.port ?? 0;
     message.age = object.age ?? "";
     message.type = object.type ?? "";
     return message;
