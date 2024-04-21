@@ -198,8 +198,7 @@ export interface AclResources {
 }
 
 export interface PatchAclRequest {
-  /** acl id */
-  id: number;
+  id: string;
   name: string;
   desc: string;
   src: AclResources[];
@@ -210,7 +209,7 @@ export interface PatchAclRequest {
 }
 
 export interface GetAclRequest {
-  id: number;
+  id: string;
 }
 
 export interface GetAclsResponse {
@@ -705,13 +704,13 @@ export const AclResources = {
 };
 
 function createBasePatchAclRequest(): PatchAclRequest {
-  return { id: 0, name: "", desc: "", src: [], dst: [], proto: "", port: 0, action: 0 };
+  return { id: "", name: "", desc: "", src: [], dst: [], proto: "", port: 0, action: 0 };
 }
 
 export const PatchAclRequest = {
   encode(message: PatchAclRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
     }
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
@@ -745,11 +744,11 @@ export const PatchAclRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.id = longToNumber(reader.uint64() as Long);
+          message.id = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -811,7 +810,7 @@ export const PatchAclRequest = {
 
   fromJSON(object: any): PatchAclRequest {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
@@ -824,8 +823,8 @@ export const PatchAclRequest = {
 
   toJSON(message: PatchAclRequest): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.id !== "") {
+      obj.id = message.id;
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -856,7 +855,7 @@ export const PatchAclRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<PatchAclRequest>, I>>(object: I): PatchAclRequest {
     const message = createBasePatchAclRequest();
-    message.id = object.id ?? 0;
+    message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
@@ -869,13 +868,13 @@ export const PatchAclRequest = {
 };
 
 function createBaseGetAclRequest(): GetAclRequest {
-  return { id: 0 };
+  return { id: "" };
 }
 
 export const GetAclRequest = {
   encode(message: GetAclRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
     }
     return writer;
   },
@@ -888,11 +887,11 @@ export const GetAclRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.id = longToNumber(reader.uint64() as Long);
+          message.id = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -904,13 +903,13 @@ export const GetAclRequest = {
   },
 
   fromJSON(object: any): GetAclRequest {
-    return { id: isSet(object.id) ? globalThis.Number(object.id) : 0 };
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
   },
 
   toJSON(message: GetAclRequest): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.id !== "") {
+      obj.id = message.id;
     }
     return obj;
   },
@@ -920,7 +919,7 @@ export const GetAclRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<GetAclRequest>, I>>(object: I): GetAclRequest {
     const message = createBaseGetAclRequest();
-    message.id = object.id ?? 0;
+    message.id = object.id ?? "";
     return message;
   },
 };
