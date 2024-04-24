@@ -416,6 +416,7 @@ export interface Group {
 }
 
 export interface User {
+  id: number;
   machineId: number;
   name: string;
   picture: string;
@@ -3855,6 +3856,7 @@ export const Group = {
 
 function createBaseUser(): User {
   return {
+    id: 0,
     machineId: 0,
     name: "",
     picture: "",
@@ -3872,41 +3874,44 @@ function createBaseUser(): User {
 
 export const User = {
   encode(message: User, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
     if (message.machineId !== 0) {
-      writer.uint32(8).uint64(message.machineId);
+      writer.uint32(16).uint64(message.machineId);
     }
     if (message.name !== "") {
-      writer.uint32(18).string(message.name);
+      writer.uint32(26).string(message.name);
     }
     if (message.picture !== "") {
-      writer.uint32(26).string(message.picture);
+      writer.uint32(34).string(message.picture);
     }
     if (message.email !== "") {
-      writer.uint32(34).string(message.email);
+      writer.uint32(42).string(message.email);
     }
     if (message.role !== "") {
-      writer.uint32(42).string(message.role);
+      writer.uint32(50).string(message.role);
     }
     if (message.joined !== "") {
-      writer.uint32(50).string(message.joined);
+      writer.uint32(58).string(message.joined);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(58).string(message.lastSeen);
+      writer.uint32(66).string(message.lastSeen);
     }
     if (message.status !== false) {
-      writer.uint32(64).bool(message.status);
+      writer.uint32(72).bool(message.status);
     }
     for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(74).fork()).ldelim();
+      Fleet.encode(v!, writer.uint32(82).fork()).ldelim();
     }
     for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(82).fork()).ldelim();
+      Resource.encode(v!, writer.uint32(90).fork()).ldelim();
     }
     for (const v of message.devices) {
-      Device.encode(v!, writer.uint32(90).fork()).ldelim();
+      Device.encode(v!, writer.uint32(98).fork()).ldelim();
     }
     for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(98).fork()).ldelim();
+      Group.encode(v!, writer.uint32(106).fork()).ldelim();
     }
     return writer;
   },
@@ -3923,80 +3928,87 @@ export const User = {
             break;
           }
 
-          message.machineId = longToNumber(reader.uint64() as Long);
+          message.id = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
-          if (tag !== 18) {
+          if (tag !== 16) {
             break;
           }
 
-          message.name = reader.string();
+          message.machineId = longToNumber(reader.uint64() as Long);
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.picture = reader.string();
+          message.name = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.email = reader.string();
+          message.picture = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.role = reader.string();
+          message.email = reader.string();
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.joined = reader.string();
+          message.role = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.lastSeen = reader.string();
+          message.joined = reader.string();
           continue;
         case 8:
-          if (tag !== 64) {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.lastSeen = reader.string();
+          continue;
+        case 9:
+          if (tag !== 72) {
             break;
           }
 
           message.status = reader.bool();
-          continue;
-        case 9:
-          if (tag !== 74) {
-            break;
-          }
-
-          message.fleets.push(Fleet.decode(reader, reader.uint32()));
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.resources.push(Resource.decode(reader, reader.uint32()));
+          message.fleets.push(Fleet.decode(reader, reader.uint32()));
           continue;
         case 11:
           if (tag !== 90) {
             break;
           }
 
-          message.devices.push(Device.decode(reader, reader.uint32()));
+          message.resources.push(Resource.decode(reader, reader.uint32()));
           continue;
         case 12:
           if (tag !== 98) {
+            break;
+          }
+
+          message.devices.push(Device.decode(reader, reader.uint32()));
+          continue;
+        case 13:
+          if (tag !== 106) {
             break;
           }
 
@@ -4013,6 +4025,7 @@ export const User = {
 
   fromJSON(object: any): User {
     return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
@@ -4032,6 +4045,9 @@ export const User = {
 
   toJSON(message: User): unknown {
     const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
     if (message.machineId !== 0) {
       obj.machineId = Math.round(message.machineId);
     }
@@ -4076,6 +4092,7 @@ export const User = {
   },
   fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
     const message = createBaseUser();
+    message.id = object.id ?? 0;
     message.machineId = object.machineId ?? 0;
     message.name = object.name ?? "";
     message.picture = object.picture ?? "";
