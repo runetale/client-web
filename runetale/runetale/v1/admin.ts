@@ -217,15 +217,8 @@ export interface GetAclsResponse {
 }
 
 export interface AclResponse {
-  id: string;
-  name: string;
-  desc: string;
   src: Node | undefined;
   dst: Node | undefined;
-  proto: string;
-  port: number;
-  age: string;
-  type: string;
 }
 
 export interface GetMeResponse {
@@ -983,37 +976,16 @@ export const GetAclsResponse = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: "", port: 0, age: "", type: "" };
+  return { src: undefined, dst: undefined };
 }
 
 export const AclResponse = {
   encode(message: AclResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
-    }
-    if (message.name !== "") {
-      writer.uint32(18).string(message.name);
-    }
-    if (message.desc !== "") {
-      writer.uint32(26).string(message.desc);
-    }
     if (message.src !== undefined) {
-      Node.encode(message.src, writer.uint32(34).fork()).ldelim();
+      Node.encode(message.src, writer.uint32(10).fork()).ldelim();
     }
     if (message.dst !== undefined) {
-      Node.encode(message.dst, writer.uint32(42).fork()).ldelim();
-    }
-    if (message.proto !== "") {
-      writer.uint32(50).string(message.proto);
-    }
-    if (message.port !== 0) {
-      writer.uint32(56).uint64(message.port);
-    }
-    if (message.age !== "") {
-      writer.uint32(66).string(message.age);
-    }
-    if (message.type !== "") {
-      writer.uint32(74).string(message.type);
+      Node.encode(message.dst, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
@@ -1030,63 +1002,14 @@ export const AclResponse = {
             break;
           }
 
-          message.id = reader.string();
+          message.src = Node.decode(reader, reader.uint32());
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.name = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.desc = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.src = Node.decode(reader, reader.uint32());
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
           message.dst = Node.decode(reader, reader.uint32());
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.proto = reader.string();
-          continue;
-        case 7:
-          if (tag !== 56) {
-            break;
-          }
-
-          message.port = longToNumber(reader.uint64() as Long);
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.age = reader.string();
-          continue;
-        case 9:
-          if (tag !== 74) {
-            break;
-          }
-
-          message.type = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1099,46 +1022,18 @@ export const AclResponse = {
 
   fromJSON(object: any): AclResponse {
     return {
-      id: isSet(object.id) ? globalThis.String(object.id) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       src: isSet(object.src) ? Node.fromJSON(object.src) : undefined,
       dst: isSet(object.dst) ? Node.fromJSON(object.dst) : undefined,
-      proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
-      age: isSet(object.age) ? globalThis.String(object.age) : "",
-      type: isSet(object.type) ? globalThis.String(object.type) : "",
     };
   },
 
   toJSON(message: AclResponse): unknown {
     const obj: any = {};
-    if (message.id !== "") {
-      obj.id = message.id;
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.desc !== "") {
-      obj.desc = message.desc;
-    }
     if (message.src !== undefined) {
       obj.src = Node.toJSON(message.src);
     }
     if (message.dst !== undefined) {
       obj.dst = Node.toJSON(message.dst);
-    }
-    if (message.proto !== "") {
-      obj.proto = message.proto;
-    }
-    if (message.port !== 0) {
-      obj.port = Math.round(message.port);
-    }
-    if (message.age !== "") {
-      obj.age = message.age;
-    }
-    if (message.type !== "") {
-      obj.type = message.type;
     }
     return obj;
   },
@@ -1148,15 +1043,8 @@ export const AclResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<AclResponse>, I>>(object: I): AclResponse {
     const message = createBaseAclResponse();
-    message.id = object.id ?? "";
-    message.name = object.name ?? "";
-    message.desc = object.desc ?? "";
     message.src = (object.src !== undefined && object.src !== null) ? Node.fromPartial(object.src) : undefined;
     message.dst = (object.dst !== undefined && object.dst !== null) ? Node.fromPartial(object.dst) : undefined;
-    message.proto = object.proto ?? "";
-    message.port = object.port ?? 0;
-    message.age = object.age ?? "";
-    message.type = object.type ?? "";
     return message;
   },
 };
