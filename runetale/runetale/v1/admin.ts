@@ -216,6 +216,10 @@ export interface GetAclsResponse {
   acls: AclResponse[];
 }
 
+export interface GetAclsJsonResponse {
+  json: string;
+}
+
 export interface AclResponse {
   id: string;
   name: string;
@@ -978,6 +982,63 @@ export const GetAclsResponse = {
   fromPartial<I extends Exact<DeepPartial<GetAclsResponse>, I>>(object: I): GetAclsResponse {
     const message = createBaseGetAclsResponse();
     message.acls = object.acls?.map((e) => AclResponse.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseGetAclsJsonResponse(): GetAclsJsonResponse {
+  return { json: "" };
+}
+
+export const GetAclsJsonResponse = {
+  encode(message: GetAclsJsonResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.json !== "") {
+      writer.uint32(10).string(message.json);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetAclsJsonResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetAclsJsonResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.json = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetAclsJsonResponse {
+    return { json: isSet(object.json) ? globalThis.String(object.json) : "" };
+  },
+
+  toJSON(message: GetAclsJsonResponse): unknown {
+    const obj: any = {};
+    if (message.json !== "") {
+      obj.json = message.json;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetAclsJsonResponse>, I>>(base?: I): GetAclsJsonResponse {
+    return GetAclsJsonResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetAclsJsonResponse>, I>>(object: I): GetAclsJsonResponse {
+    const message = createBaseGetAclsJsonResponse();
+    message.json = object.json ?? "";
     return message;
   },
 };
@@ -4416,6 +4477,7 @@ export interface AclService {
   CreateAcl(request: DeepPartial<CreateAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
   GetAcl(request: DeepPartial<GetAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
   GetAcls(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetAclsResponse>;
+  GetAclsJson(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetAclsJsonResponse>;
 }
 
 export class AclServiceClientImpl implements AclService {
@@ -4426,6 +4488,7 @@ export class AclServiceClientImpl implements AclService {
     this.CreateAcl = this.CreateAcl.bind(this);
     this.GetAcl = this.GetAcl.bind(this);
     this.GetAcls = this.GetAcls.bind(this);
+    this.GetAclsJson = this.GetAclsJson.bind(this);
   }
 
   CreateAcl(request: DeepPartial<CreateAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse> {
@@ -4438,6 +4501,10 @@ export class AclServiceClientImpl implements AclService {
 
   GetAcls(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetAclsResponse> {
     return this.rpc.unary(AclServiceGetAclsDesc, Empty.fromPartial(request), metadata);
+  }
+
+  GetAclsJson(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetAclsJsonResponse> {
+    return this.rpc.unary(AclServiceGetAclsJsonDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -4502,6 +4569,29 @@ export const AclServiceGetAclsDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetAclsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AclServiceGetAclsJsonDesc: UnaryMethodDefinitionish = {
+  methodName: "GetAclsJson",
+  service: AclServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetAclsJsonResponse.decode(data);
       return {
         ...value,
         toObject() {
