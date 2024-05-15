@@ -383,6 +383,12 @@ export interface Overview {
   resourcesAmount: number;
 }
 
+export interface Onbording {
+  isOnbording: boolean;
+  /** invite new user */
+  inviteLink: string;
+}
+
 export interface Node {
   fleets: Fleet[];
   resources: Resource[];
@@ -3324,6 +3330,80 @@ export const Overview = {
   },
 };
 
+function createBaseOnbording(): Onbording {
+  return { isOnbording: false, inviteLink: "" };
+}
+
+export const Onbording = {
+  encode(message: Onbording, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.isOnbording !== false) {
+      writer.uint32(8).bool(message.isOnbording);
+    }
+    if (message.inviteLink !== "") {
+      writer.uint32(18).string(message.inviteLink);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Onbording {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseOnbording();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.isOnbording = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.inviteLink = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Onbording {
+    return {
+      isOnbording: isSet(object.isOnbording) ? globalThis.Boolean(object.isOnbording) : false,
+      inviteLink: isSet(object.inviteLink) ? globalThis.String(object.inviteLink) : "",
+    };
+  },
+
+  toJSON(message: Onbording): unknown {
+    const obj: any = {};
+    if (message.isOnbording !== false) {
+      obj.isOnbording = message.isOnbording;
+    }
+    if (message.inviteLink !== "") {
+      obj.inviteLink = message.inviteLink;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Onbording>, I>>(base?: I): Onbording {
+    return Onbording.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Onbording>, I>>(object: I): Onbording {
+    const message = createBaseOnbording();
+    message.isOnbording = object.isOnbording ?? false;
+    message.inviteLink = object.inviteLink ?? "";
+    return message;
+  },
+};
+
 function createBaseNode(): Node {
   return { fleets: [], resources: [], groups: [], users: [], inks: [], devices: [] };
 }
@@ -4628,6 +4708,7 @@ export interface AdminService {
   PatchInk(request: DeepPartial<PatchInkRequest>, metadata?: grpc.Metadata): Promise<Ink>;
   /** overview */
   GetOverview(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Overview>;
+  GetOnbording(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Onbording>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -4662,6 +4743,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetInks = this.GetInks.bind(this);
     this.PatchInk = this.PatchInk.bind(this);
     this.GetOverview = this.GetOverview.bind(this);
+    this.GetOnbording = this.GetOnbording.bind(this);
   }
 
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse> {
@@ -4773,6 +4855,10 @@ export class AdminServiceClientImpl implements AdminService {
 
   GetOverview(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Overview> {
     return this.rpc.unary(AdminServiceGetOverviewDesc, Empty.fromPartial(request), metadata);
+  }
+
+  GetOnbording(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Onbording> {
+    return this.rpc.unary(AdminServiceGetOnbordingDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -5389,6 +5475,29 @@ export const AdminServiceGetOverviewDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = Overview.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGetOnbordingDesc: UnaryMethodDefinitionish = {
+  methodName: "GetOnbording",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Onbording.decode(data);
       return {
         ...value,
         toObject() {
