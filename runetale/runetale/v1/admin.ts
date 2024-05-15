@@ -4708,7 +4708,7 @@ export interface AdminService {
   PatchInk(request: DeepPartial<PatchInkRequest>, metadata?: grpc.Metadata): Promise<Ink>;
   /** overview */
   GetOverview(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Overview>;
-  GetOnbording(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Onboarding>;
+  GetOnboarding(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Onboarding>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -4743,7 +4743,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetInks = this.GetInks.bind(this);
     this.PatchInk = this.PatchInk.bind(this);
     this.GetOverview = this.GetOverview.bind(this);
-    this.GetOnbording = this.GetOnbording.bind(this);
+    this.GetOnboarding = this.GetOnboarding.bind(this);
   }
 
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse> {
@@ -4857,8 +4857,8 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGetOverviewDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetOnbording(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Onboarding> {
-    return this.rpc.unary(AdminServiceGetOnbordingDesc, Empty.fromPartial(request), metadata);
+  GetOnboarding(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Onboarding> {
+    return this.rpc.unary(AdminServiceGetOnboardingDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -5485,8 +5485,8 @@ export const AdminServiceGetOverviewDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const AdminServiceGetOnbordingDesc: UnaryMethodDefinitionish = {
-  methodName: "GetOnbording",
+export const AdminServiceGetOnboardingDesc: UnaryMethodDefinitionish = {
+  methodName: "GetOnboarding",
   service: AdminServiceDesc,
   requestStream: false,
   responseStream: false,
