@@ -383,8 +383,8 @@ export interface Overview {
   resourcesAmount: number;
 }
 
-export interface Onbording {
-  isOnbording: boolean;
+export interface Onboarding {
+  isOnboarding: boolean;
   /** invite new user */
   inviteLink: string;
 }
@@ -3330,14 +3330,14 @@ export const Overview = {
   },
 };
 
-function createBaseOnbording(): Onbording {
-  return { isOnbording: false, inviteLink: "" };
+function createBaseOnboarding(): Onboarding {
+  return { isOnboarding: false, inviteLink: "" };
 }
 
-export const Onbording = {
-  encode(message: Onbording, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.isOnbording !== false) {
-      writer.uint32(8).bool(message.isOnbording);
+export const Onboarding = {
+  encode(message: Onboarding, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.isOnboarding !== false) {
+      writer.uint32(8).bool(message.isOnboarding);
     }
     if (message.inviteLink !== "") {
       writer.uint32(18).string(message.inviteLink);
@@ -3345,10 +3345,10 @@ export const Onbording = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Onbording {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Onboarding {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseOnbording();
+    const message = createBaseOnboarding();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3357,7 +3357,7 @@ export const Onbording = {
             break;
           }
 
-          message.isOnbording = reader.bool();
+          message.isOnboarding = reader.bool();
           continue;
         case 2:
           if (tag !== 18) {
@@ -3375,17 +3375,17 @@ export const Onbording = {
     return message;
   },
 
-  fromJSON(object: any): Onbording {
+  fromJSON(object: any): Onboarding {
     return {
-      isOnbording: isSet(object.isOnbording) ? globalThis.Boolean(object.isOnbording) : false,
+      isOnboarding: isSet(object.isOnboarding) ? globalThis.Boolean(object.isOnboarding) : false,
       inviteLink: isSet(object.inviteLink) ? globalThis.String(object.inviteLink) : "",
     };
   },
 
-  toJSON(message: Onbording): unknown {
+  toJSON(message: Onboarding): unknown {
     const obj: any = {};
-    if (message.isOnbording !== false) {
-      obj.isOnbording = message.isOnbording;
+    if (message.isOnboarding !== false) {
+      obj.isOnboarding = message.isOnboarding;
     }
     if (message.inviteLink !== "") {
       obj.inviteLink = message.inviteLink;
@@ -3393,12 +3393,12 @@ export const Onbording = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Onbording>, I>>(base?: I): Onbording {
-    return Onbording.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Onboarding>, I>>(base?: I): Onboarding {
+    return Onboarding.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Onbording>, I>>(object: I): Onbording {
-    const message = createBaseOnbording();
-    message.isOnbording = object.isOnbording ?? false;
+  fromPartial<I extends Exact<DeepPartial<Onboarding>, I>>(object: I): Onboarding {
+    const message = createBaseOnboarding();
+    message.isOnboarding = object.isOnboarding ?? false;
     message.inviteLink = object.inviteLink ?? "";
     return message;
   },
@@ -4708,7 +4708,7 @@ export interface AdminService {
   PatchInk(request: DeepPartial<PatchInkRequest>, metadata?: grpc.Metadata): Promise<Ink>;
   /** overview */
   GetOverview(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Overview>;
-  GetOnbording(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Onbording>;
+  GetOnbording(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Onboarding>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -4857,7 +4857,7 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGetOverviewDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetOnbording(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Onbording> {
+  GetOnbording(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Onboarding> {
     return this.rpc.unary(AdminServiceGetOnbordingDesc, Empty.fromPartial(request), metadata);
   }
 }
@@ -5497,7 +5497,7 @@ export const AdminServiceGetOnbordingDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = Onbording.decode(data);
+      const value = Onboarding.decode(data);
       return {
         ...value,
         toObject() {
