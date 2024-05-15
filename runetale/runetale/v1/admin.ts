@@ -4620,7 +4620,7 @@ export interface AdminService {
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleets(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Fleets>;
-  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Group>;
+  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   /** inks */
   CreateInk(request: DeepPartial<CreateInkRequest>, metadata?: grpc.Metadata): Promise<Ink>;
   GetInk(request: DeepPartial<GetInkRequest>, metadata?: grpc.Metadata): Promise<Ink>;
@@ -4751,7 +4751,7 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGetFleetsDesc, Empty.fromPartial(request), metadata);
   }
 
-  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Group> {
+  PatchFleet(request: DeepPartial<PatchFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
     return this.rpc.unary(AdminServicePatchFleetDesc, PatchFleetRequest.fromPartial(request), metadata);
   }
 
@@ -5273,7 +5273,7 @@ export const AdminServicePatchFleetDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = Group.decode(data);
+      const value = Fleet.decode(data);
       return {
         ...value,
         toObject() {
