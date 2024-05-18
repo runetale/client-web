@@ -411,7 +411,6 @@ export interface Machine {
   email: string;
   ip: string;
   os: string;
-  host: string;
   domain: string;
   updatedAt: string;
   createdBy: string;
@@ -3636,7 +3635,7 @@ export const Fleet = {
 };
 
 function createBaseMachine(): Machine {
-  return { machineId: 0, name: "", email: "", ip: "", os: "", host: "", domain: "", updatedAt: "", createdBy: "" };
+  return { machineId: 0, name: "", email: "", ip: "", os: "", domain: "", updatedAt: "", createdBy: "" };
 }
 
 export const Machine = {
@@ -3656,17 +3655,14 @@ export const Machine = {
     if (message.os !== "") {
       writer.uint32(42).string(message.os);
     }
-    if (message.host !== "") {
-      writer.uint32(50).string(message.host);
-    }
     if (message.domain !== "") {
-      writer.uint32(58).string(message.domain);
+      writer.uint32(50).string(message.domain);
     }
     if (message.updatedAt !== "") {
-      writer.uint32(66).string(message.updatedAt);
+      writer.uint32(58).string(message.updatedAt);
     }
     if (message.createdBy !== "") {
-      writer.uint32(74).string(message.createdBy);
+      writer.uint32(66).string(message.createdBy);
     }
     return writer;
   },
@@ -3718,24 +3714,17 @@ export const Machine = {
             break;
           }
 
-          message.host = reader.string();
+          message.domain = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.domain = reader.string();
+          message.updatedAt = reader.string();
           continue;
         case 8:
           if (tag !== 66) {
-            break;
-          }
-
-          message.updatedAt = reader.string();
-          continue;
-        case 9:
-          if (tag !== 74) {
             break;
           }
 
@@ -3757,7 +3746,6 @@ export const Machine = {
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
-      host: isSet(object.host) ? globalThis.String(object.host) : "",
       domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
       updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
@@ -3781,9 +3769,6 @@ export const Machine = {
     if (message.os !== "") {
       obj.os = message.os;
     }
-    if (message.host !== "") {
-      obj.host = message.host;
-    }
     if (message.domain !== "") {
       obj.domain = message.domain;
     }
@@ -3806,7 +3791,6 @@ export const Machine = {
     message.email = object.email ?? "";
     message.ip = object.ip ?? "";
     message.os = object.os ?? "";
-    message.host = object.host ?? "";
     message.domain = object.domain ?? "";
     message.updatedAt = object.updatedAt ?? "";
     message.createdBy = object.createdBy ?? "";
