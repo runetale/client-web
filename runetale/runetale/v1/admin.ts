@@ -405,19 +405,24 @@ export interface Fleet {
   resources: Resource[];
 }
 
-export interface Resource {
-  id: string;
+export interface Machine {
   machineId: number;
   name: string;
+  email: string;
   ip: string;
   os: string;
-  proto: string;
-  port: string;
-  status: boolean;
-  /** only when status false */
-  lastSeen: string;
-  /** if made with token, managedBy is returned. */
+  host: string;
+  domain: string;
+  updatedAt: string;
   createdBy: string;
+}
+
+export interface Resource {
+  id: string;
+  name: string;
+  machines: Machine[];
+  age: string;
+  type: DeploymentMethod;
 }
 
 export interface Group {
@@ -3628,31 +3633,20 @@ export const Fleet = {
   },
 };
 
-function createBaseResource(): Resource {
-  return {
-    id: "",
-    machineId: 0,
-    name: "",
-    ip: "",
-    os: "",
-    proto: "",
-    port: "",
-    status: false,
-    lastSeen: "",
-    createdBy: "",
-  };
+function createBaseMachine(): Machine {
+  return { machineId: 0, name: "", email: "", ip: "", os: "", host: "", domain: "", updatedAt: "", createdBy: "" };
 }
 
-export const Resource = {
-  encode(message: Resource, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
-    }
+export const Machine = {
+  encode(message: Machine, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.machineId !== 0) {
-      writer.uint32(16).uint64(message.machineId);
+      writer.uint32(8).uint64(message.machineId);
     }
     if (message.name !== "") {
-      writer.uint32(26).string(message.name);
+      writer.uint32(18).string(message.name);
+    }
+    if (message.email !== "") {
+      writer.uint32(26).string(message.email);
     }
     if (message.ip !== "") {
       writer.uint32(34).string(message.ip);
@@ -3660,51 +3654,48 @@ export const Resource = {
     if (message.os !== "") {
       writer.uint32(42).string(message.os);
     }
-    if (message.proto !== "") {
-      writer.uint32(50).string(message.proto);
+    if (message.host !== "") {
+      writer.uint32(50).string(message.host);
     }
-    if (message.port !== "") {
-      writer.uint32(58).string(message.port);
+    if (message.domain !== "") {
+      writer.uint32(58).string(message.domain);
     }
-    if (message.status !== false) {
-      writer.uint32(64).bool(message.status);
-    }
-    if (message.lastSeen !== "") {
-      writer.uint32(74).string(message.lastSeen);
+    if (message.updatedAt !== "") {
+      writer.uint32(66).string(message.updatedAt);
     }
     if (message.createdBy !== "") {
-      writer.uint32(82).string(message.createdBy);
+      writer.uint32(74).string(message.createdBy);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Resource {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Machine {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseResource();
+    const message = createBaseMachine();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.id = reader.string();
-          continue;
-        case 2:
-          if (tag !== 16) {
+          if (tag !== 8) {
             break;
           }
 
           message.machineId = longToNumber(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.name = reader.string();
+          message.email = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
@@ -3725,31 +3716,24 @@ export const Resource = {
             break;
           }
 
-          message.proto = reader.string();
+          message.host = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.port = reader.string();
+          message.domain = reader.string();
           continue;
         case 8:
-          if (tag !== 64) {
+          if (tag !== 66) {
             break;
           }
 
-          message.status = reader.bool();
+          message.updatedAt = reader.string();
           continue;
         case 9:
           if (tag !== 74) {
-            break;
-          }
-
-          message.lastSeen = reader.string();
-          continue;
-        case 10:
-          if (tag !== 82) {
             break;
           }
 
@@ -3764,18 +3748,152 @@ export const Resource = {
     return message;
   },
 
+  fromJSON(object: any): Machine {
+    return {
+      machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      os: isSet(object.os) ? globalThis.String(object.os) : "",
+      host: isSet(object.host) ? globalThis.String(object.host) : "",
+      domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
+      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
+      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
+    };
+  },
+
+  toJSON(message: Machine): unknown {
+    const obj: any = {};
+    if (message.machineId !== 0) {
+      obj.machineId = Math.round(message.machineId);
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.os !== "") {
+      obj.os = message.os;
+    }
+    if (message.host !== "") {
+      obj.host = message.host;
+    }
+    if (message.domain !== "") {
+      obj.domain = message.domain;
+    }
+    if (message.updatedAt !== "") {
+      obj.updatedAt = message.updatedAt;
+    }
+    if (message.createdBy !== "") {
+      obj.createdBy = message.createdBy;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Machine>, I>>(base?: I): Machine {
+    return Machine.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Machine>, I>>(object: I): Machine {
+    const message = createBaseMachine();
+    message.machineId = object.machineId ?? 0;
+    message.name = object.name ?? "";
+    message.email = object.email ?? "";
+    message.ip = object.ip ?? "";
+    message.os = object.os ?? "";
+    message.host = object.host ?? "";
+    message.domain = object.domain ?? "";
+    message.updatedAt = object.updatedAt ?? "";
+    message.createdBy = object.createdBy ?? "";
+    return message;
+  },
+};
+
+function createBaseResource(): Resource {
+  return { id: "", name: "", machines: [], age: "", type: 0 };
+}
+
+export const Resource = {
+  encode(message: Resource, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    for (const v of message.machines) {
+      Machine.encode(v!, writer.uint32(26).fork()).ldelim();
+    }
+    if (message.age !== "") {
+      writer.uint32(34).string(message.age);
+    }
+    if (message.type !== 0) {
+      writer.uint32(40).int32(message.type);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Resource {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResource();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.machines.push(Machine.decode(reader, reader.uint32()));
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.age = reader.string();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.type = reader.int32() as any;
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
   fromJSON(object: any): Resource {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
-      machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      os: isSet(object.os) ? globalThis.String(object.os) : "",
-      proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
-      status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
-      lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
-      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
+      machines: globalThis.Array.isArray(object?.machines) ? object.machines.map((e: any) => Machine.fromJSON(e)) : [],
+      age: isSet(object.age) ? globalThis.String(object.age) : "",
+      type: isSet(object.type) ? deploymentMethodFromJSON(object.type) : 0,
     };
   },
 
@@ -3784,32 +3902,17 @@ export const Resource = {
     if (message.id !== "") {
       obj.id = message.id;
     }
-    if (message.machineId !== 0) {
-      obj.machineId = Math.round(message.machineId);
-    }
     if (message.name !== "") {
       obj.name = message.name;
     }
-    if (message.ip !== "") {
-      obj.ip = message.ip;
+    if (message.machines?.length) {
+      obj.machines = message.machines.map((e) => Machine.toJSON(e));
     }
-    if (message.os !== "") {
-      obj.os = message.os;
+    if (message.age !== "") {
+      obj.age = message.age;
     }
-    if (message.proto !== "") {
-      obj.proto = message.proto;
-    }
-    if (message.port !== "") {
-      obj.port = message.port;
-    }
-    if (message.status !== false) {
-      obj.status = message.status;
-    }
-    if (message.lastSeen !== "") {
-      obj.lastSeen = message.lastSeen;
-    }
-    if (message.createdBy !== "") {
-      obj.createdBy = message.createdBy;
+    if (message.type !== 0) {
+      obj.type = deploymentMethodToJSON(message.type);
     }
     return obj;
   },
@@ -3820,15 +3923,10 @@ export const Resource = {
   fromPartial<I extends Exact<DeepPartial<Resource>, I>>(object: I): Resource {
     const message = createBaseResource();
     message.id = object.id ?? "";
-    message.machineId = object.machineId ?? 0;
     message.name = object.name ?? "";
-    message.ip = object.ip ?? "";
-    message.os = object.os ?? "";
-    message.proto = object.proto ?? "";
-    message.port = object.port ?? "";
-    message.status = object.status ?? false;
-    message.lastSeen = object.lastSeen ?? "";
-    message.createdBy = object.createdBy ?? "";
+    message.machines = object.machines?.map((e) => Machine.fromPartial(e)) || [];
+    message.age = object.age ?? "";
+    message.type = object.type ?? 0;
     return message;
   },
 };
