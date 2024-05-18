@@ -322,13 +322,13 @@ export interface Ink {
   desc: string;
   domain: string;
   devices: Device[];
-  fleets: Fleet[];
-  resources: Resource[];
   age: string;
 }
 
 export interface CreateResourceRequest {
   name: string;
+  desc: string;
+  machineIds: number[];
 }
 
 export interface CreateResourceResponse {
@@ -403,11 +403,10 @@ export interface Fleet {
   domain: string;
   age: string;
   resources: Resource[];
-  users: User[];
-  groups: Group[];
 }
 
 export interface Resource {
+  id: string;
   machineId: number;
   name: string;
   ip: string;
@@ -419,18 +418,12 @@ export interface Resource {
   lastSeen: string;
   /** if made with token, managedBy is returned. */
   createdBy: string;
-  fleets: Fleet[];
-  users: User[];
-  groups: Group[];
-  resources: Resource[];
 }
 
 export interface Group {
   id: string;
   name: string;
   users: User[];
-  fleets: Fleet[];
-  resources: Resource[];
   age: string;
   type: string;
 }
@@ -446,10 +439,6 @@ export interface User {
   /** only when status false */
   lastSeen: string;
   status: boolean;
-  fleets: Fleet[];
-  resources: Resource[];
-  devices: Device[];
-  groups: Group[];
 }
 
 export interface Device {
@@ -466,10 +455,6 @@ export interface Device {
   nodeKey: string;
   createdAt: string;
   keyExpiry: string;
-  fleets: Fleet[];
-  resources: Resource[];
-  groups: Group[];
-  devices: Device[];
 }
 
 function createBaseCreateAclRequest(): CreateAclRequest {
@@ -2332,7 +2317,7 @@ export const Inks = {
 };
 
 function createBaseInk(): Ink {
-  return { id: "", name: "", desc: "", domain: "", devices: [], fleets: [], resources: [], age: "" };
+  return { id: "", name: "", desc: "", domain: "", devices: [], age: "" };
 }
 
 export const Ink = {
@@ -2352,14 +2337,8 @@ export const Ink = {
     for (const v of message.devices) {
       Device.encode(v!, writer.uint32(42).fork()).ldelim();
     }
-    for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(50).fork()).ldelim();
-    }
-    for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(58).fork()).ldelim();
-    }
     if (message.age !== "") {
-      writer.uint32(66).string(message.age);
+      writer.uint32(50).string(message.age);
     }
     return writer;
   },
@@ -2411,20 +2390,6 @@ export const Ink = {
             break;
           }
 
-          message.fleets.push(Fleet.decode(reader, reader.uint32()));
-          continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.resources.push(Resource.decode(reader, reader.uint32()));
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
           message.age = reader.string();
           continue;
       }
@@ -2443,10 +2408,6 @@ export const Ink = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
       devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
-      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
-      resources: globalThis.Array.isArray(object?.resources)
-        ? object.resources.map((e: any) => Resource.fromJSON(e))
-        : [],
       age: isSet(object.age) ? globalThis.String(object.age) : "",
     };
   },
@@ -2468,12 +2429,6 @@ export const Ink = {
     if (message.devices?.length) {
       obj.devices = message.devices.map((e) => Device.toJSON(e));
     }
-    if (message.fleets?.length) {
-      obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
-    }
-    if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => Resource.toJSON(e));
-    }
     if (message.age !== "") {
       obj.age = message.age;
     }
@@ -2490,15 +2445,13 @@ export const Ink = {
     message.desc = object.desc ?? "";
     message.domain = object.domain ?? "";
     message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
-    message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
-    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     message.age = object.age ?? "";
     return message;
   },
 };
 
 function createBaseCreateResourceRequest(): CreateResourceRequest {
-  return { name: "" };
+  return { name: "", desc: "", machineIds: [] };
 }
 
 export const CreateResourceRequest = {
@@ -2506,6 +2459,14 @@ export const CreateResourceRequest = {
     if (message.name !== "") {
       writer.uint32(10).string(message.name);
     }
+    if (message.desc !== "") {
+      writer.uint32(18).string(message.desc);
+    }
+    writer.uint32(26).fork();
+    for (const v of message.machineIds) {
+      writer.uint64(v);
+    }
+    writer.ldelim();
     return writer;
   },
 
@@ -2523,6 +2484,30 @@ export const CreateResourceRequest = {
 
           message.name = reader.string();
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 3:
+          if (tag === 24) {
+            message.machineIds.push(longToNumber(reader.uint64() as Long));
+
+            continue;
+          }
+
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.machineIds.push(longToNumber(reader.uint64() as Long));
+            }
+
+            continue;
+          }
+
+          break;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2533,13 +2518,25 @@ export const CreateResourceRequest = {
   },
 
   fromJSON(object: any): CreateResourceRequest {
-    return { name: isSet(object.name) ? globalThis.String(object.name) : "" };
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      machineIds: globalThis.Array.isArray(object?.machineIds)
+        ? object.machineIds.map((e: any) => globalThis.Number(e))
+        : [],
+    };
   },
 
   toJSON(message: CreateResourceRequest): unknown {
     const obj: any = {};
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
+    }
+    if (message.machineIds?.length) {
+      obj.machineIds = message.machineIds.map((e) => Math.round(e));
     }
     return obj;
   },
@@ -2550,6 +2547,8 @@ export const CreateResourceRequest = {
   fromPartial<I extends Exact<DeepPartial<CreateResourceRequest>, I>>(object: I): CreateResourceRequest {
     const message = createBaseCreateResourceRequest();
     message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
+    message.machineIds = object.machineIds?.map((e) => e) || [];
     return message;
   },
 };
@@ -3494,7 +3493,7 @@ export const Node = {
 };
 
 function createBaseFleet(): Fleet {
-  return { id: "", name: "", desc: "", domain: "", age: "", resources: [], users: [], groups: [] };
+  return { id: "", name: "", desc: "", domain: "", age: "", resources: [] };
 }
 
 export const Fleet = {
@@ -3516,12 +3515,6 @@ export const Fleet = {
     }
     for (const v of message.resources) {
       Resource.encode(v!, writer.uint32(50).fork()).ldelim();
-    }
-    for (const v of message.users) {
-      User.encode(v!, writer.uint32(58).fork()).ldelim();
-    }
-    for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(66).fork()).ldelim();
     }
     return writer;
   },
@@ -3575,20 +3568,6 @@ export const Fleet = {
 
           message.resources.push(Resource.decode(reader, reader.uint32()));
           continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.users.push(User.decode(reader, reader.uint32()));
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.groups.push(Group.decode(reader, reader.uint32()));
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3608,8 +3587,6 @@ export const Fleet = {
       resources: globalThis.Array.isArray(object?.resources)
         ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
-      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
-      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
     };
   },
 
@@ -3633,12 +3610,6 @@ export const Fleet = {
     if (message.resources?.length) {
       obj.resources = message.resources.map((e) => Resource.toJSON(e));
     }
-    if (message.users?.length) {
-      obj.users = message.users.map((e) => User.toJSON(e));
-    }
-    if (message.groups?.length) {
-      obj.groups = message.groups.map((e) => Group.toJSON(e));
-    }
     return obj;
   },
 
@@ -3653,14 +3624,13 @@ export const Fleet = {
     message.domain = object.domain ?? "";
     message.age = object.age ?? "";
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
-    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
-    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseResource(): Resource {
   return {
+    id: "",
     machineId: 0,
     name: "",
     ip: "",
@@ -3670,53 +3640,40 @@ function createBaseResource(): Resource {
     status: false,
     lastSeen: "",
     createdBy: "",
-    fleets: [],
-    users: [],
-    groups: [],
-    resources: [],
   };
 }
 
 export const Resource = {
   encode(message: Resource, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
     if (message.machineId !== 0) {
-      writer.uint32(8).uint64(message.machineId);
+      writer.uint32(16).uint64(message.machineId);
     }
     if (message.name !== "") {
-      writer.uint32(18).string(message.name);
+      writer.uint32(26).string(message.name);
     }
     if (message.ip !== "") {
-      writer.uint32(26).string(message.ip);
+      writer.uint32(34).string(message.ip);
     }
     if (message.os !== "") {
-      writer.uint32(34).string(message.os);
+      writer.uint32(42).string(message.os);
     }
     if (message.proto !== "") {
-      writer.uint32(42).string(message.proto);
+      writer.uint32(50).string(message.proto);
     }
     if (message.port !== "") {
-      writer.uint32(50).string(message.port);
+      writer.uint32(58).string(message.port);
     }
     if (message.status !== false) {
-      writer.uint32(56).bool(message.status);
+      writer.uint32(64).bool(message.status);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(66).string(message.lastSeen);
+      writer.uint32(74).string(message.lastSeen);
     }
     if (message.createdBy !== "") {
-      writer.uint32(74).string(message.createdBy);
-    }
-    for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(82).fork()).ldelim();
-    }
-    for (const v of message.users) {
-      User.encode(v!, writer.uint32(90).fork()).ldelim();
-    }
-    for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(98).fork()).ldelim();
-    }
-    for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(106).fork()).ldelim();
+      writer.uint32(82).string(message.createdBy);
     }
     return writer;
   },
@@ -3729,95 +3686,74 @@ export const Resource = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
             break;
           }
 
           message.machineId = longToNumber(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.ip = reader.string();
+          message.name = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.os = reader.string();
+          message.ip = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.proto = reader.string();
+          message.os = reader.string();
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.port = reader.string();
+          message.proto = reader.string();
           continue;
         case 7:
-          if (tag !== 56) {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.port = reader.string();
+          continue;
+        case 8:
+          if (tag !== 64) {
             break;
           }
 
           message.status = reader.bool();
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.lastSeen = reader.string();
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.createdBy = reader.string();
+          message.lastSeen = reader.string();
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.fleets.push(Fleet.decode(reader, reader.uint32()));
-          continue;
-        case 11:
-          if (tag !== 90) {
-            break;
-          }
-
-          message.users.push(User.decode(reader, reader.uint32()));
-          continue;
-        case 12:
-          if (tag !== 98) {
-            break;
-          }
-
-          message.groups.push(Group.decode(reader, reader.uint32()));
-          continue;
-        case 13:
-          if (tag !== 106) {
-            break;
-          }
-
-          message.resources.push(Resource.decode(reader, reader.uint32()));
+          message.createdBy = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3830,6 +3766,7 @@ export const Resource = {
 
   fromJSON(object: any): Resource {
     return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
       machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
@@ -3839,17 +3776,14 @@ export const Resource = {
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
-      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
-      users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
-      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
-      resources: globalThis.Array.isArray(object?.resources)
-        ? object.resources.map((e: any) => Resource.fromJSON(e))
-        : [],
     };
   },
 
   toJSON(message: Resource): unknown {
     const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
     if (message.machineId !== 0) {
       obj.machineId = Math.round(message.machineId);
     }
@@ -3877,18 +3811,6 @@ export const Resource = {
     if (message.createdBy !== "") {
       obj.createdBy = message.createdBy;
     }
-    if (message.fleets?.length) {
-      obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
-    }
-    if (message.users?.length) {
-      obj.users = message.users.map((e) => User.toJSON(e));
-    }
-    if (message.groups?.length) {
-      obj.groups = message.groups.map((e) => Group.toJSON(e));
-    }
-    if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => Resource.toJSON(e));
-    }
     return obj;
   },
 
@@ -3897,6 +3819,7 @@ export const Resource = {
   },
   fromPartial<I extends Exact<DeepPartial<Resource>, I>>(object: I): Resource {
     const message = createBaseResource();
+    message.id = object.id ?? "";
     message.machineId = object.machineId ?? 0;
     message.name = object.name ?? "";
     message.ip = object.ip ?? "";
@@ -3906,16 +3829,12 @@ export const Resource = {
     message.status = object.status ?? false;
     message.lastSeen = object.lastSeen ?? "";
     message.createdBy = object.createdBy ?? "";
-    message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
-    message.users = object.users?.map((e) => User.fromPartial(e)) || [];
-    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
-    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     return message;
   },
 };
 
 function createBaseGroup(): Group {
-  return { id: "", name: "", users: [], fleets: [], resources: [], age: "", type: "" };
+  return { id: "", name: "", users: [], age: "", type: "" };
 }
 
 export const Group = {
@@ -3929,17 +3848,11 @@ export const Group = {
     for (const v of message.users) {
       User.encode(v!, writer.uint32(26).fork()).ldelim();
     }
-    for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(34).fork()).ldelim();
-    }
-    for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(42).fork()).ldelim();
-    }
     if (message.age !== "") {
-      writer.uint32(50).string(message.age);
+      writer.uint32(34).string(message.age);
     }
     if (message.type !== "") {
-      writer.uint32(58).string(message.type);
+      writer.uint32(42).string(message.type);
     }
     return writer;
   },
@@ -3977,24 +3890,10 @@ export const Group = {
             break;
           }
 
-          message.fleets.push(Fleet.decode(reader, reader.uint32()));
+          message.age = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
-            break;
-          }
-
-          message.resources.push(Resource.decode(reader, reader.uint32()));
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.age = reader.string();
-          continue;
-        case 7:
-          if (tag !== 58) {
             break;
           }
 
@@ -4014,10 +3913,6 @@ export const Group = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
-      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
-      resources: globalThis.Array.isArray(object?.resources)
-        ? object.resources.map((e: any) => Resource.fromJSON(e))
-        : [],
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       type: isSet(object.type) ? globalThis.String(object.type) : "",
     };
@@ -4033,12 +3928,6 @@ export const Group = {
     }
     if (message.users?.length) {
       obj.users = message.users.map((e) => User.toJSON(e));
-    }
-    if (message.fleets?.length) {
-      obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
-    }
-    if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => Resource.toJSON(e));
     }
     if (message.age !== "") {
       obj.age = message.age;
@@ -4057,8 +3946,6 @@ export const Group = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
-    message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
-    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     message.age = object.age ?? "";
     message.type = object.type ?? "";
     return message;
@@ -4066,21 +3953,7 @@ export const Group = {
 };
 
 function createBaseUser(): User {
-  return {
-    id: 0,
-    machineId: 0,
-    name: "",
-    picture: "",
-    email: "",
-    role: "",
-    joined: "",
-    lastSeen: "",
-    status: false,
-    fleets: [],
-    resources: [],
-    devices: [],
-    groups: [],
-  };
+  return { id: 0, machineId: 0, name: "", picture: "", email: "", role: "", joined: "", lastSeen: "", status: false };
 }
 
 export const User = {
@@ -4111,18 +3984,6 @@ export const User = {
     }
     if (message.status !== false) {
       writer.uint32(72).bool(message.status);
-    }
-    for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(82).fork()).ldelim();
-    }
-    for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(90).fork()).ldelim();
-    }
-    for (const v of message.devices) {
-      Device.encode(v!, writer.uint32(98).fork()).ldelim();
-    }
-    for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(106).fork()).ldelim();
     }
     return writer;
   },
@@ -4197,34 +4058,6 @@ export const User = {
 
           message.status = reader.bool();
           continue;
-        case 10:
-          if (tag !== 82) {
-            break;
-          }
-
-          message.fleets.push(Fleet.decode(reader, reader.uint32()));
-          continue;
-        case 11:
-          if (tag !== 90) {
-            break;
-          }
-
-          message.resources.push(Resource.decode(reader, reader.uint32()));
-          continue;
-        case 12:
-          if (tag !== 98) {
-            break;
-          }
-
-          message.devices.push(Device.decode(reader, reader.uint32()));
-          continue;
-        case 13:
-          if (tag !== 106) {
-            break;
-          }
-
-          message.groups.push(Group.decode(reader, reader.uint32()));
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4245,12 +4078,6 @@ export const User = {
       joined: isSet(object.joined) ? globalThis.String(object.joined) : "",
       lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
-      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
-      resources: globalThis.Array.isArray(object?.resources)
-        ? object.resources.map((e: any) => Resource.fromJSON(e))
-        : [],
-      devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
-      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
     };
   },
 
@@ -4283,18 +4110,6 @@ export const User = {
     if (message.status !== false) {
       obj.status = message.status;
     }
-    if (message.fleets?.length) {
-      obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
-    }
-    if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => Resource.toJSON(e));
-    }
-    if (message.devices?.length) {
-      obj.devices = message.devices.map((e) => Device.toJSON(e));
-    }
-    if (message.groups?.length) {
-      obj.groups = message.groups.map((e) => Group.toJSON(e));
-    }
     return obj;
   },
 
@@ -4312,10 +4127,6 @@ export const User = {
     message.joined = object.joined ?? "";
     message.lastSeen = object.lastSeen ?? "";
     message.status = object.status ?? false;
-    message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
-    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
-    message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
-    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
     return message;
   },
 };
@@ -4334,10 +4145,6 @@ function createBaseDevice(): Device {
     nodeKey: "",
     createdAt: "",
     keyExpiry: "",
-    fleets: [],
-    resources: [],
-    groups: [],
-    devices: [],
   };
 }
 
@@ -4378,18 +4185,6 @@ export const Device = {
     }
     if (message.keyExpiry !== "") {
       writer.uint32(98).string(message.keyExpiry);
-    }
-    for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(106).fork()).ldelim();
-    }
-    for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(114).fork()).ldelim();
-    }
-    for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(122).fork()).ldelim();
-    }
-    for (const v of message.devices) {
-      Device.encode(v!, writer.uint32(130).fork()).ldelim();
     }
     return writer;
   },
@@ -4485,34 +4280,6 @@ export const Device = {
 
           message.keyExpiry = reader.string();
           continue;
-        case 13:
-          if (tag !== 106) {
-            break;
-          }
-
-          message.fleets.push(Fleet.decode(reader, reader.uint32()));
-          continue;
-        case 14:
-          if (tag !== 114) {
-            break;
-          }
-
-          message.resources.push(Resource.decode(reader, reader.uint32()));
-          continue;
-        case 15:
-          if (tag !== 122) {
-            break;
-          }
-
-          message.groups.push(Group.decode(reader, reader.uint32()));
-          continue;
-        case 16:
-          if (tag !== 130) {
-            break;
-          }
-
-          message.devices.push(Device.decode(reader, reader.uint32()));
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4536,12 +4303,6 @@ export const Device = {
       nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
       createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
       keyExpiry: isSet(object.keyExpiry) ? globalThis.String(object.keyExpiry) : "",
-      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
-      resources: globalThis.Array.isArray(object?.resources)
-        ? object.resources.map((e: any) => Resource.fromJSON(e))
-        : [],
-      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
-      devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
     };
   },
 
@@ -4583,18 +4344,6 @@ export const Device = {
     if (message.keyExpiry !== "") {
       obj.keyExpiry = message.keyExpiry;
     }
-    if (message.fleets?.length) {
-      obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
-    }
-    if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => Resource.toJSON(e));
-    }
-    if (message.groups?.length) {
-      obj.groups = message.groups.map((e) => Group.toJSON(e));
-    }
-    if (message.devices?.length) {
-      obj.devices = message.devices.map((e) => Device.toJSON(e));
-    }
     return obj;
   },
 
@@ -4615,10 +4364,6 @@ export const Device = {
     message.nodeKey = object.nodeKey ?? "";
     message.createdAt = object.createdAt ?? "";
     message.keyExpiry = object.keyExpiry ?? "";
-    message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
-    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
-    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
-    message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
     return message;
   },
 };
