@@ -399,32 +399,24 @@ export interface Fleet {
   id: string;
   name: string;
   desc: string;
-  /** created by domain */
-  domain: string;
-  age: string;
   resources: Resource[];
+  proto: string;
+  port: string;
+  age: string;
+  type: string;
+  createdBy: string;
 }
 
-export interface Machine {
+export interface Resource {
   machineId: number;
   name: string;
   email: string;
   ip: string;
   os: string;
   domain: string;
-  status: boolean;
-  updatedAt: string;
-  createdBy: string;
-}
-
-export interface Resource {
-  id: string;
-  name: string;
-  machines: Machine[];
-  proto: string;
-  port: string;
   age: string;
   type: string;
+  status: boolean;
   createdBy: string;
 }
 
@@ -3501,7 +3493,7 @@ export const Node = {
 };
 
 function createBaseFleet(): Fleet {
-  return { id: "", name: "", desc: "", domain: "", age: "", resources: [] };
+  return { id: "", name: "", desc: "", resources: [], proto: "", port: "", age: "", type: "", createdBy: "" };
 }
 
 export const Fleet = {
@@ -3515,14 +3507,23 @@ export const Fleet = {
     if (message.desc !== "") {
       writer.uint32(26).string(message.desc);
     }
-    if (message.domain !== "") {
-      writer.uint32(34).string(message.domain);
+    for (const v of message.resources) {
+      Resource.encode(v!, writer.uint32(34).fork()).ldelim();
+    }
+    if (message.proto !== "") {
+      writer.uint32(42).string(message.proto);
+    }
+    if (message.port !== "") {
+      writer.uint32(50).string(message.port);
     }
     if (message.age !== "") {
-      writer.uint32(42).string(message.age);
+      writer.uint32(58).string(message.age);
     }
-    for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(50).fork()).ldelim();
+    if (message.type !== "") {
+      writer.uint32(66).string(message.type);
+    }
+    if (message.createdBy !== "") {
+      writer.uint32(74).string(message.createdBy);
     }
     return writer;
   },
@@ -3560,21 +3561,42 @@ export const Fleet = {
             break;
           }
 
-          message.domain = reader.string();
+          message.resources.push(Resource.decode(reader, reader.uint32()));
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.age = reader.string();
+          message.proto = reader.string();
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.resources.push(Resource.decode(reader, reader.uint32()));
+          message.port = reader.string();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.age = reader.string();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.createdBy = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3590,11 +3612,14 @@ export const Fleet = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
-      age: isSet(object.age) ? globalThis.String(object.age) : "",
       resources: globalThis.Array.isArray(object?.resources)
         ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
+      proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
+      port: isSet(object.port) ? globalThis.String(object.port) : "",
+      age: isSet(object.age) ? globalThis.String(object.age) : "",
+      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
     };
   },
 
@@ -3609,14 +3634,23 @@ export const Fleet = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.domain !== "") {
-      obj.domain = message.domain;
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => Resource.toJSON(e));
+    }
+    if (message.proto !== "") {
+      obj.proto = message.proto;
+    }
+    if (message.port !== "") {
+      obj.port = message.port;
     }
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => Resource.toJSON(e));
+    if (message.type !== "") {
+      obj.type = message.type;
+    }
+    if (message.createdBy !== "") {
+      obj.createdBy = message.createdBy;
     }
     return obj;
   },
@@ -3629,19 +3663,33 @@ export const Fleet = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.domain = object.domain ?? "";
-    message.age = object.age ?? "";
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
+    message.proto = object.proto ?? "";
+    message.port = object.port ?? "";
+    message.age = object.age ?? "";
+    message.type = object.type ?? "";
+    message.createdBy = object.createdBy ?? "";
     return message;
   },
 };
 
-function createBaseMachine(): Machine {
-  return { machineId: 0, name: "", email: "", ip: "", os: "", domain: "", status: false, updatedAt: "", createdBy: "" };
+function createBaseResource(): Resource {
+  return {
+    machineId: 0,
+    name: "",
+    email: "",
+    ip: "",
+    os: "",
+    domain: "",
+    age: "",
+    type: "",
+    status: false,
+    createdBy: "",
+  };
 }
 
-export const Machine = {
-  encode(message: Machine, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Resource = {
+  encode(message: Resource, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.machineId !== 0) {
       writer.uint32(8).uint64(message.machineId);
     }
@@ -3660,22 +3708,25 @@ export const Machine = {
     if (message.domain !== "") {
       writer.uint32(50).string(message.domain);
     }
-    if (message.status !== false) {
-      writer.uint32(56).bool(message.status);
+    if (message.age !== "") {
+      writer.uint32(58).string(message.age);
     }
-    if (message.updatedAt !== "") {
-      writer.uint32(66).string(message.updatedAt);
+    if (message.type !== "") {
+      writer.uint32(66).string(message.type);
+    }
+    if (message.status !== false) {
+      writer.uint32(72).bool(message.status);
     }
     if (message.createdBy !== "") {
-      writer.uint32(74).string(message.createdBy);
+      writer.uint32(82).string(message.createdBy);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Machine {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Resource {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseMachine();
+    const message = createBaseResource();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3722,21 +3773,28 @@ export const Machine = {
           message.domain = reader.string();
           continue;
         case 7:
-          if (tag !== 56) {
+          if (tag !== 58) {
             break;
           }
 
-          message.status = reader.bool();
+          message.age = reader.string();
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.updatedAt = reader.string();
+          message.type = reader.string();
           continue;
         case 9:
-          if (tag !== 74) {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.status = reader.bool();
+          continue;
+        case 10:
+          if (tag !== 82) {
             break;
           }
 
@@ -3751,7 +3809,7 @@ export const Machine = {
     return message;
   },
 
-  fromJSON(object: any): Machine {
+  fromJSON(object: any): Resource {
     return {
       machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
@@ -3759,13 +3817,14 @@ export const Machine = {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
+      age: isSet(object.age) ? globalThis.String(object.age) : "",
+      type: isSet(object.type) ? globalThis.String(object.type) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
-      updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
     };
   },
 
-  toJSON(message: Machine): unknown {
+  toJSON(message: Resource): unknown {
     const obj: any = {};
     if (message.machineId !== 0) {
       obj.machineId = Math.round(message.machineId);
@@ -3785,176 +3844,14 @@ export const Machine = {
     if (message.domain !== "") {
       obj.domain = message.domain;
     }
-    if (message.status !== false) {
-      obj.status = message.status;
-    }
-    if (message.updatedAt !== "") {
-      obj.updatedAt = message.updatedAt;
-    }
-    if (message.createdBy !== "") {
-      obj.createdBy = message.createdBy;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<Machine>, I>>(base?: I): Machine {
-    return Machine.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<Machine>, I>>(object: I): Machine {
-    const message = createBaseMachine();
-    message.machineId = object.machineId ?? 0;
-    message.name = object.name ?? "";
-    message.email = object.email ?? "";
-    message.ip = object.ip ?? "";
-    message.os = object.os ?? "";
-    message.domain = object.domain ?? "";
-    message.status = object.status ?? false;
-    message.updatedAt = object.updatedAt ?? "";
-    message.createdBy = object.createdBy ?? "";
-    return message;
-  },
-};
-
-function createBaseResource(): Resource {
-  return { id: "", name: "", machines: [], proto: "", port: "", age: "", type: "", createdBy: "" };
-}
-
-export const Resource = {
-  encode(message: Resource, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
-    }
-    if (message.name !== "") {
-      writer.uint32(18).string(message.name);
-    }
-    for (const v of message.machines) {
-      Machine.encode(v!, writer.uint32(26).fork()).ldelim();
-    }
-    if (message.proto !== "") {
-      writer.uint32(34).string(message.proto);
-    }
-    if (message.port !== "") {
-      writer.uint32(42).string(message.port);
-    }
-    if (message.age !== "") {
-      writer.uint32(50).string(message.age);
-    }
-    if (message.type !== "") {
-      writer.uint32(58).string(message.type);
-    }
-    if (message.createdBy !== "") {
-      writer.uint32(66).string(message.createdBy);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): Resource {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseResource();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.id = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.machines.push(Machine.decode(reader, reader.uint32()));
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.proto = reader.string();
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.port = reader.string();
-          continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.age = reader.string();
-          continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.type = reader.string();
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.createdBy = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): Resource {
-    return {
-      id: isSet(object.id) ? globalThis.String(object.id) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      machines: globalThis.Array.isArray(object?.machines) ? object.machines.map((e: any) => Machine.fromJSON(e)) : [],
-      proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
-      age: isSet(object.age) ? globalThis.String(object.age) : "",
-      type: isSet(object.type) ? globalThis.String(object.type) : "",
-      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
-    };
-  },
-
-  toJSON(message: Resource): unknown {
-    const obj: any = {};
-    if (message.id !== "") {
-      obj.id = message.id;
-    }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.machines?.length) {
-      obj.machines = message.machines.map((e) => Machine.toJSON(e));
-    }
-    if (message.proto !== "") {
-      obj.proto = message.proto;
-    }
-    if (message.port !== "") {
-      obj.port = message.port;
-    }
     if (message.age !== "") {
       obj.age = message.age;
     }
     if (message.type !== "") {
       obj.type = message.type;
+    }
+    if (message.status !== false) {
+      obj.status = message.status;
     }
     if (message.createdBy !== "") {
       obj.createdBy = message.createdBy;
@@ -3967,13 +3864,15 @@ export const Resource = {
   },
   fromPartial<I extends Exact<DeepPartial<Resource>, I>>(object: I): Resource {
     const message = createBaseResource();
-    message.id = object.id ?? "";
+    message.machineId = object.machineId ?? 0;
     message.name = object.name ?? "";
-    message.machines = object.machines?.map((e) => Machine.fromPartial(e)) || [];
-    message.proto = object.proto ?? "";
-    message.port = object.port ?? "";
+    message.email = object.email ?? "";
+    message.ip = object.ip ?? "";
+    message.os = object.os ?? "";
+    message.domain = object.domain ?? "";
     message.age = object.age ?? "";
     message.type = object.type ?? "";
+    message.status = object.status ?? false;
     message.createdBy = object.createdBy ?? "";
     return message;
   },
