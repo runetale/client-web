@@ -421,6 +421,8 @@ export interface Resource {
   id: string;
   name: string;
   machines: Machine[];
+  proto: string;
+  port: number;
   age: string;
   type: DeploymentMethod;
 }
@@ -3813,7 +3815,7 @@ export const Machine = {
 };
 
 function createBaseResource(): Resource {
-  return { id: "", name: "", machines: [], age: "", type: 0 };
+  return { id: "", name: "", machines: [], proto: "", port: 0, age: "", type: 0 };
 }
 
 export const Resource = {
@@ -3827,11 +3829,17 @@ export const Resource = {
     for (const v of message.machines) {
       Machine.encode(v!, writer.uint32(26).fork()).ldelim();
     }
+    if (message.proto !== "") {
+      writer.uint32(34).string(message.proto);
+    }
+    if (message.port !== 0) {
+      writer.uint32(40).uint64(message.port);
+    }
     if (message.age !== "") {
-      writer.uint32(34).string(message.age);
+      writer.uint32(50).string(message.age);
     }
     if (message.type !== 0) {
-      writer.uint32(40).int32(message.type);
+      writer.uint32(56).int32(message.type);
     }
     return writer;
   },
@@ -3869,10 +3877,24 @@ export const Resource = {
             break;
           }
 
-          message.age = reader.string();
+          message.proto = reader.string();
           continue;
         case 5:
           if (tag !== 40) {
+            break;
+          }
+
+          message.port = longToNumber(reader.uint64() as Long);
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.age = reader.string();
+          continue;
+        case 7:
+          if (tag !== 56) {
             break;
           }
 
@@ -3892,6 +3914,8 @@ export const Resource = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       machines: globalThis.Array.isArray(object?.machines) ? object.machines.map((e: any) => Machine.fromJSON(e)) : [],
+      proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
+      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       type: isSet(object.type) ? deploymentMethodFromJSON(object.type) : 0,
     };
@@ -3907,6 +3931,12 @@ export const Resource = {
     }
     if (message.machines?.length) {
       obj.machines = message.machines.map((e) => Machine.toJSON(e));
+    }
+    if (message.proto !== "") {
+      obj.proto = message.proto;
+    }
+    if (message.port !== 0) {
+      obj.port = Math.round(message.port);
     }
     if (message.age !== "") {
       obj.age = message.age;
@@ -3925,6 +3955,8 @@ export const Resource = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.machines = object.machines?.map((e) => Machine.fromPartial(e)) || [];
+    message.proto = object.proto ?? "";
+    message.port = object.port ?? 0;
     message.age = object.age ?? "";
     message.type = object.type ?? 0;
     return message;
