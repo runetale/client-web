@@ -425,6 +425,7 @@ export interface Resource {
   port: number;
   age: string;
   type: string;
+  createdBy: string;
 }
 
 export interface Group {
@@ -3815,7 +3816,7 @@ export const Machine = {
 };
 
 function createBaseResource(): Resource {
-  return { id: "", name: "", machines: [], proto: "", port: 0, age: "", type: "" };
+  return { id: "", name: "", machines: [], proto: "", port: 0, age: "", type: "", createdBy: "" };
 }
 
 export const Resource = {
@@ -3840,6 +3841,9 @@ export const Resource = {
     }
     if (message.type !== "") {
       writer.uint32(58).string(message.type);
+    }
+    if (message.createdBy !== "") {
+      writer.uint32(66).string(message.createdBy);
     }
     return writer;
   },
@@ -3900,6 +3904,13 @@ export const Resource = {
 
           message.type = reader.string();
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.createdBy = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3918,6 +3929,7 @@ export const Resource = {
       port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       type: isSet(object.type) ? globalThis.String(object.type) : "",
+      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
     };
   },
 
@@ -3944,6 +3956,9 @@ export const Resource = {
     if (message.type !== "") {
       obj.type = message.type;
     }
+    if (message.createdBy !== "") {
+      obj.createdBy = message.createdBy;
+    }
     return obj;
   },
 
@@ -3959,6 +3974,7 @@ export const Resource = {
     message.port = object.port ?? 0;
     message.age = object.age ?? "";
     message.type = object.type ?? "";
+    message.createdBy = object.createdBy ?? "";
     return message;
   },
 };
