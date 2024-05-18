@@ -422,7 +422,7 @@ export interface Resource {
   name: string;
   machines: Machine[];
   proto: string;
-  port: number;
+  port: string;
   age: string;
   type: string;
   createdBy: string;
@@ -3816,7 +3816,7 @@ export const Machine = {
 };
 
 function createBaseResource(): Resource {
-  return { id: "", name: "", machines: [], proto: "", port: 0, age: "", type: "", createdBy: "" };
+  return { id: "", name: "", machines: [], proto: "", port: "", age: "", type: "", createdBy: "" };
 }
 
 export const Resource = {
@@ -3833,8 +3833,8 @@ export const Resource = {
     if (message.proto !== "") {
       writer.uint32(34).string(message.proto);
     }
-    if (message.port !== 0) {
-      writer.uint32(40).uint64(message.port);
+    if (message.port !== "") {
+      writer.uint32(42).string(message.port);
     }
     if (message.age !== "") {
       writer.uint32(50).string(message.age);
@@ -3884,11 +3884,11 @@ export const Resource = {
           message.proto = reader.string();
           continue;
         case 5:
-          if (tag !== 40) {
+          if (tag !== 42) {
             break;
           }
 
-          message.port = longToNumber(reader.uint64() as Long);
+          message.port = reader.string();
           continue;
         case 6:
           if (tag !== 50) {
@@ -3926,7 +3926,7 @@ export const Resource = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       machines: globalThis.Array.isArray(object?.machines) ? object.machines.map((e: any) => Machine.fromJSON(e)) : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
+      port: isSet(object.port) ? globalThis.String(object.port) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       type: isSet(object.type) ? globalThis.String(object.type) : "",
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
@@ -3947,8 +3947,8 @@ export const Resource = {
     if (message.proto !== "") {
       obj.proto = message.proto;
     }
-    if (message.port !== 0) {
-      obj.port = Math.round(message.port);
+    if (message.port !== "") {
+      obj.port = message.port;
     }
     if (message.age !== "") {
       obj.age = message.age;
@@ -3971,7 +3971,7 @@ export const Resource = {
     message.name = object.name ?? "";
     message.machines = object.machines?.map((e) => Machine.fromPartial(e)) || [];
     message.proto = object.proto ?? "";
-    message.port = object.port ?? 0;
+    message.port = object.port ?? "";
     message.age = object.age ?? "";
     message.type = object.type ?? "";
     message.createdBy = object.createdBy ?? "";
