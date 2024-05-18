@@ -413,7 +413,6 @@ export interface Resource {
   email: string;
   ip: string;
   os: string;
-  domain: string;
   age: string;
   type: string;
   status: boolean;
@@ -3674,18 +3673,7 @@ export const Fleet = {
 };
 
 function createBaseResource(): Resource {
-  return {
-    machineId: 0,
-    name: "",
-    email: "",
-    ip: "",
-    os: "",
-    domain: "",
-    age: "",
-    type: "",
-    status: false,
-    createdBy: "",
-  };
+  return { machineId: 0, name: "", email: "", ip: "", os: "", age: "", type: "", status: false, createdBy: "" };
 }
 
 export const Resource = {
@@ -3705,20 +3693,17 @@ export const Resource = {
     if (message.os !== "") {
       writer.uint32(42).string(message.os);
     }
-    if (message.domain !== "") {
-      writer.uint32(50).string(message.domain);
-    }
     if (message.age !== "") {
-      writer.uint32(58).string(message.age);
+      writer.uint32(50).string(message.age);
     }
     if (message.type !== "") {
-      writer.uint32(66).string(message.type);
+      writer.uint32(58).string(message.type);
     }
     if (message.status !== false) {
-      writer.uint32(72).bool(message.status);
+      writer.uint32(64).bool(message.status);
     }
     if (message.createdBy !== "") {
-      writer.uint32(82).string(message.createdBy);
+      writer.uint32(74).string(message.createdBy);
     }
     return writer;
   },
@@ -3770,31 +3755,24 @@ export const Resource = {
             break;
           }
 
-          message.domain = reader.string();
+          message.age = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.age = reader.string();
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
           message.type = reader.string();
           continue;
-        case 9:
-          if (tag !== 72) {
+        case 8:
+          if (tag !== 64) {
             break;
           }
 
           message.status = reader.bool();
           continue;
-        case 10:
-          if (tag !== 82) {
+        case 9:
+          if (tag !== 74) {
             break;
           }
 
@@ -3816,7 +3794,6 @@ export const Resource = {
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
-      domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       type: isSet(object.type) ? globalThis.String(object.type) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
@@ -3840,9 +3817,6 @@ export const Resource = {
     }
     if (message.os !== "") {
       obj.os = message.os;
-    }
-    if (message.domain !== "") {
-      obj.domain = message.domain;
     }
     if (message.age !== "") {
       obj.age = message.age;
@@ -3869,7 +3843,6 @@ export const Resource = {
     message.email = object.email ?? "";
     message.ip = object.ip ?? "";
     message.os = object.os ?? "";
-    message.domain = object.domain ?? "";
     message.age = object.age ?? "";
     message.type = object.type ?? "";
     message.status = object.status ?? false;
