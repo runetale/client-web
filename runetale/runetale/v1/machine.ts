@@ -29,6 +29,11 @@ export interface RemotePeer {
   cidr: string;
 }
 
+export interface CreateMachineResponse {
+  ip: string;
+  cidr: string;
+}
+
 function createBaseSyncMachinesResponse(): SyncMachinesResponse {
   return { isEmpty: false, remotePeers: [], ip: "", cidr: "" };
 }
@@ -258,8 +263,84 @@ export const RemotePeer = {
   },
 };
 
+function createBaseCreateMachineResponse(): CreateMachineResponse {
+  return { ip: "", cidr: "" };
+}
+
+export const CreateMachineResponse = {
+  encode(message: CreateMachineResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.ip !== "") {
+      writer.uint32(10).string(message.ip);
+    }
+    if (message.cidr !== "") {
+      writer.uint32(18).string(message.cidr);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateMachineResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateMachineResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ip = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.cidr = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateMachineResponse {
+    return {
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
+    };
+  },
+
+  toJSON(message: CreateMachineResponse): unknown {
+    const obj: any = {};
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.cidr !== "") {
+      obj.cidr = message.cidr;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateMachineResponse>, I>>(base?: I): CreateMachineResponse {
+    return CreateMachineResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateMachineResponse>, I>>(object: I): CreateMachineResponse {
+    const message = createBaseCreateMachineResponse();
+    message.ip = object.ip ?? "";
+    message.cidr = object.cidr ?? "";
+    return message;
+  },
+};
+
 export interface MachineService {
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse>;
+  /** this rpc is needed to launch the peer using the access token */
+  CreateMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateMachineResponse>;
 }
 
 export class MachineServiceClientImpl implements MachineService {
@@ -268,10 +349,15 @@ export class MachineServiceClientImpl implements MachineService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.SyncRemoteMachinesConfig = this.SyncRemoteMachinesConfig.bind(this);
+    this.CreateMachine = this.CreateMachine.bind(this);
   }
 
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse> {
     return this.rpc.unary(MachineServiceSyncRemoteMachinesConfigDesc, Empty.fromPartial(request), metadata);
+  }
+
+  CreateMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateMachineResponse> {
+    return this.rpc.unary(MachineServiceCreateMachineDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -290,6 +376,29 @@ export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionis
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = SyncMachinesResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const MachineServiceCreateMachineDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateMachine",
+  service: MachineServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = CreateMachineResponse.decode(data);
       return {
         ...value,
         toObject() {
