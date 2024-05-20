@@ -118,7 +118,9 @@ export enum DeploymentMethod {
   AWS = 5,
   Azure = 6,
   Onprem = 7,
-  Other = 8,
+  MacOS = 8,
+  Windows = 9,
+  Other = 11,
   UNRECOGNIZED = -1,
 }
 
@@ -149,6 +151,12 @@ export function deploymentMethodFromJSON(object: any): DeploymentMethod {
     case "Onprem":
       return DeploymentMethod.Onprem;
     case 8:
+    case "MacOS":
+      return DeploymentMethod.MacOS;
+    case 9:
+    case "Windows":
+      return DeploymentMethod.Windows;
+    case 11:
     case "Other":
       return DeploymentMethod.Other;
     case -1:
@@ -176,6 +184,10 @@ export function deploymentMethodToJSON(object: DeploymentMethod): string {
       return "Azure";
     case DeploymentMethod.Onprem:
       return "Onprem";
+    case DeploymentMethod.MacOS:
+      return "MacOS";
+    case DeploymentMethod.Windows:
+      return "Windows";
     case DeploymentMethod.Other:
       return "Other";
     case DeploymentMethod.UNRECOGNIZED:
