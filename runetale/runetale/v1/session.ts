@@ -14,6 +14,8 @@ export const protobufPackage = "protos";
 export interface VerifyPeerLoginSessionRequest {
   /** jwt session id for etcd */
   sessionID: string;
+  /** DeploymentMethod, for `enum Deployment Method`` on `admin.proto`` */
+  deploymentMethod: string;
 }
 
 export interface VerifyPeerLoginSessionResponse {
@@ -26,13 +28,16 @@ export interface VerifyPeerLoginSessionResponse {
 }
 
 function createBaseVerifyPeerLoginSessionRequest(): VerifyPeerLoginSessionRequest {
-  return { sessionID: "" };
+  return { sessionID: "", deploymentMethod: "" };
 }
 
 export const VerifyPeerLoginSessionRequest = {
   encode(message: VerifyPeerLoginSessionRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.sessionID !== "") {
       writer.uint32(10).string(message.sessionID);
+    }
+    if (message.deploymentMethod !== "") {
+      writer.uint32(18).string(message.deploymentMethod);
     }
     return writer;
   },
@@ -51,6 +56,13 @@ export const VerifyPeerLoginSessionRequest = {
 
           message.sessionID = reader.string();
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.deploymentMethod = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -61,13 +73,19 @@ export const VerifyPeerLoginSessionRequest = {
   },
 
   fromJSON(object: any): VerifyPeerLoginSessionRequest {
-    return { sessionID: isSet(object.sessionID) ? globalThis.String(object.sessionID) : "" };
+    return {
+      sessionID: isSet(object.sessionID) ? globalThis.String(object.sessionID) : "",
+      deploymentMethod: isSet(object.deploymentMethod) ? globalThis.String(object.deploymentMethod) : "",
+    };
   },
 
   toJSON(message: VerifyPeerLoginSessionRequest): unknown {
     const obj: any = {};
     if (message.sessionID !== "") {
       obj.sessionID = message.sessionID;
+    }
+    if (message.deploymentMethod !== "") {
+      obj.deploymentMethod = message.deploymentMethod;
     }
     return obj;
   },
@@ -80,6 +98,7 @@ export const VerifyPeerLoginSessionRequest = {
   ): VerifyPeerLoginSessionRequest {
     const message = createBaseVerifyPeerLoginSessionRequest();
     message.sessionID = object.sessionID ?? "";
+    message.deploymentMethod = object.deploymentMethod ?? "";
     return message;
   },
 };
