@@ -120,6 +120,7 @@ export enum DeploymentMethod {
   Onprem = 7,
   MacOS = 8,
   Windows = 9,
+  Onbording = 10,
   Other = 11,
   UNRECOGNIZED = -1,
 }
@@ -156,6 +157,9 @@ export function deploymentMethodFromJSON(object: any): DeploymentMethod {
     case 9:
     case "Windows":
       return DeploymentMethod.Windows;
+    case 10:
+    case "Onbording":
+      return DeploymentMethod.Onbording;
     case 11:
     case "Other":
       return DeploymentMethod.Other;
@@ -188,6 +192,8 @@ export function deploymentMethodToJSON(object: DeploymentMethod): string {
       return "MacOS";
     case DeploymentMethod.Windows:
       return "Windows";
+    case DeploymentMethod.Onbording:
+      return "Onbording";
     case DeploymentMethod.Other:
       return "Other";
     case DeploymentMethod.UNRECOGNIZED:
