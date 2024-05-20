@@ -337,6 +337,7 @@ export interface CreateResourceResponse {
 
 export interface GenerateTokenRequest {
   deploymentMethod: DeploymentMethod;
+  ExpirelyTime: number;
 }
 
 export interface GenerateTokenResponse {
@@ -2610,13 +2611,16 @@ export const CreateResourceResponse = {
 };
 
 function createBaseGenerateTokenRequest(): GenerateTokenRequest {
-  return { deploymentMethod: 0 };
+  return { deploymentMethod: 0, ExpirelyTime: 0 };
 }
 
 export const GenerateTokenRequest = {
   encode(message: GenerateTokenRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.deploymentMethod !== 0) {
       writer.uint32(8).int32(message.deploymentMethod);
+    }
+    if (message.ExpirelyTime !== 0) {
+      writer.uint32(16).uint64(message.ExpirelyTime);
     }
     return writer;
   },
@@ -2635,6 +2639,13 @@ export const GenerateTokenRequest = {
 
           message.deploymentMethod = reader.int32() as any;
           continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.ExpirelyTime = longToNumber(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2645,13 +2656,19 @@ export const GenerateTokenRequest = {
   },
 
   fromJSON(object: any): GenerateTokenRequest {
-    return { deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0 };
+    return {
+      deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
+      ExpirelyTime: isSet(object.ExpirelyTime) ? globalThis.Number(object.ExpirelyTime) : 0,
+    };
   },
 
   toJSON(message: GenerateTokenRequest): unknown {
     const obj: any = {};
     if (message.deploymentMethod !== 0) {
       obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
+    }
+    if (message.ExpirelyTime !== 0) {
+      obj.ExpirelyTime = Math.round(message.ExpirelyTime);
     }
     return obj;
   },
@@ -2662,6 +2679,7 @@ export const GenerateTokenRequest = {
   fromPartial<I extends Exact<DeepPartial<GenerateTokenRequest>, I>>(object: I): GenerateTokenRequest {
     const message = createBaseGenerateTokenRequest();
     message.deploymentMethod = object.deploymentMethod ?? 0;
+    message.ExpirelyTime = object.ExpirelyTime ?? 0;
     return message;
   },
 };
