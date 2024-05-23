@@ -76,6 +76,48 @@ export function aclResourceTypeToJSON(object: AclResourceType): string {
   }
 }
 
+export enum ExpirelyTime {
+  /** ONEMONTH - 30days */
+  ONEMONTH = 0,
+  /** TWOMONTH - 60days */
+  TWOMONTH = 1,
+  /** THREEMONTH - 90days */
+  THREEMONTH = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function expirelyTimeFromJSON(object: any): ExpirelyTime {
+  switch (object) {
+    case 0:
+    case "ONEMONTH":
+      return ExpirelyTime.ONEMONTH;
+    case 1:
+    case "TWOMONTH":
+      return ExpirelyTime.TWOMONTH;
+    case 2:
+    case "THREEMONTH":
+      return ExpirelyTime.THREEMONTH;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return ExpirelyTime.UNRECOGNIZED;
+  }
+}
+
+export function expirelyTimeToJSON(object: ExpirelyTime): string {
+  switch (object) {
+    case ExpirelyTime.ONEMONTH:
+      return "ONEMONTH";
+    case ExpirelyTime.TWOMONTH:
+      return "TWOMONTH";
+    case ExpirelyTime.THREEMONTH:
+      return "THREEMONTH";
+    case ExpirelyTime.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export enum Action {
   Accept = 0,
   Denied = 1,
@@ -355,16 +397,7 @@ export interface CreateResourceResponse {
 
 export interface GenerateTokenRequest {
   deploymentMethod: DeploymentMethod;
-  /** 30days */
-  thirty?:
-    | string
-    | undefined;
-  /** 60days */
-  sixty?:
-    | string
-    | undefined;
-  /** 90days */
-  ninety?: string | undefined;
+  expirelyTime: ExpirelyTime;
 }
 
 export interface GenerateTokenResponse {
@@ -2638,7 +2671,7 @@ export const CreateResourceResponse = {
 };
 
 function createBaseGenerateTokenRequest(): GenerateTokenRequest {
-  return { deploymentMethod: 0, thirty: undefined, sixty: undefined, ninety: undefined };
+  return { deploymentMethod: 0, expirelyTime: 0 };
 }
 
 export const GenerateTokenRequest = {
@@ -2646,14 +2679,8 @@ export const GenerateTokenRequest = {
     if (message.deploymentMethod !== 0) {
       writer.uint32(8).int32(message.deploymentMethod);
     }
-    if (message.thirty !== undefined) {
-      writer.uint32(18).string(message.thirty);
-    }
-    if (message.sixty !== undefined) {
-      writer.uint32(26).string(message.sixty);
-    }
-    if (message.ninety !== undefined) {
-      writer.uint32(34).string(message.ninety);
+    if (message.expirelyTime !== 0) {
+      writer.uint32(16).int32(message.expirelyTime);
     }
     return writer;
   },
@@ -2673,25 +2700,11 @@ export const GenerateTokenRequest = {
           message.deploymentMethod = reader.int32() as any;
           continue;
         case 2:
-          if (tag !== 18) {
+          if (tag !== 16) {
             break;
           }
 
-          message.thirty = reader.string();
-          continue;
-        case 3:
-          if (tag !== 26) {
-            break;
-          }
-
-          message.sixty = reader.string();
-          continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.ninety = reader.string();
+          message.expirelyTime = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2705,9 +2718,7 @@ export const GenerateTokenRequest = {
   fromJSON(object: any): GenerateTokenRequest {
     return {
       deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
-      thirty: isSet(object.thirty) ? globalThis.String(object.thirty) : undefined,
-      sixty: isSet(object.sixty) ? globalThis.String(object.sixty) : undefined,
-      ninety: isSet(object.ninety) ? globalThis.String(object.ninety) : undefined,
+      expirelyTime: isSet(object.expirelyTime) ? expirelyTimeFromJSON(object.expirelyTime) : 0,
     };
   },
 
@@ -2716,14 +2727,8 @@ export const GenerateTokenRequest = {
     if (message.deploymentMethod !== 0) {
       obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
     }
-    if (message.thirty !== undefined) {
-      obj.thirty = message.thirty;
-    }
-    if (message.sixty !== undefined) {
-      obj.sixty = message.sixty;
-    }
-    if (message.ninety !== undefined) {
-      obj.ninety = message.ninety;
+    if (message.expirelyTime !== 0) {
+      obj.expirelyTime = expirelyTimeToJSON(message.expirelyTime);
     }
     return obj;
   },
@@ -2734,9 +2739,7 @@ export const GenerateTokenRequest = {
   fromPartial<I extends Exact<DeepPartial<GenerateTokenRequest>, I>>(object: I): GenerateTokenRequest {
     const message = createBaseGenerateTokenRequest();
     message.deploymentMethod = object.deploymentMethod ?? 0;
-    message.thirty = object.thirty ?? undefined;
-    message.sixty = object.sixty ?? undefined;
-    message.ninety = object.ninety ?? undefined;
+    message.expirelyTime = object.expirelyTime ?? 0;
     return message;
   },
 };
