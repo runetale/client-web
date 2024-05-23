@@ -355,7 +355,16 @@ export interface CreateResourceResponse {
 
 export interface GenerateTokenRequest {
   deploymentMethod: DeploymentMethod;
-  ExpirelyTime: number;
+  /** 30days */
+  thirty?:
+    | string
+    | undefined;
+  /** 60days */
+  sixty?:
+    | string
+    | undefined;
+  /** 90days */
+  ninety?: string | undefined;
 }
 
 export interface GenerateTokenResponse {
@@ -2629,7 +2638,7 @@ export const CreateResourceResponse = {
 };
 
 function createBaseGenerateTokenRequest(): GenerateTokenRequest {
-  return { deploymentMethod: 0, ExpirelyTime: 0 };
+  return { deploymentMethod: 0, thirty: undefined, sixty: undefined, ninety: undefined };
 }
 
 export const GenerateTokenRequest = {
@@ -2637,8 +2646,14 @@ export const GenerateTokenRequest = {
     if (message.deploymentMethod !== 0) {
       writer.uint32(8).int32(message.deploymentMethod);
     }
-    if (message.ExpirelyTime !== 0) {
-      writer.uint32(16).uint64(message.ExpirelyTime);
+    if (message.thirty !== undefined) {
+      writer.uint32(18).string(message.thirty);
+    }
+    if (message.sixty !== undefined) {
+      writer.uint32(26).string(message.sixty);
+    }
+    if (message.ninety !== undefined) {
+      writer.uint32(34).string(message.ninety);
     }
     return writer;
   },
@@ -2658,11 +2673,25 @@ export const GenerateTokenRequest = {
           message.deploymentMethod = reader.int32() as any;
           continue;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.ExpirelyTime = longToNumber(reader.uint64() as Long);
+          message.thirty = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.sixty = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.ninety = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2676,7 +2705,9 @@ export const GenerateTokenRequest = {
   fromJSON(object: any): GenerateTokenRequest {
     return {
       deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
-      ExpirelyTime: isSet(object.ExpirelyTime) ? globalThis.Number(object.ExpirelyTime) : 0,
+      thirty: isSet(object.thirty) ? globalThis.String(object.thirty) : undefined,
+      sixty: isSet(object.sixty) ? globalThis.String(object.sixty) : undefined,
+      ninety: isSet(object.ninety) ? globalThis.String(object.ninety) : undefined,
     };
   },
 
@@ -2685,8 +2716,14 @@ export const GenerateTokenRequest = {
     if (message.deploymentMethod !== 0) {
       obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
     }
-    if (message.ExpirelyTime !== 0) {
-      obj.ExpirelyTime = Math.round(message.ExpirelyTime);
+    if (message.thirty !== undefined) {
+      obj.thirty = message.thirty;
+    }
+    if (message.sixty !== undefined) {
+      obj.sixty = message.sixty;
+    }
+    if (message.ninety !== undefined) {
+      obj.ninety = message.ninety;
     }
     return obj;
   },
@@ -2697,7 +2734,9 @@ export const GenerateTokenRequest = {
   fromPartial<I extends Exact<DeepPartial<GenerateTokenRequest>, I>>(object: I): GenerateTokenRequest {
     const message = createBaseGenerateTokenRequest();
     message.deploymentMethod = object.deploymentMethod ?? 0;
-    message.ExpirelyTime = object.ExpirelyTime ?? 0;
+    message.thirty = object.thirty ?? undefined;
+    message.sixty = object.sixty ?? undefined;
+    message.ninety = object.ninety ?? undefined;
     return message;
   },
 };
@@ -4445,9 +4484,9 @@ export interface AdminService {
     request: DeepPartial<CreateResourceRequest>,
     metadata?: grpc.Metadata,
   ): Promise<CreateResourceResponse>;
-  GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse>;
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
   GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources>;
+  GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse>;
   /** fleets */
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
@@ -4482,9 +4521,9 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetDevice = this.GetDevice.bind(this);
     this.GetDevices = this.GetDevices.bind(this);
     this.CreateResource = this.CreateResource.bind(this);
-    this.GenerateToken = this.GenerateToken.bind(this);
     this.GetResource = this.GetResource.bind(this);
     this.GetResources = this.GetResources.bind(this);
+    this.GenerateToken = this.GenerateToken.bind(this);
     this.CreateFleet = this.CreateFleet.bind(this);
     this.GetFleet = this.GetFleet.bind(this);
     this.GetFleets = this.GetFleets.bind(this);
@@ -4559,16 +4598,16 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceCreateResourceDesc, CreateResourceRequest.fromPartial(request), metadata);
   }
 
-  GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse> {
-    return this.rpc.unary(AdminServiceGenerateTokenDesc, GenerateTokenRequest.fromPartial(request), metadata);
-  }
-
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource> {
     return this.rpc.unary(AdminServiceGetResourceDesc, GetResourceRequest.fromPartial(request), metadata);
   }
 
   GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources> {
     return this.rpc.unary(AdminServiceGetResourcesDesc, Empty.fromPartial(request), metadata);
+  }
+
+  GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse> {
+    return this.rpc.unary(AdminServiceGenerateTokenDesc, GenerateTokenRequest.fromPartial(request), metadata);
   }
 
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
@@ -4955,29 +4994,6 @@ export const AdminServiceCreateResourceDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const AdminServiceGenerateTokenDesc: UnaryMethodDefinitionish = {
-  methodName: "GenerateToken",
-  service: AdminServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return GenerateTokenRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = GenerateTokenResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
 export const AdminServiceGetResourceDesc: UnaryMethodDefinitionish = {
   methodName: "GetResource",
   service: AdminServiceDesc,
@@ -5014,6 +5030,29 @@ export const AdminServiceGetResourcesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = Resources.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGenerateTokenDesc: UnaryMethodDefinitionish = {
+  methodName: "GenerateToken",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GenerateTokenRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GenerateTokenResponse.decode(data);
       return {
         ...value,
         toObject() {
