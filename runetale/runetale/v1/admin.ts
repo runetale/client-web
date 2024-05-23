@@ -404,6 +404,16 @@ export interface GenerateTokenResponse {
   token: string;
 }
 
+export interface GetTokensResponse {
+  tokens: GetTokensResponse_token[];
+}
+
+export interface GetTokensResponse_token {
+  token: string;
+  expiredAt: string;
+  createdBy: string;
+}
+
 export interface GetResourceRequest {
   id: number;
 }
@@ -2801,6 +2811,156 @@ export const GenerateTokenResponse = {
   },
 };
 
+function createBaseGetTokensResponse(): GetTokensResponse {
+  return { tokens: [] };
+}
+
+export const GetTokensResponse = {
+  encode(message: GetTokensResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.tokens) {
+      GetTokensResponse_token.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetTokensResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetTokensResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.tokens.push(GetTokensResponse_token.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetTokensResponse {
+    return {
+      tokens: globalThis.Array.isArray(object?.tokens)
+        ? object.tokens.map((e: any) => GetTokensResponse_token.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: GetTokensResponse): unknown {
+    const obj: any = {};
+    if (message.tokens?.length) {
+      obj.tokens = message.tokens.map((e) => GetTokensResponse_token.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetTokensResponse>, I>>(base?: I): GetTokensResponse {
+    return GetTokensResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetTokensResponse>, I>>(object: I): GetTokensResponse {
+    const message = createBaseGetTokensResponse();
+    message.tokens = object.tokens?.map((e) => GetTokensResponse_token.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseGetTokensResponse_token(): GetTokensResponse_token {
+  return { token: "", expiredAt: "", createdBy: "" };
+}
+
+export const GetTokensResponse_token = {
+  encode(message: GetTokensResponse_token, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.token !== "") {
+      writer.uint32(10).string(message.token);
+    }
+    if (message.expiredAt !== "") {
+      writer.uint32(18).string(message.expiredAt);
+    }
+    if (message.createdBy !== "") {
+      writer.uint32(26).string(message.createdBy);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetTokensResponse_token {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetTokensResponse_token();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.token = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.expiredAt = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.createdBy = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetTokensResponse_token {
+    return {
+      token: isSet(object.token) ? globalThis.String(object.token) : "",
+      expiredAt: isSet(object.expiredAt) ? globalThis.String(object.expiredAt) : "",
+      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
+    };
+  },
+
+  toJSON(message: GetTokensResponse_token): unknown {
+    const obj: any = {};
+    if (message.token !== "") {
+      obj.token = message.token;
+    }
+    if (message.expiredAt !== "") {
+      obj.expiredAt = message.expiredAt;
+    }
+    if (message.createdBy !== "") {
+      obj.createdBy = message.createdBy;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetTokensResponse_token>, I>>(base?: I): GetTokensResponse_token {
+    return GetTokensResponse_token.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetTokensResponse_token>, I>>(object: I): GetTokensResponse_token {
+    const message = createBaseGetTokensResponse_token();
+    message.token = object.token ?? "";
+    message.expiredAt = object.expiredAt ?? "";
+    message.createdBy = object.createdBy ?? "";
+    return message;
+  },
+};
+
 function createBaseGetResourceRequest(): GetResourceRequest {
   return { id: 0 };
 }
@@ -4489,7 +4649,9 @@ export interface AdminService {
   ): Promise<CreateResourceResponse>;
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
   GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources>;
+  /** tokens */
   GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse>;
+  GetTokens(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetTokensResponse>;
   /** fleets */
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
@@ -4527,6 +4689,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetResource = this.GetResource.bind(this);
     this.GetResources = this.GetResources.bind(this);
     this.GenerateToken = this.GenerateToken.bind(this);
+    this.GetTokens = this.GetTokens.bind(this);
     this.CreateFleet = this.CreateFleet.bind(this);
     this.GetFleet = this.GetFleet.bind(this);
     this.GetFleets = this.GetFleets.bind(this);
@@ -4611,6 +4774,10 @@ export class AdminServiceClientImpl implements AdminService {
 
   GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse> {
     return this.rpc.unary(AdminServiceGenerateTokenDesc, GenerateTokenRequest.fromPartial(request), metadata);
+  }
+
+  GetTokens(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetTokensResponse> {
+    return this.rpc.unary(AdminServiceGetTokensDesc, Empty.fromPartial(request), metadata);
   }
 
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
@@ -5056,6 +5223,29 @@ export const AdminServiceGenerateTokenDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GenerateTokenResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGetTokensDesc: UnaryMethodDefinitionish = {
+  methodName: "GetTokens",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetTokensResponse.decode(data);
       return {
         ...value,
         toObject() {
