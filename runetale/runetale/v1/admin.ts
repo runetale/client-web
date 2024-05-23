@@ -158,12 +158,12 @@ export enum DeploymentMethod {
   GCP = 3,
   MANUAL = 4,
   AWS = 5,
-  Azure = 6,
-  Onprem = 7,
-  MacOS = 8,
-  Windows = 9,
-  Onbording = 10,
-  Other = 11,
+  AZURE = 6,
+  ONPREM = 7,
+  MACOS = 8,
+  WINDOWS = 9,
+  ONBOARDING = 10,
+  OTHER = 11,
   UNRECOGNIZED = -1,
 }
 
@@ -188,23 +188,23 @@ export function deploymentMethodFromJSON(object: any): DeploymentMethod {
     case "AWS":
       return DeploymentMethod.AWS;
     case 6:
-    case "Azure":
-      return DeploymentMethod.Azure;
+    case "AZURE":
+      return DeploymentMethod.AZURE;
     case 7:
-    case "Onprem":
-      return DeploymentMethod.Onprem;
+    case "ONPREM":
+      return DeploymentMethod.ONPREM;
     case 8:
-    case "MacOS":
-      return DeploymentMethod.MacOS;
+    case "MACOS":
+      return DeploymentMethod.MACOS;
     case 9:
-    case "Windows":
-      return DeploymentMethod.Windows;
+    case "WINDOWS":
+      return DeploymentMethod.WINDOWS;
     case 10:
-    case "Onbording":
-      return DeploymentMethod.Onbording;
+    case "ONBOARDING":
+      return DeploymentMethod.ONBOARDING;
     case 11:
-    case "Other":
-      return DeploymentMethod.Other;
+    case "OTHER":
+      return DeploymentMethod.OTHER;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -226,18 +226,18 @@ export function deploymentMethodToJSON(object: DeploymentMethod): string {
       return "MANUAL";
     case DeploymentMethod.AWS:
       return "AWS";
-    case DeploymentMethod.Azure:
-      return "Azure";
-    case DeploymentMethod.Onprem:
-      return "Onprem";
-    case DeploymentMethod.MacOS:
-      return "MacOS";
-    case DeploymentMethod.Windows:
-      return "Windows";
-    case DeploymentMethod.Onbording:
-      return "Onbording";
-    case DeploymentMethod.Other:
-      return "Other";
+    case DeploymentMethod.AZURE:
+      return "AZURE";
+    case DeploymentMethod.ONPREM:
+      return "ONPREM";
+    case DeploymentMethod.MACOS:
+      return "MACOS";
+    case DeploymentMethod.WINDOWS:
+      return "WINDOWS";
+    case DeploymentMethod.ONBOARDING:
+      return "ONBOARDING";
+    case DeploymentMethod.OTHER:
+      return "OTHER";
     case DeploymentMethod.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
