@@ -411,6 +411,7 @@ export interface GetTokensResponse {
 export interface GetTokensResponse_token {
   token: string;
   expiredAt: string;
+  hasExpied: boolean;
   createdBy: string;
 }
 
@@ -2873,7 +2874,7 @@ export const GetTokensResponse = {
 };
 
 function createBaseGetTokensResponse_token(): GetTokensResponse_token {
-  return { token: "", expiredAt: "", createdBy: "" };
+  return { token: "", expiredAt: "", hasExpied: false, createdBy: "" };
 }
 
 export const GetTokensResponse_token = {
@@ -2884,8 +2885,11 @@ export const GetTokensResponse_token = {
     if (message.expiredAt !== "") {
       writer.uint32(18).string(message.expiredAt);
     }
+    if (message.hasExpied !== false) {
+      writer.uint32(24).bool(message.hasExpied);
+    }
     if (message.createdBy !== "") {
-      writer.uint32(26).string(message.createdBy);
+      writer.uint32(34).string(message.createdBy);
     }
     return writer;
   },
@@ -2912,7 +2916,14 @@ export const GetTokensResponse_token = {
           message.expiredAt = reader.string();
           continue;
         case 3:
-          if (tag !== 26) {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.hasExpied = reader.bool();
+          continue;
+        case 4:
+          if (tag !== 34) {
             break;
           }
 
@@ -2931,6 +2942,7 @@ export const GetTokensResponse_token = {
     return {
       token: isSet(object.token) ? globalThis.String(object.token) : "",
       expiredAt: isSet(object.expiredAt) ? globalThis.String(object.expiredAt) : "",
+      hasExpied: isSet(object.hasExpied) ? globalThis.Boolean(object.hasExpied) : false,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
     };
   },
@@ -2942,6 +2954,9 @@ export const GetTokensResponse_token = {
     }
     if (message.expiredAt !== "") {
       obj.expiredAt = message.expiredAt;
+    }
+    if (message.hasExpied !== false) {
+      obj.hasExpied = message.hasExpied;
     }
     if (message.createdBy !== "") {
       obj.createdBy = message.createdBy;
@@ -2956,6 +2971,7 @@ export const GetTokensResponse_token = {
     const message = createBaseGetTokensResponse_token();
     message.token = object.token ?? "";
     message.expiredAt = object.expiredAt ?? "";
+    message.hasExpied = object.hasExpied ?? false;
     message.createdBy = object.createdBy ?? "";
     return message;
   },
