@@ -414,7 +414,7 @@ export interface GetTokensResponse_token {
 }
 
 export interface GetResourceRequest {
-  id: number;
+  id: string;
 }
 
 export interface Resources {
@@ -2937,13 +2937,13 @@ export const GetTokensResponse_token = {
 };
 
 function createBaseGetResourceRequest(): GetResourceRequest {
-  return { id: 0 };
+  return { id: "" };
 }
 
 export const GetResourceRequest = {
   encode(message: GetResourceRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
     }
     return writer;
   },
@@ -2956,11 +2956,11 @@ export const GetResourceRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.id = longToNumber(reader.uint64() as Long);
+          message.id = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2972,13 +2972,13 @@ export const GetResourceRequest = {
   },
 
   fromJSON(object: any): GetResourceRequest {
-    return { id: isSet(object.id) ? globalThis.Number(object.id) : 0 };
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
   },
 
   toJSON(message: GetResourceRequest): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.id !== "") {
+      obj.id = message.id;
     }
     return obj;
   },
@@ -2988,7 +2988,7 @@ export const GetResourceRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<GetResourceRequest>, I>>(object: I): GetResourceRequest {
     const message = createBaseGetResourceRequest();
-    message.id = object.id ?? 0;
+    message.id = object.id ?? "";
     return message;
   },
 };
