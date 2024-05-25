@@ -423,7 +423,7 @@ export interface CreateFleetRequest {
   name: string;
   desc: string;
   machineIds: number[];
-  type: DeploymentMethod;
+  deploymentMethod: DeploymentMethod;
 }
 
 export interface GetFleetRequest {
@@ -440,7 +440,7 @@ export interface PatchFleetRequest {
   desc: string;
   /** resource ids */
   machineIds: number[];
-  type: DeploymentMethod;
+  deploymentMethod: DeploymentMethod;
   action: Action;
 }
 
@@ -483,7 +483,7 @@ export interface Resource {
   ip: string;
   os: string;
   age: string;
-  type: string;
+  deploymentMethod: DeploymentMethod;
   status: boolean;
   createdBy: string;
 }
@@ -3036,7 +3036,7 @@ export const Resources = {
 };
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", machineIds: [], type: 0 };
+  return { name: "", desc: "", machineIds: [], deploymentMethod: 0 };
 }
 
 export const CreateFleetRequest = {
@@ -3052,8 +3052,8 @@ export const CreateFleetRequest = {
       writer.uint64(v);
     }
     writer.ldelim();
-    if (message.type !== 0) {
-      writer.uint32(32).int32(message.type);
+    if (message.deploymentMethod !== 0) {
+      writer.uint32(32).int32(message.deploymentMethod);
     }
     return writer;
   },
@@ -3101,7 +3101,7 @@ export const CreateFleetRequest = {
             break;
           }
 
-          message.type = reader.int32() as any;
+          message.deploymentMethod = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3119,7 +3119,7 @@ export const CreateFleetRequest = {
       machineIds: globalThis.Array.isArray(object?.machineIds)
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
-      type: isSet(object.type) ? deploymentMethodFromJSON(object.type) : 0,
+      deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
     };
   },
 
@@ -3134,8 +3134,8 @@ export const CreateFleetRequest = {
     if (message.machineIds?.length) {
       obj.machineIds = message.machineIds.map((e) => Math.round(e));
     }
-    if (message.type !== 0) {
-      obj.type = deploymentMethodToJSON(message.type);
+    if (message.deploymentMethod !== 0) {
+      obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
     }
     return obj;
   },
@@ -3148,7 +3148,7 @@ export const CreateFleetRequest = {
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
-    message.type = object.type ?? 0;
+    message.deploymentMethod = object.deploymentMethod ?? 0;
     return message;
   },
 };
@@ -3268,7 +3268,7 @@ export const Fleets = {
 };
 
 function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { id: "", name: "", desc: "", machineIds: [], type: 0, action: 0 };
+  return { id: "", name: "", desc: "", machineIds: [], deploymentMethod: 0, action: 0 };
 }
 
 export const PatchFleetRequest = {
@@ -3287,8 +3287,8 @@ export const PatchFleetRequest = {
       writer.uint64(v);
     }
     writer.ldelim();
-    if (message.type !== 0) {
-      writer.uint32(40).int32(message.type);
+    if (message.deploymentMethod !== 0) {
+      writer.uint32(40).int32(message.deploymentMethod);
     }
     if (message.action !== 0) {
       writer.uint32(48).int32(message.action);
@@ -3346,7 +3346,7 @@ export const PatchFleetRequest = {
             break;
           }
 
-          message.type = reader.int32() as any;
+          message.deploymentMethod = reader.int32() as any;
           continue;
         case 6:
           if (tag !== 48) {
@@ -3372,7 +3372,7 @@ export const PatchFleetRequest = {
       machineIds: globalThis.Array.isArray(object?.machineIds)
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
-      type: isSet(object.type) ? deploymentMethodFromJSON(object.type) : 0,
+      deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
@@ -3391,8 +3391,8 @@ export const PatchFleetRequest = {
     if (message.machineIds?.length) {
       obj.machineIds = message.machineIds.map((e) => Math.round(e));
     }
-    if (message.type !== 0) {
-      obj.type = deploymentMethodToJSON(message.type);
+    if (message.deploymentMethod !== 0) {
+      obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
     }
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
@@ -3409,7 +3409,7 @@ export const PatchFleetRequest = {
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
-    message.type = object.type ?? 0;
+    message.deploymentMethod = object.deploymentMethod ?? 0;
     message.action = object.action ?? 0;
     return message;
   },
@@ -3867,7 +3867,18 @@ export const Fleet = {
 };
 
 function createBaseResource(): Resource {
-  return { id: "", machineId: 0, name: "", email: "", ip: "", os: "", age: "", type: "", status: false, createdBy: "" };
+  return {
+    id: "",
+    machineId: 0,
+    name: "",
+    email: "",
+    ip: "",
+    os: "",
+    age: "",
+    deploymentMethod: 0,
+    status: false,
+    createdBy: "",
+  };
 }
 
 export const Resource = {
@@ -3893,8 +3904,8 @@ export const Resource = {
     if (message.age !== "") {
       writer.uint32(58).string(message.age);
     }
-    if (message.type !== "") {
-      writer.uint32(66).string(message.type);
+    if (message.deploymentMethod !== 0) {
+      writer.uint32(64).int32(message.deploymentMethod);
     }
     if (message.status !== false) {
       writer.uint32(72).bool(message.status);
@@ -3962,11 +3973,11 @@ export const Resource = {
           message.age = reader.string();
           continue;
         case 8:
-          if (tag !== 66) {
+          if (tag !== 64) {
             break;
           }
 
-          message.type = reader.string();
+          message.deploymentMethod = reader.int32() as any;
           continue;
         case 9:
           if (tag !== 72) {
@@ -4000,7 +4011,7 @@ export const Resource = {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
     };
@@ -4029,8 +4040,8 @@ export const Resource = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.type !== "") {
-      obj.type = message.type;
+    if (message.deploymentMethod !== 0) {
+      obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
     }
     if (message.status !== false) {
       obj.status = message.status;
@@ -4053,7 +4064,7 @@ export const Resource = {
     message.ip = object.ip ?? "";
     message.os = object.os ?? "";
     message.age = object.age ?? "";
-    message.type = object.type ?? "";
+    message.deploymentMethod = object.deploymentMethod ?? 0;
     message.status = object.status ?? false;
     message.createdBy = object.createdBy ?? "";
     return message;
