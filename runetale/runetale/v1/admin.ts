@@ -476,6 +476,7 @@ export interface Fleet {
 }
 
 export interface Resource {
+  id: string;
   machineId: number;
   name: string;
   email: string;
@@ -3866,37 +3867,40 @@ export const Fleet = {
 };
 
 function createBaseResource(): Resource {
-  return { machineId: 0, name: "", email: "", ip: "", os: "", age: "", type: "", status: false, createdBy: "" };
+  return { id: "", machineId: 0, name: "", email: "", ip: "", os: "", age: "", type: "", status: false, createdBy: "" };
 }
 
 export const Resource = {
   encode(message: Resource, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
     if (message.machineId !== 0) {
-      writer.uint32(8).uint64(message.machineId);
+      writer.uint32(16).uint64(message.machineId);
     }
     if (message.name !== "") {
-      writer.uint32(18).string(message.name);
+      writer.uint32(26).string(message.name);
     }
     if (message.email !== "") {
-      writer.uint32(26).string(message.email);
+      writer.uint32(34).string(message.email);
     }
     if (message.ip !== "") {
-      writer.uint32(34).string(message.ip);
+      writer.uint32(42).string(message.ip);
     }
     if (message.os !== "") {
-      writer.uint32(42).string(message.os);
+      writer.uint32(50).string(message.os);
     }
     if (message.age !== "") {
-      writer.uint32(50).string(message.age);
+      writer.uint32(58).string(message.age);
     }
     if (message.type !== "") {
-      writer.uint32(58).string(message.type);
+      writer.uint32(66).string(message.type);
     }
     if (message.status !== false) {
-      writer.uint32(64).bool(message.status);
+      writer.uint32(72).bool(message.status);
     }
     if (message.createdBy !== "") {
-      writer.uint32(74).string(message.createdBy);
+      writer.uint32(82).string(message.createdBy);
     }
     return writer;
   },
@@ -3909,63 +3913,70 @@ export const Resource = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
             break;
           }
 
           message.machineId = longToNumber(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.email = reader.string();
+          message.name = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.ip = reader.string();
+          message.email = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.os = reader.string();
+          message.ip = reader.string();
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.age = reader.string();
+          message.os = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.type = reader.string();
+          message.age = reader.string();
           continue;
         case 8:
-          if (tag !== 64) {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        case 9:
+          if (tag !== 72) {
             break;
           }
 
           message.status = reader.bool();
           continue;
-        case 9:
-          if (tag !== 74) {
+        case 10:
+          if (tag !== 82) {
             break;
           }
 
@@ -3982,6 +3993,7 @@ export const Resource = {
 
   fromJSON(object: any): Resource {
     return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
       machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
@@ -3996,6 +4008,9 @@ export const Resource = {
 
   toJSON(message: Resource): unknown {
     const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
     if (message.machineId !== 0) {
       obj.machineId = Math.round(message.machineId);
     }
@@ -4031,6 +4046,7 @@ export const Resource = {
   },
   fromPartial<I extends Exact<DeepPartial<Resource>, I>>(object: I): Resource {
     const message = createBaseResource();
+    message.id = object.id ?? "";
     message.machineId = object.machineId ?? 0;
     message.name = object.name ?? "";
     message.email = object.email ?? "";
