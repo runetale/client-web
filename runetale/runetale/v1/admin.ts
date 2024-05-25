@@ -388,7 +388,7 @@ export interface Ink {
 export interface CreateResourceRequest {
   name: string;
   desc: string;
-  machineIds: number[];
+  machineId: number;
 }
 
 export interface GenerateTokenRequest {
@@ -2519,7 +2519,7 @@ export const Ink = {
 };
 
 function createBaseCreateResourceRequest(): CreateResourceRequest {
-  return { name: "", desc: "", machineIds: [] };
+  return { name: "", desc: "", machineId: 0 };
 }
 
 export const CreateResourceRequest = {
@@ -2530,11 +2530,9 @@ export const CreateResourceRequest = {
     if (message.desc !== "") {
       writer.uint32(18).string(message.desc);
     }
-    writer.uint32(26).fork();
-    for (const v of message.machineIds) {
-      writer.uint64(v);
+    if (message.machineId !== 0) {
+      writer.uint32(24).uint64(message.machineId);
     }
-    writer.ldelim();
     return writer;
   },
 
@@ -2560,22 +2558,12 @@ export const CreateResourceRequest = {
           message.desc = reader.string();
           continue;
         case 3:
-          if (tag === 24) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
-
-            continue;
+          if (tag !== 24) {
+            break;
           }
 
-          if (tag === 26) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
-            }
-
-            continue;
-          }
-
-          break;
+          message.machineId = longToNumber(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2589,9 +2577,7 @@ export const CreateResourceRequest = {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
+      machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
     };
   },
 
@@ -2603,8 +2589,8 @@ export const CreateResourceRequest = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    if (message.machineId !== 0) {
+      obj.machineId = Math.round(message.machineId);
     }
     return obj;
   },
@@ -2616,7 +2602,7 @@ export const CreateResourceRequest = {
     const message = createBaseCreateResourceRequest();
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
+    message.machineId = object.machineId ?? 0;
     return message;
   },
 };
