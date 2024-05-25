@@ -483,7 +483,7 @@ export interface Resource {
   ip: string;
   os: string;
   age: string;
-  deploymentMethod: DeploymentMethod;
+  deploymentMethod: string;
   status: boolean;
   createdBy: string;
 }
@@ -3875,7 +3875,7 @@ function createBaseResource(): Resource {
     ip: "",
     os: "",
     age: "",
-    deploymentMethod: 0,
+    deploymentMethod: "",
     status: false,
     createdBy: "",
   };
@@ -3904,8 +3904,8 @@ export const Resource = {
     if (message.age !== "") {
       writer.uint32(58).string(message.age);
     }
-    if (message.deploymentMethod !== 0) {
-      writer.uint32(64).int32(message.deploymentMethod);
+    if (message.deploymentMethod !== "") {
+      writer.uint32(66).string(message.deploymentMethod);
     }
     if (message.status !== false) {
       writer.uint32(72).bool(message.status);
@@ -3973,11 +3973,11 @@ export const Resource = {
           message.age = reader.string();
           continue;
         case 8:
-          if (tag !== 64) {
+          if (tag !== 66) {
             break;
           }
 
-          message.deploymentMethod = reader.int32() as any;
+          message.deploymentMethod = reader.string();
           continue;
         case 9:
           if (tag !== 72) {
@@ -4011,7 +4011,7 @@ export const Resource = {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
+      deploymentMethod: isSet(object.deploymentMethod) ? globalThis.String(object.deploymentMethod) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
     };
@@ -4040,8 +4040,8 @@ export const Resource = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.deploymentMethod !== 0) {
-      obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
+    if (message.deploymentMethod !== "") {
+      obj.deploymentMethod = message.deploymentMethod;
     }
     if (message.status !== false) {
       obj.status = message.status;
@@ -4064,7 +4064,7 @@ export const Resource = {
     message.ip = object.ip ?? "";
     message.os = object.os ?? "";
     message.age = object.age ?? "";
-    message.deploymentMethod = object.deploymentMethod ?? 0;
+    message.deploymentMethod = object.deploymentMethod ?? "";
     message.status = object.status ?? false;
     message.createdBy = object.createdBy ?? "";
     return message;
