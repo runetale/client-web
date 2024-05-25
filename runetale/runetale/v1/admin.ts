@@ -388,6 +388,8 @@ export interface Ink {
 export interface CreateResourceRequest {
   name: string;
   desc: string;
+  deploymentMethod: DeploymentMethod;
+  port: number;
   machineId: number;
 }
 
@@ -481,6 +483,7 @@ export interface Resource {
   name: string;
   email: string;
   ip: string;
+  port: number;
   os: string;
   age: string;
   deploymentMethod: string;
@@ -2519,7 +2522,7 @@ export const Ink = {
 };
 
 function createBaseCreateResourceRequest(): CreateResourceRequest {
-  return { name: "", desc: "", machineId: 0 };
+  return { name: "", desc: "", deploymentMethod: 0, port: 0, machineId: 0 };
 }
 
 export const CreateResourceRequest = {
@@ -2530,8 +2533,14 @@ export const CreateResourceRequest = {
     if (message.desc !== "") {
       writer.uint32(18).string(message.desc);
     }
+    if (message.deploymentMethod !== 0) {
+      writer.uint32(24).int32(message.deploymentMethod);
+    }
+    if (message.port !== 0) {
+      writer.uint32(32).uint64(message.port);
+    }
     if (message.machineId !== 0) {
-      writer.uint32(24).uint64(message.machineId);
+      writer.uint32(40).uint64(message.machineId);
     }
     return writer;
   },
@@ -2562,6 +2571,20 @@ export const CreateResourceRequest = {
             break;
           }
 
+          message.deploymentMethod = reader.int32() as any;
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.port = longToNumber(reader.uint64() as Long);
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
           message.machineId = longToNumber(reader.uint64() as Long);
           continue;
       }
@@ -2577,6 +2600,8 @@ export const CreateResourceRequest = {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
+      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
     };
   },
@@ -2588,6 +2613,12 @@ export const CreateResourceRequest = {
     }
     if (message.desc !== "") {
       obj.desc = message.desc;
+    }
+    if (message.deploymentMethod !== 0) {
+      obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
+    }
+    if (message.port !== 0) {
+      obj.port = Math.round(message.port);
     }
     if (message.machineId !== 0) {
       obj.machineId = Math.round(message.machineId);
@@ -2602,6 +2633,8 @@ export const CreateResourceRequest = {
     const message = createBaseCreateResourceRequest();
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
+    message.deploymentMethod = object.deploymentMethod ?? 0;
+    message.port = object.port ?? 0;
     message.machineId = object.machineId ?? 0;
     return message;
   },
@@ -3859,6 +3892,7 @@ function createBaseResource(): Resource {
     name: "",
     email: "",
     ip: "",
+    port: 0,
     os: "",
     age: "",
     deploymentMethod: "",
@@ -3884,20 +3918,23 @@ export const Resource = {
     if (message.ip !== "") {
       writer.uint32(42).string(message.ip);
     }
+    if (message.port !== 0) {
+      writer.uint32(48).uint64(message.port);
+    }
     if (message.os !== "") {
-      writer.uint32(50).string(message.os);
+      writer.uint32(58).string(message.os);
     }
     if (message.age !== "") {
-      writer.uint32(58).string(message.age);
+      writer.uint32(66).string(message.age);
     }
     if (message.deploymentMethod !== "") {
-      writer.uint32(66).string(message.deploymentMethod);
+      writer.uint32(74).string(message.deploymentMethod);
     }
     if (message.status !== false) {
-      writer.uint32(72).bool(message.status);
+      writer.uint32(80).bool(message.status);
     }
     if (message.createdBy !== "") {
-      writer.uint32(82).string(message.createdBy);
+      writer.uint32(90).string(message.createdBy);
     }
     return writer;
   },
@@ -3945,35 +3982,42 @@ export const Resource = {
           message.ip = reader.string();
           continue;
         case 6:
-          if (tag !== 50) {
+          if (tag !== 48) {
             break;
           }
 
-          message.os = reader.string();
+          message.port = longToNumber(reader.uint64() as Long);
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.age = reader.string();
+          message.os = reader.string();
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.deploymentMethod = reader.string();
+          message.age = reader.string();
           continue;
         case 9:
-          if (tag !== 72) {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.deploymentMethod = reader.string();
+          continue;
+        case 10:
+          if (tag !== 80) {
             break;
           }
 
           message.status = reader.bool();
           continue;
-        case 10:
-          if (tag !== 82) {
+        case 11:
+          if (tag !== 90) {
             break;
           }
 
@@ -3995,6 +4039,7 @@ export const Resource = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       deploymentMethod: isSet(object.deploymentMethod) ? globalThis.String(object.deploymentMethod) : "",
@@ -4019,6 +4064,9 @@ export const Resource = {
     }
     if (message.ip !== "") {
       obj.ip = message.ip;
+    }
+    if (message.port !== 0) {
+      obj.port = Math.round(message.port);
     }
     if (message.os !== "") {
       obj.os = message.os;
@@ -4048,6 +4096,7 @@ export const Resource = {
     message.name = object.name ?? "";
     message.email = object.email ?? "";
     message.ip = object.ip ?? "";
+    message.port = object.port ?? 0;
     message.os = object.os ?? "";
     message.age = object.age ?? "";
     message.deploymentMethod = object.deploymentMethod ?? "";
