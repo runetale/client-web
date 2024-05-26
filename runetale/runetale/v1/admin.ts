@@ -390,7 +390,7 @@ export interface CreateResourceRequest {
   desc: string;
   deploymentMethod: DeploymentMethod;
   port: number;
-  machineId: number;
+  token: string;
 }
 
 export interface GenerateTokenRequest {
@@ -2522,7 +2522,7 @@ export const Ink = {
 };
 
 function createBaseCreateResourceRequest(): CreateResourceRequest {
-  return { name: "", desc: "", deploymentMethod: 0, port: 0, machineId: 0 };
+  return { name: "", desc: "", deploymentMethod: 0, port: 0, token: "" };
 }
 
 export const CreateResourceRequest = {
@@ -2539,8 +2539,8 @@ export const CreateResourceRequest = {
     if (message.port !== 0) {
       writer.uint32(32).uint64(message.port);
     }
-    if (message.machineId !== 0) {
-      writer.uint32(40).uint64(message.machineId);
+    if (message.token !== "") {
+      writer.uint32(42).string(message.token);
     }
     return writer;
   },
@@ -2581,11 +2581,11 @@ export const CreateResourceRequest = {
           message.port = longToNumber(reader.uint64() as Long);
           continue;
         case 5:
-          if (tag !== 40) {
+          if (tag !== 42) {
             break;
           }
 
-          message.machineId = longToNumber(reader.uint64() as Long);
+          message.token = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2602,7 +2602,7 @@ export const CreateResourceRequest = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
       port: isSet(object.port) ? globalThis.Number(object.port) : 0,
-      machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
+      token: isSet(object.token) ? globalThis.String(object.token) : "",
     };
   },
 
@@ -2620,8 +2620,8 @@ export const CreateResourceRequest = {
     if (message.port !== 0) {
       obj.port = Math.round(message.port);
     }
-    if (message.machineId !== 0) {
-      obj.machineId = Math.round(message.machineId);
+    if (message.token !== "") {
+      obj.token = message.token;
     }
     return obj;
   },
@@ -2635,7 +2635,7 @@ export const CreateResourceRequest = {
     message.desc = object.desc ?? "";
     message.deploymentMethod = object.deploymentMethod ?? 0;
     message.port = object.port ?? 0;
-    message.machineId = object.machineId ?? 0;
+    message.token = object.token ?? "";
     return message;
   },
 };
