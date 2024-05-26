@@ -385,14 +385,6 @@ export interface Ink {
   age: string;
 }
 
-export interface CreateResourceRequest {
-  name: string;
-  desc: string;
-  deploymentMethod: DeploymentMethod;
-  port: number;
-  token: string;
-}
-
 export interface GenerateTokenRequest {
   deploymentMethod: DeploymentMethod;
   expirelyTime: ExpirelyTime;
@@ -2521,125 +2513,6 @@ export const Ink = {
   },
 };
 
-function createBaseCreateResourceRequest(): CreateResourceRequest {
-  return { name: "", desc: "", deploymentMethod: 0, port: 0, token: "" };
-}
-
-export const CreateResourceRequest = {
-  encode(message: CreateResourceRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.name !== "") {
-      writer.uint32(10).string(message.name);
-    }
-    if (message.desc !== "") {
-      writer.uint32(18).string(message.desc);
-    }
-    if (message.deploymentMethod !== 0) {
-      writer.uint32(24).int32(message.deploymentMethod);
-    }
-    if (message.port !== 0) {
-      writer.uint32(32).uint64(message.port);
-    }
-    if (message.token !== "") {
-      writer.uint32(42).string(message.token);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): CreateResourceRequest {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCreateResourceRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.desc = reader.string();
-          continue;
-        case 3:
-          if (tag !== 24) {
-            break;
-          }
-
-          message.deploymentMethod = reader.int32() as any;
-          continue;
-        case 4:
-          if (tag !== 32) {
-            break;
-          }
-
-          message.port = longToNumber(reader.uint64() as Long);
-          continue;
-        case 5:
-          if (tag !== 42) {
-            break;
-          }
-
-          message.token = reader.string();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): CreateResourceRequest {
-    return {
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
-      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
-      token: isSet(object.token) ? globalThis.String(object.token) : "",
-    };
-  },
-
-  toJSON(message: CreateResourceRequest): unknown {
-    const obj: any = {};
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
-    if (message.desc !== "") {
-      obj.desc = message.desc;
-    }
-    if (message.deploymentMethod !== 0) {
-      obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
-    }
-    if (message.port !== 0) {
-      obj.port = Math.round(message.port);
-    }
-    if (message.token !== "") {
-      obj.token = message.token;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<CreateResourceRequest>, I>>(base?: I): CreateResourceRequest {
-    return CreateResourceRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<CreateResourceRequest>, I>>(object: I): CreateResourceRequest {
-    const message = createBaseCreateResourceRequest();
-    message.name = object.name ?? "";
-    message.desc = object.desc ?? "";
-    message.deploymentMethod = object.deploymentMethod ?? 0;
-    message.port = object.port ?? 0;
-    message.token = object.token ?? "";
-    return message;
-  },
-};
-
 function createBaseGenerateTokenRequest(): GenerateTokenRequest {
   return { deploymentMethod: 0, expirelyTime: 0 };
 }
@@ -4660,7 +4533,6 @@ export interface AdminService {
   GetDevice(request: DeepPartial<GetDevicesRequest>, metadata?: grpc.Metadata): Promise<Device>;
   GetDevices(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Devices>;
   /** resources */
-  CreateResource(request: DeepPartial<CreateResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
   GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources>;
   /** tokens */
@@ -4699,7 +4571,6 @@ export class AdminServiceClientImpl implements AdminService {
     this.PatchGroup = this.PatchGroup.bind(this);
     this.GetDevice = this.GetDevice.bind(this);
     this.GetDevices = this.GetDevices.bind(this);
-    this.CreateResource = this.CreateResource.bind(this);
     this.GetResource = this.GetResource.bind(this);
     this.GetResources = this.GetResources.bind(this);
     this.GenerateToken = this.GenerateToken.bind(this);
@@ -4769,10 +4640,6 @@ export class AdminServiceClientImpl implements AdminService {
 
   GetDevices(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Devices> {
     return this.rpc.unary(AdminServiceGetDevicesDesc, Empty.fromPartial(request), metadata);
-  }
-
-  CreateResource(request: DeepPartial<CreateResourceRequest>, metadata?: grpc.Metadata): Promise<Resource> {
-    return this.rpc.unary(AdminServiceCreateResourceDesc, CreateResourceRequest.fromPartial(request), metadata);
   }
 
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource> {
@@ -5142,29 +5009,6 @@ export const AdminServiceGetDevicesDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = Devices.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const AdminServiceCreateResourceDesc: UnaryMethodDefinitionish = {
-  methodName: "CreateResource",
-  service: AdminServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return CreateResourceRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = Resource.decode(data);
       return {
         ...value,
         toObject() {

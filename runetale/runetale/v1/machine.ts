@@ -340,7 +340,7 @@ export const CreateMachineResponse = {
 export interface MachineService {
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse>;
   /** this rpc is needed to launch the peer using the access token */
-  CreateMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateMachineResponse>;
+  CreateMachineWithAccessToken(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateMachineResponse>;
 }
 
 export class MachineServiceClientImpl implements MachineService {
@@ -349,15 +349,15 @@ export class MachineServiceClientImpl implements MachineService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.SyncRemoteMachinesConfig = this.SyncRemoteMachinesConfig.bind(this);
-    this.CreateMachine = this.CreateMachine.bind(this);
+    this.CreateMachineWithAccessToken = this.CreateMachineWithAccessToken.bind(this);
   }
 
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse> {
     return this.rpc.unary(MachineServiceSyncRemoteMachinesConfigDesc, Empty.fromPartial(request), metadata);
   }
 
-  CreateMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateMachineResponse> {
-    return this.rpc.unary(MachineServiceCreateMachineDesc, Empty.fromPartial(request), metadata);
+  CreateMachineWithAccessToken(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateMachineResponse> {
+    return this.rpc.unary(MachineServiceCreateMachineWithAccessTokenDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -386,8 +386,8 @@ export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionis
   } as any,
 };
 
-export const MachineServiceCreateMachineDesc: UnaryMethodDefinitionish = {
-  methodName: "CreateMachine",
+export const MachineServiceCreateMachineWithAccessTokenDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateMachineWithAccessToken",
   service: MachineServiceDesc,
   requestStream: false,
   responseStream: false,
