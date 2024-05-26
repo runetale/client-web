@@ -388,6 +388,9 @@ export interface Ink {
 export interface GenerateTokenRequest {
   deploymentMethod: DeploymentMethod;
   expirelyTime: ExpirelyTime;
+  name: string;
+  desc: string;
+  port: number;
 }
 
 export interface GenerateTokenResponse {
@@ -2514,7 +2517,7 @@ export const Ink = {
 };
 
 function createBaseGenerateTokenRequest(): GenerateTokenRequest {
-  return { deploymentMethod: 0, expirelyTime: 0 };
+  return { deploymentMethod: 0, expirelyTime: 0, name: "", desc: "", port: 0 };
 }
 
 export const GenerateTokenRequest = {
@@ -2524,6 +2527,15 @@ export const GenerateTokenRequest = {
     }
     if (message.expirelyTime !== 0) {
       writer.uint32(16).int32(message.expirelyTime);
+    }
+    if (message.name !== "") {
+      writer.uint32(26).string(message.name);
+    }
+    if (message.desc !== "") {
+      writer.uint32(34).string(message.desc);
+    }
+    if (message.port !== 0) {
+      writer.uint32(40).uint64(message.port);
     }
     return writer;
   },
@@ -2549,6 +2561,27 @@ export const GenerateTokenRequest = {
 
           message.expirelyTime = reader.int32() as any;
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.port = longToNumber(reader.uint64() as Long);
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2562,6 +2595,9 @@ export const GenerateTokenRequest = {
     return {
       deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
       expirelyTime: isSet(object.expirelyTime) ? expirelyTimeFromJSON(object.expirelyTime) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
     };
   },
 
@@ -2573,6 +2609,15 @@ export const GenerateTokenRequest = {
     if (message.expirelyTime !== 0) {
       obj.expirelyTime = expirelyTimeToJSON(message.expirelyTime);
     }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
+    }
+    if (message.port !== 0) {
+      obj.port = Math.round(message.port);
+    }
     return obj;
   },
 
@@ -2583,6 +2628,9 @@ export const GenerateTokenRequest = {
     const message = createBaseGenerateTokenRequest();
     message.deploymentMethod = object.deploymentMethod ?? 0;
     message.expirelyTime = object.expirelyTime ?? 0;
+    message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
+    message.port = object.port ?? 0;
     return message;
   },
 };
