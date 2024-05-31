@@ -385,26 +385,30 @@ export interface Ink {
   age: string;
 }
 
-export interface GenerateTokenRequest {
+export interface GenerateComposeKeyRequest {
   deploymentMethod: DeploymentMethod;
   expirelyTime: ExpirelyTime;
   name: string;
   desc: string;
+  isReusable: boolean;
 }
 
-export interface GenerateTokenResponse {
+export interface GenerateComposeKeyResponse {
   token: string;
 }
 
-export interface GetTokensResponse {
-  tokens: GetTokensResponse_token[];
+export interface GetComposeKeysResponse {
+  tokens: GetComposeKeysResponse_token[];
 }
 
-export interface GetTokensResponse_token {
+export interface GetComposeKeysResponse_token {
   token: string;
   expiredAt: string;
   hasExpied: boolean;
   createdBy: string;
+  createdAt: string;
+  description: string;
+  isReusable: boolean;
 }
 
 export interface GetResourceRequest {
@@ -2515,12 +2519,12 @@ export const Ink = {
   },
 };
 
-function createBaseGenerateTokenRequest(): GenerateTokenRequest {
-  return { deploymentMethod: 0, expirelyTime: 0, name: "", desc: "" };
+function createBaseGenerateComposeKeyRequest(): GenerateComposeKeyRequest {
+  return { deploymentMethod: 0, expirelyTime: 0, name: "", desc: "", isReusable: false };
 }
 
-export const GenerateTokenRequest = {
-  encode(message: GenerateTokenRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const GenerateComposeKeyRequest = {
+  encode(message: GenerateComposeKeyRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.deploymentMethod !== 0) {
       writer.uint32(8).int32(message.deploymentMethod);
     }
@@ -2533,13 +2537,16 @@ export const GenerateTokenRequest = {
     if (message.desc !== "") {
       writer.uint32(34).string(message.desc);
     }
+    if (message.isReusable !== false) {
+      writer.uint32(40).bool(message.isReusable);
+    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GenerateTokenRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerateComposeKeyRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGenerateTokenRequest();
+    const message = createBaseGenerateComposeKeyRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2571,6 +2578,13 @@ export const GenerateTokenRequest = {
 
           message.desc = reader.string();
           continue;
+        case 5:
+          if (tag !== 40) {
+            break;
+          }
+
+          message.isReusable = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2580,16 +2594,17 @@ export const GenerateTokenRequest = {
     return message;
   },
 
-  fromJSON(object: any): GenerateTokenRequest {
+  fromJSON(object: any): GenerateComposeKeyRequest {
     return {
       deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
       expirelyTime: isSet(object.expirelyTime) ? expirelyTimeFromJSON(object.expirelyTime) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      isReusable: isSet(object.isReusable) ? globalThis.Boolean(object.isReusable) : false,
     };
   },
 
-  toJSON(message: GenerateTokenRequest): unknown {
+  toJSON(message: GenerateComposeKeyRequest): unknown {
     const obj: any = {};
     if (message.deploymentMethod !== 0) {
       obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
@@ -2603,38 +2618,42 @@ export const GenerateTokenRequest = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
+    if (message.isReusable !== false) {
+      obj.isReusable = message.isReusable;
+    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GenerateTokenRequest>, I>>(base?: I): GenerateTokenRequest {
-    return GenerateTokenRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GenerateComposeKeyRequest>, I>>(base?: I): GenerateComposeKeyRequest {
+    return GenerateComposeKeyRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GenerateTokenRequest>, I>>(object: I): GenerateTokenRequest {
-    const message = createBaseGenerateTokenRequest();
+  fromPartial<I extends Exact<DeepPartial<GenerateComposeKeyRequest>, I>>(object: I): GenerateComposeKeyRequest {
+    const message = createBaseGenerateComposeKeyRequest();
     message.deploymentMethod = object.deploymentMethod ?? 0;
     message.expirelyTime = object.expirelyTime ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
+    message.isReusable = object.isReusable ?? false;
     return message;
   },
 };
 
-function createBaseGenerateTokenResponse(): GenerateTokenResponse {
+function createBaseGenerateComposeKeyResponse(): GenerateComposeKeyResponse {
   return { token: "" };
 }
 
-export const GenerateTokenResponse = {
-  encode(message: GenerateTokenResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const GenerateComposeKeyResponse = {
+  encode(message: GenerateComposeKeyResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.token !== "") {
       writer.uint32(10).string(message.token);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GenerateTokenResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerateComposeKeyResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGenerateTokenResponse();
+    const message = createBaseGenerateComposeKeyResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2654,11 +2673,11 @@ export const GenerateTokenResponse = {
     return message;
   },
 
-  fromJSON(object: any): GenerateTokenResponse {
+  fromJSON(object: any): GenerateComposeKeyResponse {
     return { token: isSet(object.token) ? globalThis.String(object.token) : "" };
   },
 
-  toJSON(message: GenerateTokenResponse): unknown {
+  toJSON(message: GenerateComposeKeyResponse): unknown {
     const obj: any = {};
     if (message.token !== "") {
       obj.token = message.token;
@@ -2666,32 +2685,32 @@ export const GenerateTokenResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GenerateTokenResponse>, I>>(base?: I): GenerateTokenResponse {
-    return GenerateTokenResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GenerateComposeKeyResponse>, I>>(base?: I): GenerateComposeKeyResponse {
+    return GenerateComposeKeyResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GenerateTokenResponse>, I>>(object: I): GenerateTokenResponse {
-    const message = createBaseGenerateTokenResponse();
+  fromPartial<I extends Exact<DeepPartial<GenerateComposeKeyResponse>, I>>(object: I): GenerateComposeKeyResponse {
+    const message = createBaseGenerateComposeKeyResponse();
     message.token = object.token ?? "";
     return message;
   },
 };
 
-function createBaseGetTokensResponse(): GetTokensResponse {
+function createBaseGetComposeKeysResponse(): GetComposeKeysResponse {
   return { tokens: [] };
 }
 
-export const GetTokensResponse = {
-  encode(message: GetTokensResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const GetComposeKeysResponse = {
+  encode(message: GetComposeKeysResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.tokens) {
-      GetTokensResponse_token.encode(v!, writer.uint32(10).fork()).ldelim();
+      GetComposeKeysResponse_token.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetTokensResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetComposeKeysResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetTokensResponse();
+    const message = createBaseGetComposeKeysResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2700,7 +2719,7 @@ export const GetTokensResponse = {
             break;
           }
 
-          message.tokens.push(GetTokensResponse_token.decode(reader, reader.uint32()));
+          message.tokens.push(GetComposeKeysResponse_token.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2711,38 +2730,46 @@ export const GetTokensResponse = {
     return message;
   },
 
-  fromJSON(object: any): GetTokensResponse {
+  fromJSON(object: any): GetComposeKeysResponse {
     return {
       tokens: globalThis.Array.isArray(object?.tokens)
-        ? object.tokens.map((e: any) => GetTokensResponse_token.fromJSON(e))
+        ? object.tokens.map((e: any) => GetComposeKeysResponse_token.fromJSON(e))
         : [],
     };
   },
 
-  toJSON(message: GetTokensResponse): unknown {
+  toJSON(message: GetComposeKeysResponse): unknown {
     const obj: any = {};
     if (message.tokens?.length) {
-      obj.tokens = message.tokens.map((e) => GetTokensResponse_token.toJSON(e));
+      obj.tokens = message.tokens.map((e) => GetComposeKeysResponse_token.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetTokensResponse>, I>>(base?: I): GetTokensResponse {
-    return GetTokensResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetComposeKeysResponse>, I>>(base?: I): GetComposeKeysResponse {
+    return GetComposeKeysResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetTokensResponse>, I>>(object: I): GetTokensResponse {
-    const message = createBaseGetTokensResponse();
-    message.tokens = object.tokens?.map((e) => GetTokensResponse_token.fromPartial(e)) || [];
+  fromPartial<I extends Exact<DeepPartial<GetComposeKeysResponse>, I>>(object: I): GetComposeKeysResponse {
+    const message = createBaseGetComposeKeysResponse();
+    message.tokens = object.tokens?.map((e) => GetComposeKeysResponse_token.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseGetTokensResponse_token(): GetTokensResponse_token {
-  return { token: "", expiredAt: "", hasExpied: false, createdBy: "" };
+function createBaseGetComposeKeysResponse_token(): GetComposeKeysResponse_token {
+  return {
+    token: "",
+    expiredAt: "",
+    hasExpied: false,
+    createdBy: "",
+    createdAt: "",
+    description: "",
+    isReusable: false,
+  };
 }
 
-export const GetTokensResponse_token = {
-  encode(message: GetTokensResponse_token, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const GetComposeKeysResponse_token = {
+  encode(message: GetComposeKeysResponse_token, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.token !== "") {
       writer.uint32(10).string(message.token);
     }
@@ -2755,13 +2782,22 @@ export const GetTokensResponse_token = {
     if (message.createdBy !== "") {
       writer.uint32(34).string(message.createdBy);
     }
+    if (message.createdAt !== "") {
+      writer.uint32(42).string(message.createdAt);
+    }
+    if (message.description !== "") {
+      writer.uint32(50).string(message.description);
+    }
+    if (message.isReusable !== false) {
+      writer.uint32(56).bool(message.isReusable);
+    }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetTokensResponse_token {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetComposeKeysResponse_token {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetTokensResponse_token();
+    const message = createBaseGetComposeKeysResponse_token();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2793,6 +2829,27 @@ export const GetTokensResponse_token = {
 
           message.createdBy = reader.string();
           continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.description = reader.string();
+          continue;
+        case 7:
+          if (tag !== 56) {
+            break;
+          }
+
+          message.isReusable = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2802,16 +2859,19 @@ export const GetTokensResponse_token = {
     return message;
   },
 
-  fromJSON(object: any): GetTokensResponse_token {
+  fromJSON(object: any): GetComposeKeysResponse_token {
     return {
       token: isSet(object.token) ? globalThis.String(object.token) : "",
       expiredAt: isSet(object.expiredAt) ? globalThis.String(object.expiredAt) : "",
       hasExpied: isSet(object.hasExpied) ? globalThis.Boolean(object.hasExpied) : false,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      description: isSet(object.description) ? globalThis.String(object.description) : "",
+      isReusable: isSet(object.isReusable) ? globalThis.Boolean(object.isReusable) : false,
     };
   },
 
-  toJSON(message: GetTokensResponse_token): unknown {
+  toJSON(message: GetComposeKeysResponse_token): unknown {
     const obj: any = {};
     if (message.token !== "") {
       obj.token = message.token;
@@ -2825,18 +2885,30 @@ export const GetTokensResponse_token = {
     if (message.createdBy !== "") {
       obj.createdBy = message.createdBy;
     }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
+    if (message.description !== "") {
+      obj.description = message.description;
+    }
+    if (message.isReusable !== false) {
+      obj.isReusable = message.isReusable;
+    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetTokensResponse_token>, I>>(base?: I): GetTokensResponse_token {
-    return GetTokensResponse_token.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetComposeKeysResponse_token>, I>>(base?: I): GetComposeKeysResponse_token {
+    return GetComposeKeysResponse_token.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetTokensResponse_token>, I>>(object: I): GetTokensResponse_token {
-    const message = createBaseGetTokensResponse_token();
+  fromPartial<I extends Exact<DeepPartial<GetComposeKeysResponse_token>, I>>(object: I): GetComposeKeysResponse_token {
+    const message = createBaseGetComposeKeysResponse_token();
     message.token = object.token ?? "";
     message.expiredAt = object.expiredAt ?? "";
     message.hasExpied = object.hasExpied ?? false;
     message.createdBy = object.createdBy ?? "";
+    message.createdAt = object.createdAt ?? "";
+    message.description = object.description ?? "";
+    message.isReusable = object.isReusable ?? false;
     return message;
   },
 };
@@ -4568,8 +4640,11 @@ export interface AdminService {
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
   GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources>;
   /** tokens */
-  GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse>;
-  GetTokens(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetTokensResponse>;
+  GenerateComposeKey(
+    request: DeepPartial<GenerateComposeKeyRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GenerateComposeKeyResponse>;
+  GetTokens(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GenerateComposeKeyResponse>;
   /** fleets */
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
@@ -4605,7 +4680,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetDevices = this.GetDevices.bind(this);
     this.GetResource = this.GetResource.bind(this);
     this.GetResources = this.GetResources.bind(this);
-    this.GenerateToken = this.GenerateToken.bind(this);
+    this.GenerateComposeKey = this.GenerateComposeKey.bind(this);
     this.GetTokens = this.GetTokens.bind(this);
     this.CreateFleet = this.CreateFleet.bind(this);
     this.GetFleet = this.GetFleet.bind(this);
@@ -4682,11 +4757,14 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGetResourcesDesc, Empty.fromPartial(request), metadata);
   }
 
-  GenerateToken(request: DeepPartial<GenerateTokenRequest>, metadata?: grpc.Metadata): Promise<GenerateTokenResponse> {
-    return this.rpc.unary(AdminServiceGenerateTokenDesc, GenerateTokenRequest.fromPartial(request), metadata);
+  GenerateComposeKey(
+    request: DeepPartial<GenerateComposeKeyRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GenerateComposeKeyResponse> {
+    return this.rpc.unary(AdminServiceGenerateComposeKeyDesc, GenerateComposeKeyRequest.fromPartial(request), metadata);
   }
 
-  GetTokens(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetTokensResponse> {
+  GetTokens(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GenerateComposeKeyResponse> {
     return this.rpc.unary(AdminServiceGetTokensDesc, Empty.fromPartial(request), metadata);
   }
 
@@ -5097,19 +5175,19 @@ export const AdminServiceGetResourcesDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const AdminServiceGenerateTokenDesc: UnaryMethodDefinitionish = {
-  methodName: "GenerateToken",
+export const AdminServiceGenerateComposeKeyDesc: UnaryMethodDefinitionish = {
+  methodName: "GenerateComposeKey",
   service: AdminServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return GenerateTokenRequest.encode(this).finish();
+      return GenerateComposeKeyRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GenerateTokenResponse.decode(data);
+      const value = GenerateComposeKeyResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -5132,7 +5210,7 @@ export const AdminServiceGetTokensDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GetTokensResponse.decode(data);
+      const value = GenerateComposeKeyResponse.decode(data);
       return {
         ...value,
         toObject() {

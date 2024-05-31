@@ -29,7 +29,7 @@ export interface RemotePeer {
   cidr: string;
 }
 
-export interface CreateMachineResponse {
+export interface ComposeMachineResponse {
   ip: string;
   cidr: string;
 }
@@ -263,12 +263,12 @@ export const RemotePeer = {
   },
 };
 
-function createBaseCreateMachineResponse(): CreateMachineResponse {
+function createBaseComposeMachineResponse(): ComposeMachineResponse {
   return { ip: "", cidr: "" };
 }
 
-export const CreateMachineResponse = {
-  encode(message: CreateMachineResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const ComposeMachineResponse = {
+  encode(message: ComposeMachineResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.ip !== "") {
       writer.uint32(10).string(message.ip);
     }
@@ -278,10 +278,10 @@ export const CreateMachineResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): CreateMachineResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ComposeMachineResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseCreateMachineResponse();
+    const message = createBaseComposeMachineResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -308,14 +308,14 @@ export const CreateMachineResponse = {
     return message;
   },
 
-  fromJSON(object: any): CreateMachineResponse {
+  fromJSON(object: any): ComposeMachineResponse {
     return {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
     };
   },
 
-  toJSON(message: CreateMachineResponse): unknown {
+  toJSON(message: ComposeMachineResponse): unknown {
     const obj: any = {};
     if (message.ip !== "") {
       obj.ip = message.ip;
@@ -326,11 +326,11 @@ export const CreateMachineResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<CreateMachineResponse>, I>>(base?: I): CreateMachineResponse {
-    return CreateMachineResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<ComposeMachineResponse>, I>>(base?: I): ComposeMachineResponse {
+    return ComposeMachineResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<CreateMachineResponse>, I>>(object: I): CreateMachineResponse {
-    const message = createBaseCreateMachineResponse();
+  fromPartial<I extends Exact<DeepPartial<ComposeMachineResponse>, I>>(object: I): ComposeMachineResponse {
+    const message = createBaseComposeMachineResponse();
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
     return message;
@@ -340,7 +340,7 @@ export const CreateMachineResponse = {
 export interface MachineService {
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse>;
   /** this rpc is needed to launch the peer using the access token */
-  CreateMachineWithAccessToken(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateMachineResponse>;
+  ComposeMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeMachineResponse>;
 }
 
 export class MachineServiceClientImpl implements MachineService {
@@ -349,15 +349,15 @@ export class MachineServiceClientImpl implements MachineService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.SyncRemoteMachinesConfig = this.SyncRemoteMachinesConfig.bind(this);
-    this.CreateMachineWithAccessToken = this.CreateMachineWithAccessToken.bind(this);
+    this.ComposeMachine = this.ComposeMachine.bind(this);
   }
 
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse> {
     return this.rpc.unary(MachineServiceSyncRemoteMachinesConfigDesc, Empty.fromPartial(request), metadata);
   }
 
-  CreateMachineWithAccessToken(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<CreateMachineResponse> {
-    return this.rpc.unary(MachineServiceCreateMachineWithAccessTokenDesc, Empty.fromPartial(request), metadata);
+  ComposeMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeMachineResponse> {
+    return this.rpc.unary(MachineServiceComposeMachineDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -386,8 +386,8 @@ export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionis
   } as any,
 };
 
-export const MachineServiceCreateMachineWithAccessTokenDesc: UnaryMethodDefinitionish = {
-  methodName: "CreateMachineWithAccessToken",
+export const MachineServiceComposeMachineDesc: UnaryMethodDefinitionish = {
+  methodName: "ComposeMachine",
   service: MachineServiceDesc,
   requestStream: false,
   responseStream: false,
@@ -398,7 +398,7 @@ export const MachineServiceCreateMachineWithAccessTokenDesc: UnaryMethodDefiniti
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = CreateMachineResponse.decode(data);
+      const value = ComposeMachineResponse.decode(data);
       return {
         ...value,
         toObject() {
