@@ -151,7 +151,7 @@ export function actionToJSON(object: Action): string {
   }
 }
 
-export enum DeploymentMethod {
+export enum PlatformMethod {
   DOCKER = 0,
   CLI = 1,
   LINUX = 2,
@@ -167,78 +167,78 @@ export enum DeploymentMethod {
   UNRECOGNIZED = -1,
 }
 
-export function deploymentMethodFromJSON(object: any): DeploymentMethod {
+export function platformMethodFromJSON(object: any): PlatformMethod {
   switch (object) {
     case 0:
     case "DOCKER":
-      return DeploymentMethod.DOCKER;
+      return PlatformMethod.DOCKER;
     case 1:
     case "CLI":
-      return DeploymentMethod.CLI;
+      return PlatformMethod.CLI;
     case 2:
     case "LINUX":
-      return DeploymentMethod.LINUX;
+      return PlatformMethod.LINUX;
     case 3:
     case "GCP":
-      return DeploymentMethod.GCP;
+      return PlatformMethod.GCP;
     case 4:
     case "MANUAL":
-      return DeploymentMethod.MANUAL;
+      return PlatformMethod.MANUAL;
     case 5:
     case "AWS":
-      return DeploymentMethod.AWS;
+      return PlatformMethod.AWS;
     case 6:
     case "AZURE":
-      return DeploymentMethod.AZURE;
+      return PlatformMethod.AZURE;
     case 7:
     case "ONPREM":
-      return DeploymentMethod.ONPREM;
+      return PlatformMethod.ONPREM;
     case 8:
     case "MACOS":
-      return DeploymentMethod.MACOS;
+      return PlatformMethod.MACOS;
     case 9:
     case "WINDOWS":
-      return DeploymentMethod.WINDOWS;
+      return PlatformMethod.WINDOWS;
     case 10:
     case "ONBOARDING":
-      return DeploymentMethod.ONBOARDING;
+      return PlatformMethod.ONBOARDING;
     case 11:
     case "OTHER":
-      return DeploymentMethod.OTHER;
+      return PlatformMethod.OTHER;
     case -1:
     case "UNRECOGNIZED":
     default:
-      return DeploymentMethod.UNRECOGNIZED;
+      return PlatformMethod.UNRECOGNIZED;
   }
 }
 
-export function deploymentMethodToJSON(object: DeploymentMethod): string {
+export function platformMethodToJSON(object: PlatformMethod): string {
   switch (object) {
-    case DeploymentMethod.DOCKER:
+    case PlatformMethod.DOCKER:
       return "DOCKER";
-    case DeploymentMethod.CLI:
+    case PlatformMethod.CLI:
       return "CLI";
-    case DeploymentMethod.LINUX:
+    case PlatformMethod.LINUX:
       return "LINUX";
-    case DeploymentMethod.GCP:
+    case PlatformMethod.GCP:
       return "GCP";
-    case DeploymentMethod.MANUAL:
+    case PlatformMethod.MANUAL:
       return "MANUAL";
-    case DeploymentMethod.AWS:
+    case PlatformMethod.AWS:
       return "AWS";
-    case DeploymentMethod.AZURE:
+    case PlatformMethod.AZURE:
       return "AZURE";
-    case DeploymentMethod.ONPREM:
+    case PlatformMethod.ONPREM:
       return "ONPREM";
-    case DeploymentMethod.MACOS:
+    case PlatformMethod.MACOS:
       return "MACOS";
-    case DeploymentMethod.WINDOWS:
+    case PlatformMethod.WINDOWS:
       return "WINDOWS";
-    case DeploymentMethod.ONBOARDING:
+    case PlatformMethod.ONBOARDING:
       return "ONBOARDING";
-    case DeploymentMethod.OTHER:
+    case PlatformMethod.OTHER:
       return "OTHER";
-    case DeploymentMethod.UNRECOGNIZED:
+    case PlatformMethod.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
@@ -386,7 +386,7 @@ export interface Ink {
 }
 
 export interface GenerateComposeKeyRequest {
-  deploymentMethod: DeploymentMethod;
+  platformMethod: PlatformMethod;
   expirelyTime: ExpirelyTime;
   name: string;
   desc: string;
@@ -423,7 +423,7 @@ export interface CreateFleetRequest {
   name: string;
   desc: string;
   machineIds: number[];
-  deploymentMethod: DeploymentMethod;
+  platformMethod: PlatformMethod;
 }
 
 export interface GetFleetRequest {
@@ -440,7 +440,7 @@ export interface PatchFleetRequest {
   desc: string;
   /** resource ids */
   machineIds: number[];
-  deploymentMethod: DeploymentMethod;
+  platformMethod: PlatformMethod;
   action: Action;
 }
 
@@ -2520,13 +2520,13 @@ export const Ink = {
 };
 
 function createBaseGenerateComposeKeyRequest(): GenerateComposeKeyRequest {
-  return { deploymentMethod: 0, expirelyTime: 0, name: "", desc: "", isReusable: false };
+  return { platformMethod: 0, expirelyTime: 0, name: "", desc: "", isReusable: false };
 }
 
 export const GenerateComposeKeyRequest = {
   encode(message: GenerateComposeKeyRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.deploymentMethod !== 0) {
-      writer.uint32(8).int32(message.deploymentMethod);
+    if (message.platformMethod !== 0) {
+      writer.uint32(8).int32(message.platformMethod);
     }
     if (message.expirelyTime !== 0) {
       writer.uint32(16).int32(message.expirelyTime);
@@ -2555,7 +2555,7 @@ export const GenerateComposeKeyRequest = {
             break;
           }
 
-          message.deploymentMethod = reader.int32() as any;
+          message.platformMethod = reader.int32() as any;
           continue;
         case 2:
           if (tag !== 16) {
@@ -2596,7 +2596,7 @@ export const GenerateComposeKeyRequest = {
 
   fromJSON(object: any): GenerateComposeKeyRequest {
     return {
-      deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
+      platformMethod: isSet(object.platformMethod) ? platformMethodFromJSON(object.platformMethod) : 0,
       expirelyTime: isSet(object.expirelyTime) ? expirelyTimeFromJSON(object.expirelyTime) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
@@ -2606,8 +2606,8 @@ export const GenerateComposeKeyRequest = {
 
   toJSON(message: GenerateComposeKeyRequest): unknown {
     const obj: any = {};
-    if (message.deploymentMethod !== 0) {
-      obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
+    if (message.platformMethod !== 0) {
+      obj.platformMethod = platformMethodToJSON(message.platformMethod);
     }
     if (message.expirelyTime !== 0) {
       obj.expirelyTime = expirelyTimeToJSON(message.expirelyTime);
@@ -2629,7 +2629,7 @@ export const GenerateComposeKeyRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<GenerateComposeKeyRequest>, I>>(object: I): GenerateComposeKeyRequest {
     const message = createBaseGenerateComposeKeyRequest();
-    message.deploymentMethod = object.deploymentMethod ?? 0;
+    message.platformMethod = object.platformMethod ?? 0;
     message.expirelyTime = object.expirelyTime ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
@@ -3036,7 +3036,7 @@ export const Resources = {
 };
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", machineIds: [], deploymentMethod: 0 };
+  return { name: "", desc: "", machineIds: [], platformMethod: 0 };
 }
 
 export const CreateFleetRequest = {
@@ -3052,8 +3052,8 @@ export const CreateFleetRequest = {
       writer.uint64(v);
     }
     writer.ldelim();
-    if (message.deploymentMethod !== 0) {
-      writer.uint32(32).int32(message.deploymentMethod);
+    if (message.platformMethod !== 0) {
+      writer.uint32(32).int32(message.platformMethod);
     }
     return writer;
   },
@@ -3101,7 +3101,7 @@ export const CreateFleetRequest = {
             break;
           }
 
-          message.deploymentMethod = reader.int32() as any;
+          message.platformMethod = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3119,7 +3119,7 @@ export const CreateFleetRequest = {
       machineIds: globalThis.Array.isArray(object?.machineIds)
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
-      deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
+      platformMethod: isSet(object.platformMethod) ? platformMethodFromJSON(object.platformMethod) : 0,
     };
   },
 
@@ -3134,8 +3134,8 @@ export const CreateFleetRequest = {
     if (message.machineIds?.length) {
       obj.machineIds = message.machineIds.map((e) => Math.round(e));
     }
-    if (message.deploymentMethod !== 0) {
-      obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
+    if (message.platformMethod !== 0) {
+      obj.platformMethod = platformMethodToJSON(message.platformMethod);
     }
     return obj;
   },
@@ -3148,7 +3148,7 @@ export const CreateFleetRequest = {
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
-    message.deploymentMethod = object.deploymentMethod ?? 0;
+    message.platformMethod = object.platformMethod ?? 0;
     return message;
   },
 };
@@ -3268,7 +3268,7 @@ export const Fleets = {
 };
 
 function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { id: "", name: "", desc: "", machineIds: [], deploymentMethod: 0, action: 0 };
+  return { id: "", name: "", desc: "", machineIds: [], platformMethod: 0, action: 0 };
 }
 
 export const PatchFleetRequest = {
@@ -3287,8 +3287,8 @@ export const PatchFleetRequest = {
       writer.uint64(v);
     }
     writer.ldelim();
-    if (message.deploymentMethod !== 0) {
-      writer.uint32(40).int32(message.deploymentMethod);
+    if (message.platformMethod !== 0) {
+      writer.uint32(40).int32(message.platformMethod);
     }
     if (message.action !== 0) {
       writer.uint32(48).int32(message.action);
@@ -3346,7 +3346,7 @@ export const PatchFleetRequest = {
             break;
           }
 
-          message.deploymentMethod = reader.int32() as any;
+          message.platformMethod = reader.int32() as any;
           continue;
         case 6:
           if (tag !== 48) {
@@ -3372,7 +3372,7 @@ export const PatchFleetRequest = {
       machineIds: globalThis.Array.isArray(object?.machineIds)
         ? object.machineIds.map((e: any) => globalThis.Number(e))
         : [],
-      deploymentMethod: isSet(object.deploymentMethod) ? deploymentMethodFromJSON(object.deploymentMethod) : 0,
+      platformMethod: isSet(object.platformMethod) ? platformMethodFromJSON(object.platformMethod) : 0,
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
@@ -3391,8 +3391,8 @@ export const PatchFleetRequest = {
     if (message.machineIds?.length) {
       obj.machineIds = message.machineIds.map((e) => Math.round(e));
     }
-    if (message.deploymentMethod !== 0) {
-      obj.deploymentMethod = deploymentMethodToJSON(message.deploymentMethod);
+    if (message.platformMethod !== 0) {
+      obj.platformMethod = platformMethodToJSON(message.platformMethod);
     }
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
@@ -3409,7 +3409,7 @@ export const PatchFleetRequest = {
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.machineIds = object.machineIds?.map((e) => e) || [];
-    message.deploymentMethod = object.deploymentMethod ?? 0;
+    message.platformMethod = object.platformMethod ?? 0;
     message.action = object.action ?? 0;
     return message;
   },
