@@ -394,7 +394,12 @@ export interface GenerateComposeKeyRequest {
 }
 
 export interface GenerateComposeKeyResponse {
-  token: string;
+  installScripts: GenerateComposeKeyResponse_installScript[];
+}
+
+export interface GenerateComposeKeyResponse_installScript {
+  script: string;
+  platformMethod: PlatformMethod;
 }
 
 export interface GetComposeKeysResponse {
@@ -2639,13 +2644,13 @@ export const GenerateComposeKeyRequest = {
 };
 
 function createBaseGenerateComposeKeyResponse(): GenerateComposeKeyResponse {
-  return { token: "" };
+  return { installScripts: [] };
 }
 
 export const GenerateComposeKeyResponse = {
   encode(message: GenerateComposeKeyResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.token !== "") {
-      writer.uint32(10).string(message.token);
+    for (const v of message.installScripts) {
+      GenerateComposeKeyResponse_installScript.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
@@ -2662,7 +2667,7 @@ export const GenerateComposeKeyResponse = {
             break;
           }
 
-          message.token = reader.string();
+          message.installScripts.push(GenerateComposeKeyResponse_installScript.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2674,13 +2679,17 @@ export const GenerateComposeKeyResponse = {
   },
 
   fromJSON(object: any): GenerateComposeKeyResponse {
-    return { token: isSet(object.token) ? globalThis.String(object.token) : "" };
+    return {
+      installScripts: globalThis.Array.isArray(object?.installScripts)
+        ? object.installScripts.map((e: any) => GenerateComposeKeyResponse_installScript.fromJSON(e))
+        : [],
+    };
   },
 
   toJSON(message: GenerateComposeKeyResponse): unknown {
     const obj: any = {};
-    if (message.token !== "") {
-      obj.token = message.token;
+    if (message.installScripts?.length) {
+      obj.installScripts = message.installScripts.map((e) => GenerateComposeKeyResponse_installScript.toJSON(e));
     }
     return obj;
   },
@@ -2690,7 +2699,86 @@ export const GenerateComposeKeyResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<GenerateComposeKeyResponse>, I>>(object: I): GenerateComposeKeyResponse {
     const message = createBaseGenerateComposeKeyResponse();
-    message.token = object.token ?? "";
+    message.installScripts =
+      object.installScripts?.map((e) => GenerateComposeKeyResponse_installScript.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseGenerateComposeKeyResponse_installScript(): GenerateComposeKeyResponse_installScript {
+  return { script: "", platformMethod: 0 };
+}
+
+export const GenerateComposeKeyResponse_installScript = {
+  encode(message: GenerateComposeKeyResponse_installScript, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.script !== "") {
+      writer.uint32(10).string(message.script);
+    }
+    if (message.platformMethod !== 0) {
+      writer.uint32(16).int32(message.platformMethod);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GenerateComposeKeyResponse_installScript {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGenerateComposeKeyResponse_installScript();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.script = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.platformMethod = reader.int32() as any;
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GenerateComposeKeyResponse_installScript {
+    return {
+      script: isSet(object.script) ? globalThis.String(object.script) : "",
+      platformMethod: isSet(object.platformMethod) ? platformMethodFromJSON(object.platformMethod) : 0,
+    };
+  },
+
+  toJSON(message: GenerateComposeKeyResponse_installScript): unknown {
+    const obj: any = {};
+    if (message.script !== "") {
+      obj.script = message.script;
+    }
+    if (message.platformMethod !== 0) {
+      obj.platformMethod = platformMethodToJSON(message.platformMethod);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GenerateComposeKeyResponse_installScript>, I>>(
+    base?: I,
+  ): GenerateComposeKeyResponse_installScript {
+    return GenerateComposeKeyResponse_installScript.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GenerateComposeKeyResponse_installScript>, I>>(
+    object: I,
+  ): GenerateComposeKeyResponse_installScript {
+    const message = createBaseGenerateComposeKeyResponse_installScript();
+    message.script = object.script ?? "";
+    message.platformMethod = object.platformMethod ?? 0;
     return message;
   },
 };

@@ -339,7 +339,6 @@ export const ComposeMachineResponse = {
 
 export interface MachineService {
   SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse>;
-  /** this rpc is needed to launch the peer using the access token */
   ComposeMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeMachineResponse>;
 }
 
