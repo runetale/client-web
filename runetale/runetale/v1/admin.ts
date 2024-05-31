@@ -395,6 +395,7 @@ export interface GenerateComposeKeyRequest {
 
 export interface GenerateComposeKeyResponse {
   installScripts: GenerateComposeKeyResponse_installScript[];
+  composeKey: string;
 }
 
 export interface GenerateComposeKeyResponse_installScript {
@@ -2644,13 +2645,16 @@ export const GenerateComposeKeyRequest = {
 };
 
 function createBaseGenerateComposeKeyResponse(): GenerateComposeKeyResponse {
-  return { installScripts: [] };
+  return { installScripts: [], composeKey: "" };
 }
 
 export const GenerateComposeKeyResponse = {
   encode(message: GenerateComposeKeyResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.installScripts) {
       GenerateComposeKeyResponse_installScript.encode(v!, writer.uint32(10).fork()).ldelim();
+    }
+    if (message.composeKey !== "") {
+      writer.uint32(18).string(message.composeKey);
     }
     return writer;
   },
@@ -2669,6 +2673,13 @@ export const GenerateComposeKeyResponse = {
 
           message.installScripts.push(GenerateComposeKeyResponse_installScript.decode(reader, reader.uint32()));
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.composeKey = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2683,6 +2694,7 @@ export const GenerateComposeKeyResponse = {
       installScripts: globalThis.Array.isArray(object?.installScripts)
         ? object.installScripts.map((e: any) => GenerateComposeKeyResponse_installScript.fromJSON(e))
         : [],
+      composeKey: isSet(object.composeKey) ? globalThis.String(object.composeKey) : "",
     };
   },
 
@@ -2690,6 +2702,9 @@ export const GenerateComposeKeyResponse = {
     const obj: any = {};
     if (message.installScripts?.length) {
       obj.installScripts = message.installScripts.map((e) => GenerateComposeKeyResponse_installScript.toJSON(e));
+    }
+    if (message.composeKey !== "") {
+      obj.composeKey = message.composeKey;
     }
     return obj;
   },
@@ -2701,6 +2716,7 @@ export const GenerateComposeKeyResponse = {
     const message = createBaseGenerateComposeKeyResponse();
     message.installScripts =
       object.installScripts?.map((e) => GenerateComposeKeyResponse_installScript.fromPartial(e)) || [];
+    message.composeKey = object.composeKey ?? "";
     return message;
   },
 };
