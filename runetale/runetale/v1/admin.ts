@@ -398,11 +398,11 @@ export interface GenerateComposeKeyResponse {
 }
 
 export interface GetComposeKeysResponse {
-  tokens: GetComposeKeysResponse_token[];
+  composeKeys: GetComposeKeysResponse_composeKey[];
 }
 
-export interface GetComposeKeysResponse_token {
-  token: string;
+export interface GetComposeKeysResponse_composeKey {
+  composeKey: string;
   expiredAt: string;
   hasExpied: boolean;
   createdBy: string;
@@ -2696,13 +2696,13 @@ export const GenerateComposeKeyResponse = {
 };
 
 function createBaseGetComposeKeysResponse(): GetComposeKeysResponse {
-  return { tokens: [] };
+  return { composeKeys: [] };
 }
 
 export const GetComposeKeysResponse = {
   encode(message: GetComposeKeysResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.tokens) {
-      GetComposeKeysResponse_token.encode(v!, writer.uint32(10).fork()).ldelim();
+    for (const v of message.composeKeys) {
+      GetComposeKeysResponse_composeKey.encode(v!, writer.uint32(10).fork()).ldelim();
     }
     return writer;
   },
@@ -2719,7 +2719,7 @@ export const GetComposeKeysResponse = {
             break;
           }
 
-          message.tokens.push(GetComposeKeysResponse_token.decode(reader, reader.uint32()));
+          message.composeKeys.push(GetComposeKeysResponse_composeKey.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2732,16 +2732,16 @@ export const GetComposeKeysResponse = {
 
   fromJSON(object: any): GetComposeKeysResponse {
     return {
-      tokens: globalThis.Array.isArray(object?.tokens)
-        ? object.tokens.map((e: any) => GetComposeKeysResponse_token.fromJSON(e))
+      composeKeys: globalThis.Array.isArray(object?.composeKeys)
+        ? object.composeKeys.map((e: any) => GetComposeKeysResponse_composeKey.fromJSON(e))
         : [],
     };
   },
 
   toJSON(message: GetComposeKeysResponse): unknown {
     const obj: any = {};
-    if (message.tokens?.length) {
-      obj.tokens = message.tokens.map((e) => GetComposeKeysResponse_token.toJSON(e));
+    if (message.composeKeys?.length) {
+      obj.composeKeys = message.composeKeys.map((e) => GetComposeKeysResponse_composeKey.toJSON(e));
     }
     return obj;
   },
@@ -2751,14 +2751,14 @@ export const GetComposeKeysResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<GetComposeKeysResponse>, I>>(object: I): GetComposeKeysResponse {
     const message = createBaseGetComposeKeysResponse();
-    message.tokens = object.tokens?.map((e) => GetComposeKeysResponse_token.fromPartial(e)) || [];
+    message.composeKeys = object.composeKeys?.map((e) => GetComposeKeysResponse_composeKey.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseGetComposeKeysResponse_token(): GetComposeKeysResponse_token {
+function createBaseGetComposeKeysResponse_composeKey(): GetComposeKeysResponse_composeKey {
   return {
-    token: "",
+    composeKey: "",
     expiredAt: "",
     hasExpied: false,
     createdBy: "",
@@ -2768,10 +2768,10 @@ function createBaseGetComposeKeysResponse_token(): GetComposeKeysResponse_token 
   };
 }
 
-export const GetComposeKeysResponse_token = {
-  encode(message: GetComposeKeysResponse_token, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.token !== "") {
-      writer.uint32(10).string(message.token);
+export const GetComposeKeysResponse_composeKey = {
+  encode(message: GetComposeKeysResponse_composeKey, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.composeKey !== "") {
+      writer.uint32(10).string(message.composeKey);
     }
     if (message.expiredAt !== "") {
       writer.uint32(18).string(message.expiredAt);
@@ -2794,10 +2794,10 @@ export const GetComposeKeysResponse_token = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetComposeKeysResponse_token {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetComposeKeysResponse_composeKey {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetComposeKeysResponse_token();
+    const message = createBaseGetComposeKeysResponse_composeKey();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2806,7 +2806,7 @@ export const GetComposeKeysResponse_token = {
             break;
           }
 
-          message.token = reader.string();
+          message.composeKey = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -2859,9 +2859,9 @@ export const GetComposeKeysResponse_token = {
     return message;
   },
 
-  fromJSON(object: any): GetComposeKeysResponse_token {
+  fromJSON(object: any): GetComposeKeysResponse_composeKey {
     return {
-      token: isSet(object.token) ? globalThis.String(object.token) : "",
+      composeKey: isSet(object.composeKey) ? globalThis.String(object.composeKey) : "",
       expiredAt: isSet(object.expiredAt) ? globalThis.String(object.expiredAt) : "",
       hasExpied: isSet(object.hasExpied) ? globalThis.Boolean(object.hasExpied) : false,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
@@ -2871,10 +2871,10 @@ export const GetComposeKeysResponse_token = {
     };
   },
 
-  toJSON(message: GetComposeKeysResponse_token): unknown {
+  toJSON(message: GetComposeKeysResponse_composeKey): unknown {
     const obj: any = {};
-    if (message.token !== "") {
-      obj.token = message.token;
+    if (message.composeKey !== "") {
+      obj.composeKey = message.composeKey;
     }
     if (message.expiredAt !== "") {
       obj.expiredAt = message.expiredAt;
@@ -2897,12 +2897,16 @@ export const GetComposeKeysResponse_token = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetComposeKeysResponse_token>, I>>(base?: I): GetComposeKeysResponse_token {
-    return GetComposeKeysResponse_token.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetComposeKeysResponse_composeKey>, I>>(
+    base?: I,
+  ): GetComposeKeysResponse_composeKey {
+    return GetComposeKeysResponse_composeKey.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetComposeKeysResponse_token>, I>>(object: I): GetComposeKeysResponse_token {
-    const message = createBaseGetComposeKeysResponse_token();
-    message.token = object.token ?? "";
+  fromPartial<I extends Exact<DeepPartial<GetComposeKeysResponse_composeKey>, I>>(
+    object: I,
+  ): GetComposeKeysResponse_composeKey {
+    const message = createBaseGetComposeKeysResponse_composeKey();
+    message.composeKey = object.composeKey ?? "";
     message.expiredAt = object.expiredAt ?? "";
     message.hasExpied = object.hasExpied ?? false;
     message.createdBy = object.createdBy ?? "";
