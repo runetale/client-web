@@ -4644,7 +4644,7 @@ export interface AdminService {
     request: DeepPartial<GenerateComposeKeyRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GenerateComposeKeyResponse>;
-  GetTokens(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GenerateComposeKeyResponse>;
+  GetComposeKeys(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GenerateComposeKeyResponse>;
   /** fleets */
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
@@ -4681,7 +4681,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetResource = this.GetResource.bind(this);
     this.GetResources = this.GetResources.bind(this);
     this.GenerateComposeKey = this.GenerateComposeKey.bind(this);
-    this.GetTokens = this.GetTokens.bind(this);
+    this.GetComposeKeys = this.GetComposeKeys.bind(this);
     this.CreateFleet = this.CreateFleet.bind(this);
     this.GetFleet = this.GetFleet.bind(this);
     this.GetFleets = this.GetFleets.bind(this);
@@ -4764,8 +4764,8 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGenerateComposeKeyDesc, GenerateComposeKeyRequest.fromPartial(request), metadata);
   }
 
-  GetTokens(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GenerateComposeKeyResponse> {
-    return this.rpc.unary(AdminServiceGetTokensDesc, Empty.fromPartial(request), metadata);
+  GetComposeKeys(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GenerateComposeKeyResponse> {
+    return this.rpc.unary(AdminServiceGetComposeKeysDesc, Empty.fromPartial(request), metadata);
   }
 
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
@@ -5198,8 +5198,8 @@ export const AdminServiceGenerateComposeKeyDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const AdminServiceGetTokensDesc: UnaryMethodDefinitionish = {
-  methodName: "GetTokens",
+export const AdminServiceGetComposeKeysDesc: UnaryMethodDefinitionish = {
+  methodName: "GetComposeKeys",
   service: AdminServiceDesc,
   requestStream: false,
   responseStream: false,
