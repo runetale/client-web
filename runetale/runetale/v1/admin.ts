@@ -417,6 +417,13 @@ export interface GetComposeKeysResponse_composeKey {
   isReusable: boolean;
 }
 
+export interface GetComposeMachineStatusResponse {
+  isConnected: boolean;
+  ip: string;
+  cidr: string;
+  name: string;
+}
+
 export interface GetResourceRequest {
   id: string;
 }
@@ -3021,6 +3028,112 @@ export const GetComposeKeysResponse_composeKey = {
   },
 };
 
+function createBaseGetComposeMachineStatusResponse(): GetComposeMachineStatusResponse {
+  return { isConnected: false, ip: "", cidr: "", name: "" };
+}
+
+export const GetComposeMachineStatusResponse = {
+  encode(message: GetComposeMachineStatusResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.isConnected !== false) {
+      writer.uint32(8).bool(message.isConnected);
+    }
+    if (message.ip !== "") {
+      writer.uint32(18).string(message.ip);
+    }
+    if (message.cidr !== "") {
+      writer.uint32(26).string(message.cidr);
+    }
+    if (message.name !== "") {
+      writer.uint32(34).string(message.name);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetComposeMachineStatusResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetComposeMachineStatusResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.isConnected = reader.bool();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.ip = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.cidr = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetComposeMachineStatusResponse {
+    return {
+      isConnected: isSet(object.isConnected) ? globalThis.Boolean(object.isConnected) : false,
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+    };
+  },
+
+  toJSON(message: GetComposeMachineStatusResponse): unknown {
+    const obj: any = {};
+    if (message.isConnected !== false) {
+      obj.isConnected = message.isConnected;
+    }
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.cidr !== "") {
+      obj.cidr = message.cidr;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetComposeMachineStatusResponse>, I>>(base?: I): GetComposeMachineStatusResponse {
+    return GetComposeMachineStatusResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetComposeMachineStatusResponse>, I>>(
+    object: I,
+  ): GetComposeMachineStatusResponse {
+    const message = createBaseGetComposeMachineStatusResponse();
+    message.isConnected = object.isConnected ?? false;
+    message.ip = object.ip ?? "";
+    message.cidr = object.cidr ?? "";
+    message.name = object.name ?? "";
+    return message;
+  },
+};
+
 function createBaseGetResourceRequest(): GetResourceRequest {
   return { id: "" };
 }
@@ -4747,12 +4860,16 @@ export interface AdminService {
   /** resources */
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
   GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources>;
-  /** tokens */
+  /** compose keys */
   GenerateComposeKey(
     request: DeepPartial<GenerateComposeKeyRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GenerateComposeKeyResponse>;
   GetComposeKeys(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetComposeKeysResponse>;
+  GetComposeMachineStatus(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetComposeMachineStatusResponse>;
   /** fleets */
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
@@ -4790,6 +4907,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetResources = this.GetResources.bind(this);
     this.GenerateComposeKey = this.GenerateComposeKey.bind(this);
     this.GetComposeKeys = this.GetComposeKeys.bind(this);
+    this.GetComposeMachineStatus = this.GetComposeMachineStatus.bind(this);
     this.CreateFleet = this.CreateFleet.bind(this);
     this.GetFleet = this.GetFleet.bind(this);
     this.GetFleets = this.GetFleets.bind(this);
@@ -4874,6 +4992,13 @@ export class AdminServiceClientImpl implements AdminService {
 
   GetComposeKeys(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetComposeKeysResponse> {
     return this.rpc.unary(AdminServiceGetComposeKeysDesc, Empty.fromPartial(request), metadata);
+  }
+
+  GetComposeMachineStatus(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetComposeMachineStatusResponse> {
+    return this.rpc.unary(AdminServiceGetComposeMachineStatusDesc, Empty.fromPartial(request), metadata);
   }
 
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet> {
@@ -5319,6 +5444,29 @@ export const AdminServiceGetComposeKeysDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = GetComposeKeysResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGetComposeMachineStatusDesc: UnaryMethodDefinitionish = {
+  methodName: "GetComposeMachineStatus",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetComposeMachineStatusResponse.decode(data);
       return {
         ...value,
         toObject() {
