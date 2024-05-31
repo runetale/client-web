@@ -4644,7 +4644,7 @@ export interface AdminService {
     request: DeepPartial<GenerateComposeKeyRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GenerateComposeKeyResponse>;
-  GetComposeKeys(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GenerateComposeKeyResponse>;
+  GetComposeKeys(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetComposeKeysResponse>;
   /** fleets */
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
@@ -4764,7 +4764,7 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGenerateComposeKeyDesc, GenerateComposeKeyRequest.fromPartial(request), metadata);
   }
 
-  GetComposeKeys(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GenerateComposeKeyResponse> {
+  GetComposeKeys(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetComposeKeysResponse> {
     return this.rpc.unary(AdminServiceGetComposeKeysDesc, Empty.fromPartial(request), metadata);
   }
 
@@ -5210,7 +5210,7 @@ export const AdminServiceGetComposeKeysDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GenerateComposeKeyResponse.decode(data);
+      const value = GetComposeKeysResponse.decode(data);
       return {
         ...value,
         toObject() {
