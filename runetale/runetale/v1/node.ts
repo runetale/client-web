@@ -22,7 +22,7 @@ export interface SyncNodesResponse {
 }
 
 export interface Node {
-  remoteClientNodeKey: string;
+  remoteNodeKey: string;
   remoteWgPubKey: string;
   allowedIPs: string[];
   ip: string;
@@ -141,13 +141,13 @@ export const SyncNodesResponse = {
 };
 
 function createBaseNode(): Node {
-  return { remoteClientNodeKey: "", remoteWgPubKey: "", allowedIPs: [], ip: "", cidr: "" };
+  return { remoteNodeKey: "", remoteWgPubKey: "", allowedIPs: [], ip: "", cidr: "" };
 }
 
 export const Node = {
   encode(message: Node, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.remoteClientNodeKey !== "") {
-      writer.uint32(10).string(message.remoteClientNodeKey);
+    if (message.remoteNodeKey !== "") {
+      writer.uint32(10).string(message.remoteNodeKey);
     }
     if (message.remoteWgPubKey !== "") {
       writer.uint32(18).string(message.remoteWgPubKey);
@@ -176,7 +176,7 @@ export const Node = {
             break;
           }
 
-          message.remoteClientNodeKey = reader.string();
+          message.remoteNodeKey = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -217,7 +217,7 @@ export const Node = {
 
   fromJSON(object: any): Node {
     return {
-      remoteClientNodeKey: isSet(object.remoteClientNodeKey) ? globalThis.String(object.remoteClientNodeKey) : "",
+      remoteNodeKey: isSet(object.remoteNodeKey) ? globalThis.String(object.remoteNodeKey) : "",
       remoteWgPubKey: isSet(object.remoteWgPubKey) ? globalThis.String(object.remoteWgPubKey) : "",
       allowedIPs: globalThis.Array.isArray(object?.allowedIPs)
         ? object.allowedIPs.map((e: any) => globalThis.String(e))
@@ -229,8 +229,8 @@ export const Node = {
 
   toJSON(message: Node): unknown {
     const obj: any = {};
-    if (message.remoteClientNodeKey !== "") {
-      obj.remoteClientNodeKey = message.remoteClientNodeKey;
+    if (message.remoteNodeKey !== "") {
+      obj.remoteNodeKey = message.remoteNodeKey;
     }
     if (message.remoteWgPubKey !== "") {
       obj.remoteWgPubKey = message.remoteWgPubKey;
@@ -252,7 +252,7 @@ export const Node = {
   },
   fromPartial<I extends Exact<DeepPartial<Node>, I>>(object: I): Node {
     const message = createBaseNode();
-    message.remoteClientNodeKey = object.remoteClientNodeKey ?? "";
+    message.remoteNodeKey = object.remoteNodeKey ?? "";
     message.remoteWgPubKey = object.remoteWgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
     message.ip = object.ip ?? "";
