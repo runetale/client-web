@@ -2,7 +2,7 @@
 // versions:
 //   protoc-gen-ts_proto  v1.176.1
 //   protoc               v3.20.3
-// source: runetale/runetale/v1/machine.proto
+// source: runetale/runetale/v1/node.proto
 
 /* eslint-disable */
 import { grpc } from "@improbable-eng/grpc-web";
@@ -12,39 +12,39 @@ import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
-export interface SyncMachinesResponse {
+export interface SyncNodesResponse {
   isEmpty: boolean;
-  remotePeers: RemotePeer[];
-  /** your ip */
+  remoteNodes: Node[];
+  /** host ip */
   ip: string;
-  /** your cidr */
+  /** host cidr */
   cidr: string;
 }
 
-export interface RemotePeer {
-  remoteClientMachineKey: string;
+export interface Node {
+  remoteClientNodeKey: string;
   remoteWgPubKey: string;
   allowedIPs: string[];
   ip: string;
   cidr: string;
 }
 
-export interface ComposeMachineResponse {
+export interface ComposeNodeResponse {
   ip: string;
   cidr: string;
 }
 
-function createBaseSyncMachinesResponse(): SyncMachinesResponse {
-  return { isEmpty: false, remotePeers: [], ip: "", cidr: "" };
+function createBaseSyncNodesResponse(): SyncNodesResponse {
+  return { isEmpty: false, remoteNodes: [], ip: "", cidr: "" };
 }
 
-export const SyncMachinesResponse = {
-  encode(message: SyncMachinesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const SyncNodesResponse = {
+  encode(message: SyncNodesResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.isEmpty !== false) {
       writer.uint32(8).bool(message.isEmpty);
     }
-    for (const v of message.remotePeers) {
-      RemotePeer.encode(v!, writer.uint32(18).fork()).ldelim();
+    for (const v of message.remoteNodes) {
+      Node.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     if (message.ip !== "") {
       writer.uint32(26).string(message.ip);
@@ -55,10 +55,10 @@ export const SyncMachinesResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): SyncMachinesResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): SyncNodesResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSyncMachinesResponse();
+    const message = createBaseSyncNodesResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -74,7 +74,7 @@ export const SyncMachinesResponse = {
             break;
           }
 
-          message.remotePeers.push(RemotePeer.decode(reader, reader.uint32()));
+          message.remoteNodes.push(Node.decode(reader, reader.uint32()));
           continue;
         case 3:
           if (tag !== 26) {
@@ -99,24 +99,24 @@ export const SyncMachinesResponse = {
     return message;
   },
 
-  fromJSON(object: any): SyncMachinesResponse {
+  fromJSON(object: any): SyncNodesResponse {
     return {
       isEmpty: isSet(object.isEmpty) ? globalThis.Boolean(object.isEmpty) : false,
-      remotePeers: globalThis.Array.isArray(object?.remotePeers)
-        ? object.remotePeers.map((e: any) => RemotePeer.fromJSON(e))
+      remoteNodes: globalThis.Array.isArray(object?.remoteNodes)
+        ? object.remoteNodes.map((e: any) => Node.fromJSON(e))
         : [],
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
     };
   },
 
-  toJSON(message: SyncMachinesResponse): unknown {
+  toJSON(message: SyncNodesResponse): unknown {
     const obj: any = {};
     if (message.isEmpty !== false) {
       obj.isEmpty = message.isEmpty;
     }
-    if (message.remotePeers?.length) {
-      obj.remotePeers = message.remotePeers.map((e) => RemotePeer.toJSON(e));
+    if (message.remoteNodes?.length) {
+      obj.remoteNodes = message.remoteNodes.map((e) => Node.toJSON(e));
     }
     if (message.ip !== "") {
       obj.ip = message.ip;
@@ -127,27 +127,27 @@ export const SyncMachinesResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<SyncMachinesResponse>, I>>(base?: I): SyncMachinesResponse {
-    return SyncMachinesResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<SyncNodesResponse>, I>>(base?: I): SyncNodesResponse {
+    return SyncNodesResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<SyncMachinesResponse>, I>>(object: I): SyncMachinesResponse {
-    const message = createBaseSyncMachinesResponse();
+  fromPartial<I extends Exact<DeepPartial<SyncNodesResponse>, I>>(object: I): SyncNodesResponse {
+    const message = createBaseSyncNodesResponse();
     message.isEmpty = object.isEmpty ?? false;
-    message.remotePeers = object.remotePeers?.map((e) => RemotePeer.fromPartial(e)) || [];
+    message.remoteNodes = object.remoteNodes?.map((e) => Node.fromPartial(e)) || [];
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
     return message;
   },
 };
 
-function createBaseRemotePeer(): RemotePeer {
-  return { remoteClientMachineKey: "", remoteWgPubKey: "", allowedIPs: [], ip: "", cidr: "" };
+function createBaseNode(): Node {
+  return { remoteClientNodeKey: "", remoteWgPubKey: "", allowedIPs: [], ip: "", cidr: "" };
 }
 
-export const RemotePeer = {
-  encode(message: RemotePeer, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.remoteClientMachineKey !== "") {
-      writer.uint32(10).string(message.remoteClientMachineKey);
+export const Node = {
+  encode(message: Node, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.remoteClientNodeKey !== "") {
+      writer.uint32(10).string(message.remoteClientNodeKey);
     }
     if (message.remoteWgPubKey !== "") {
       writer.uint32(18).string(message.remoteWgPubKey);
@@ -164,10 +164,10 @@ export const RemotePeer = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): RemotePeer {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Node {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseRemotePeer();
+    const message = createBaseNode();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -176,7 +176,7 @@ export const RemotePeer = {
             break;
           }
 
-          message.remoteClientMachineKey = reader.string();
+          message.remoteClientNodeKey = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -215,11 +215,9 @@ export const RemotePeer = {
     return message;
   },
 
-  fromJSON(object: any): RemotePeer {
+  fromJSON(object: any): Node {
     return {
-      remoteClientMachineKey: isSet(object.remoteClientMachineKey)
-        ? globalThis.String(object.remoteClientMachineKey)
-        : "",
+      remoteClientNodeKey: isSet(object.remoteClientNodeKey) ? globalThis.String(object.remoteClientNodeKey) : "",
       remoteWgPubKey: isSet(object.remoteWgPubKey) ? globalThis.String(object.remoteWgPubKey) : "",
       allowedIPs: globalThis.Array.isArray(object?.allowedIPs)
         ? object.allowedIPs.map((e: any) => globalThis.String(e))
@@ -229,10 +227,10 @@ export const RemotePeer = {
     };
   },
 
-  toJSON(message: RemotePeer): unknown {
+  toJSON(message: Node): unknown {
     const obj: any = {};
-    if (message.remoteClientMachineKey !== "") {
-      obj.remoteClientMachineKey = message.remoteClientMachineKey;
+    if (message.remoteClientNodeKey !== "") {
+      obj.remoteClientNodeKey = message.remoteClientNodeKey;
     }
     if (message.remoteWgPubKey !== "") {
       obj.remoteWgPubKey = message.remoteWgPubKey;
@@ -249,12 +247,12 @@ export const RemotePeer = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<RemotePeer>, I>>(base?: I): RemotePeer {
-    return RemotePeer.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Node>, I>>(base?: I): Node {
+    return Node.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<RemotePeer>, I>>(object: I): RemotePeer {
-    const message = createBaseRemotePeer();
-    message.remoteClientMachineKey = object.remoteClientMachineKey ?? "";
+  fromPartial<I extends Exact<DeepPartial<Node>, I>>(object: I): Node {
+    const message = createBaseNode();
+    message.remoteClientNodeKey = object.remoteClientNodeKey ?? "";
     message.remoteWgPubKey = object.remoteWgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
     message.ip = object.ip ?? "";
@@ -263,12 +261,12 @@ export const RemotePeer = {
   },
 };
 
-function createBaseComposeMachineResponse(): ComposeMachineResponse {
+function createBaseComposeNodeResponse(): ComposeNodeResponse {
   return { ip: "", cidr: "" };
 }
 
-export const ComposeMachineResponse = {
-  encode(message: ComposeMachineResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const ComposeNodeResponse = {
+  encode(message: ComposeNodeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.ip !== "") {
       writer.uint32(10).string(message.ip);
     }
@@ -278,10 +276,10 @@ export const ComposeMachineResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): ComposeMachineResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): ComposeNodeResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseComposeMachineResponse();
+    const message = createBaseComposeNodeResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -308,14 +306,14 @@ export const ComposeMachineResponse = {
     return message;
   },
 
-  fromJSON(object: any): ComposeMachineResponse {
+  fromJSON(object: any): ComposeNodeResponse {
     return {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
     };
   },
 
-  toJSON(message: ComposeMachineResponse): unknown {
+  toJSON(message: ComposeNodeResponse): unknown {
     const obj: any = {};
     if (message.ip !== "") {
       obj.ip = message.ip;
@@ -326,45 +324,45 @@ export const ComposeMachineResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<ComposeMachineResponse>, I>>(base?: I): ComposeMachineResponse {
-    return ComposeMachineResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<ComposeNodeResponse>, I>>(base?: I): ComposeNodeResponse {
+    return ComposeNodeResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<ComposeMachineResponse>, I>>(object: I): ComposeMachineResponse {
-    const message = createBaseComposeMachineResponse();
+  fromPartial<I extends Exact<DeepPartial<ComposeNodeResponse>, I>>(object: I): ComposeNodeResponse {
+    const message = createBaseComposeNodeResponse();
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
     return message;
   },
 };
 
-export interface MachineService {
-  SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse>;
-  ComposeMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeMachineResponse>;
+export interface NodeService {
+  SyncRemoteNodesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncNodesResponse>;
+  ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse>;
 }
 
-export class MachineServiceClientImpl implements MachineService {
+export class NodeServiceClientImpl implements NodeService {
   private readonly rpc: Rpc;
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.SyncRemoteMachinesConfig = this.SyncRemoteMachinesConfig.bind(this);
-    this.ComposeMachine = this.ComposeMachine.bind(this);
+    this.SyncRemoteNodesConfig = this.SyncRemoteNodesConfig.bind(this);
+    this.ComposeNode = this.ComposeNode.bind(this);
   }
 
-  SyncRemoteMachinesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncMachinesResponse> {
-    return this.rpc.unary(MachineServiceSyncRemoteMachinesConfigDesc, Empty.fromPartial(request), metadata);
+  SyncRemoteNodesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncNodesResponse> {
+    return this.rpc.unary(NodeServiceSyncRemoteNodesConfigDesc, Empty.fromPartial(request), metadata);
   }
 
-  ComposeMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeMachineResponse> {
-    return this.rpc.unary(MachineServiceComposeMachineDesc, Empty.fromPartial(request), metadata);
+  ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse> {
+    return this.rpc.unary(NodeServiceComposeNodeDesc, Empty.fromPartial(request), metadata);
   }
 }
 
-export const MachineServiceDesc = { serviceName: "protos.MachineService" };
+export const NodeServiceDesc = { serviceName: "protos.NodeService" };
 
-export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionish = {
-  methodName: "SyncRemoteMachinesConfig",
-  service: MachineServiceDesc,
+export const NodeServiceSyncRemoteNodesConfigDesc: UnaryMethodDefinitionish = {
+  methodName: "SyncRemoteNodesConfig",
+  service: NodeServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
@@ -374,7 +372,7 @@ export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionis
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = SyncMachinesResponse.decode(data);
+      const value = SyncNodesResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -385,9 +383,9 @@ export const MachineServiceSyncRemoteMachinesConfigDesc: UnaryMethodDefinitionis
   } as any,
 };
 
-export const MachineServiceComposeMachineDesc: UnaryMethodDefinitionish = {
-  methodName: "ComposeMachine",
-  service: MachineServiceDesc,
+export const NodeServiceComposeNodeDesc: UnaryMethodDefinitionish = {
+  methodName: "ComposeNode",
+  service: NodeServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
@@ -397,7 +395,7 @@ export const MachineServiceComposeMachineDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = ComposeMachineResponse.decode(data);
+      const value = ComposeNodeResponse.decode(data);
       return {
         ...value,
         toObject() {

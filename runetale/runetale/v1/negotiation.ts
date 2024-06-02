@@ -55,8 +55,8 @@ export function negotiationTypeToJSON(object: NegotiationType): string {
 
 export interface NegotiationRequest {
   type: NegotiationType;
-  /** remote machine key of the Peer you want to connect to */
-  dstPeerMachineKey: string;
+  /** remote node key of the Peer you want to connect to */
+  dstNodeKey: string;
   /** wireGuard pub key of the Peer that sent the request (src) */
   srcWgPubKey: string;
   uFlag: string;
@@ -66,32 +66,32 @@ export interface NegotiationRequest {
 
 export interface NegotiationResponse {
   type: NegotiationType;
-  /** machine key of the originating peer to be sent to the remote peer */
-  dstPeerMachineKey: string;
+  /** node key of the originating peer to be sent to the remote peer */
+  dstNodeKey: string;
   uFlag: string;
   pwd: string;
   candidate: string;
 }
 
 export interface HandshakeRequest {
-  /** remote machine key of the Peer you want to connect to */
-  dstPeerMachineKey: string;
-  /** machine key of the originating peer to be sent to the remote peer */
-  srcPeerMachineKey: string;
+  /** remote node key of the Peer you want to connect to */
+  dstNodeKey: string;
+  /** node key of the originating peer to be sent to the remote peer */
+  srcNodeKey: string;
   uFlag: string;
   pwd: string;
 }
 
 export interface CandidateRequest {
-  /** remote machine key of the Peer you want to connect to */
-  dstPeerMachineKey: string;
-  /** machine key of the originating peer to be sent to the remote peer */
-  srcPeerMachineKey: string;
+  /** remote node key of the Peer you want to connect to */
+  dstNodeKey: string;
+  /** node key of the originating peer to be sent to the remote peer */
+  srcNodeKey: string;
   candidate: string;
 }
 
 function createBaseNegotiationRequest(): NegotiationRequest {
-  return { type: 0, dstPeerMachineKey: "", srcWgPubKey: "", uFlag: "", pwd: "", candidate: "" };
+  return { type: 0, dstNodeKey: "", srcWgPubKey: "", uFlag: "", pwd: "", candidate: "" };
 }
 
 export const NegotiationRequest = {
@@ -99,8 +99,8 @@ export const NegotiationRequest = {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
-    if (message.dstPeerMachineKey !== "") {
-      writer.uint32(18).string(message.dstPeerMachineKey);
+    if (message.dstNodeKey !== "") {
+      writer.uint32(18).string(message.dstNodeKey);
     }
     if (message.srcWgPubKey !== "") {
       writer.uint32(26).string(message.srcWgPubKey);
@@ -136,7 +136,7 @@ export const NegotiationRequest = {
             break;
           }
 
-          message.dstPeerMachineKey = reader.string();
+          message.dstNodeKey = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
@@ -178,7 +178,7 @@ export const NegotiationRequest = {
   fromJSON(object: any): NegotiationRequest {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? globalThis.String(object.dstPeerMachineKey) : "",
+      dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
       srcWgPubKey: isSet(object.srcWgPubKey) ? globalThis.String(object.srcWgPubKey) : "",
       uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
@@ -191,8 +191,8 @@ export const NegotiationRequest = {
     if (message.type !== 0) {
       obj.type = negotiationTypeToJSON(message.type);
     }
-    if (message.dstPeerMachineKey !== "") {
-      obj.dstPeerMachineKey = message.dstPeerMachineKey;
+    if (message.dstNodeKey !== "") {
+      obj.dstNodeKey = message.dstNodeKey;
     }
     if (message.srcWgPubKey !== "") {
       obj.srcWgPubKey = message.srcWgPubKey;
@@ -215,7 +215,7 @@ export const NegotiationRequest = {
   fromPartial<I extends Exact<DeepPartial<NegotiationRequest>, I>>(object: I): NegotiationRequest {
     const message = createBaseNegotiationRequest();
     message.type = object.type ?? 0;
-    message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
+    message.dstNodeKey = object.dstNodeKey ?? "";
     message.srcWgPubKey = object.srcWgPubKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
@@ -225,7 +225,7 @@ export const NegotiationRequest = {
 };
 
 function createBaseNegotiationResponse(): NegotiationResponse {
-  return { type: 0, dstPeerMachineKey: "", uFlag: "", pwd: "", candidate: "" };
+  return { type: 0, dstNodeKey: "", uFlag: "", pwd: "", candidate: "" };
 }
 
 export const NegotiationResponse = {
@@ -233,8 +233,8 @@ export const NegotiationResponse = {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
-    if (message.dstPeerMachineKey !== "") {
-      writer.uint32(18).string(message.dstPeerMachineKey);
+    if (message.dstNodeKey !== "") {
+      writer.uint32(18).string(message.dstNodeKey);
     }
     if (message.uFlag !== "") {
       writer.uint32(26).string(message.uFlag);
@@ -267,7 +267,7 @@ export const NegotiationResponse = {
             break;
           }
 
-          message.dstPeerMachineKey = reader.string();
+          message.dstNodeKey = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
@@ -302,7 +302,7 @@ export const NegotiationResponse = {
   fromJSON(object: any): NegotiationResponse {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? globalThis.String(object.dstPeerMachineKey) : "",
+      dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
       uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
       candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
@@ -314,8 +314,8 @@ export const NegotiationResponse = {
     if (message.type !== 0) {
       obj.type = negotiationTypeToJSON(message.type);
     }
-    if (message.dstPeerMachineKey !== "") {
-      obj.dstPeerMachineKey = message.dstPeerMachineKey;
+    if (message.dstNodeKey !== "") {
+      obj.dstNodeKey = message.dstNodeKey;
     }
     if (message.uFlag !== "") {
       obj.uFlag = message.uFlag;
@@ -335,7 +335,7 @@ export const NegotiationResponse = {
   fromPartial<I extends Exact<DeepPartial<NegotiationResponse>, I>>(object: I): NegotiationResponse {
     const message = createBaseNegotiationResponse();
     message.type = object.type ?? 0;
-    message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
+    message.dstNodeKey = object.dstNodeKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
     message.candidate = object.candidate ?? "";
@@ -344,16 +344,16 @@ export const NegotiationResponse = {
 };
 
 function createBaseHandshakeRequest(): HandshakeRequest {
-  return { dstPeerMachineKey: "", srcPeerMachineKey: "", uFlag: "", pwd: "" };
+  return { dstNodeKey: "", srcNodeKey: "", uFlag: "", pwd: "" };
 }
 
 export const HandshakeRequest = {
   encode(message: HandshakeRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.dstPeerMachineKey !== "") {
-      writer.uint32(10).string(message.dstPeerMachineKey);
+    if (message.dstNodeKey !== "") {
+      writer.uint32(10).string(message.dstNodeKey);
     }
-    if (message.srcPeerMachineKey !== "") {
-      writer.uint32(18).string(message.srcPeerMachineKey);
+    if (message.srcNodeKey !== "") {
+      writer.uint32(18).string(message.srcNodeKey);
     }
     if (message.uFlag !== "") {
       writer.uint32(26).string(message.uFlag);
@@ -376,14 +376,14 @@ export const HandshakeRequest = {
             break;
           }
 
-          message.dstPeerMachineKey = reader.string();
+          message.dstNodeKey = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.srcPeerMachineKey = reader.string();
+          message.srcNodeKey = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
@@ -410,8 +410,8 @@ export const HandshakeRequest = {
 
   fromJSON(object: any): HandshakeRequest {
     return {
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? globalThis.String(object.dstPeerMachineKey) : "",
-      srcPeerMachineKey: isSet(object.srcPeerMachineKey) ? globalThis.String(object.srcPeerMachineKey) : "",
+      dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
+      srcNodeKey: isSet(object.srcNodeKey) ? globalThis.String(object.srcNodeKey) : "",
       uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
     };
@@ -419,11 +419,11 @@ export const HandshakeRequest = {
 
   toJSON(message: HandshakeRequest): unknown {
     const obj: any = {};
-    if (message.dstPeerMachineKey !== "") {
-      obj.dstPeerMachineKey = message.dstPeerMachineKey;
+    if (message.dstNodeKey !== "") {
+      obj.dstNodeKey = message.dstNodeKey;
     }
-    if (message.srcPeerMachineKey !== "") {
-      obj.srcPeerMachineKey = message.srcPeerMachineKey;
+    if (message.srcNodeKey !== "") {
+      obj.srcNodeKey = message.srcNodeKey;
     }
     if (message.uFlag !== "") {
       obj.uFlag = message.uFlag;
@@ -439,8 +439,8 @@ export const HandshakeRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<HandshakeRequest>, I>>(object: I): HandshakeRequest {
     const message = createBaseHandshakeRequest();
-    message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
-    message.srcPeerMachineKey = object.srcPeerMachineKey ?? "";
+    message.dstNodeKey = object.dstNodeKey ?? "";
+    message.srcNodeKey = object.srcNodeKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
     return message;
@@ -448,16 +448,16 @@ export const HandshakeRequest = {
 };
 
 function createBaseCandidateRequest(): CandidateRequest {
-  return { dstPeerMachineKey: "", srcPeerMachineKey: "", candidate: "" };
+  return { dstNodeKey: "", srcNodeKey: "", candidate: "" };
 }
 
 export const CandidateRequest = {
   encode(message: CandidateRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.dstPeerMachineKey !== "") {
-      writer.uint32(10).string(message.dstPeerMachineKey);
+    if (message.dstNodeKey !== "") {
+      writer.uint32(10).string(message.dstNodeKey);
     }
-    if (message.srcPeerMachineKey !== "") {
-      writer.uint32(18).string(message.srcPeerMachineKey);
+    if (message.srcNodeKey !== "") {
+      writer.uint32(18).string(message.srcNodeKey);
     }
     if (message.candidate !== "") {
       writer.uint32(26).string(message.candidate);
@@ -477,14 +477,14 @@ export const CandidateRequest = {
             break;
           }
 
-          message.dstPeerMachineKey = reader.string();
+          message.dstNodeKey = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.srcPeerMachineKey = reader.string();
+          message.srcNodeKey = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
@@ -504,19 +504,19 @@ export const CandidateRequest = {
 
   fromJSON(object: any): CandidateRequest {
     return {
-      dstPeerMachineKey: isSet(object.dstPeerMachineKey) ? globalThis.String(object.dstPeerMachineKey) : "",
-      srcPeerMachineKey: isSet(object.srcPeerMachineKey) ? globalThis.String(object.srcPeerMachineKey) : "",
+      dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
+      srcNodeKey: isSet(object.srcNodeKey) ? globalThis.String(object.srcNodeKey) : "",
       candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
     };
   },
 
   toJSON(message: CandidateRequest): unknown {
     const obj: any = {};
-    if (message.dstPeerMachineKey !== "") {
-      obj.dstPeerMachineKey = message.dstPeerMachineKey;
+    if (message.dstNodeKey !== "") {
+      obj.dstNodeKey = message.dstNodeKey;
     }
-    if (message.srcPeerMachineKey !== "") {
-      obj.srcPeerMachineKey = message.srcPeerMachineKey;
+    if (message.srcNodeKey !== "") {
+      obj.srcNodeKey = message.srcNodeKey;
     }
     if (message.candidate !== "") {
       obj.candidate = message.candidate;
@@ -529,8 +529,8 @@ export const CandidateRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<CandidateRequest>, I>>(object: I): CandidateRequest {
     const message = createBaseCandidateRequest();
-    message.dstPeerMachineKey = object.dstPeerMachineKey ?? "";
-    message.srcPeerMachineKey = object.srcPeerMachineKey ?? "";
+    message.dstNodeKey = object.dstNodeKey ?? "";
+    message.srcNodeKey = object.srcNodeKey ?? "";
     message.candidate = object.candidate ?? "";
     return message;
   },

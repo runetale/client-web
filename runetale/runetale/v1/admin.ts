@@ -257,7 +257,7 @@ export interface CreateAclRequest {
 }
 
 export interface AclResources {
-  machineIds: number[];
+  nodeIds: number[];
   /** for fleet or group or ink */
   policyId: string;
   type: AclResourceType;
@@ -290,8 +290,8 @@ export interface AclResponse {
   id: string;
   name: string;
   desc: string;
-  src: Node | undefined;
-  dst: Node | undefined;
+  src: Policy | undefined;
+  dst: Policy | undefined;
   proto: string;
   port: number;
   age: string;
@@ -316,7 +316,7 @@ export interface Users {
 export interface CreateGroupRequest {
   name: string;
   desc: string;
-  machineIds: number[];
+  nodeIds: number[];
 }
 
 export interface GetGroupRequest {
@@ -340,8 +340,8 @@ export interface PatchGroupRequest {
   id: string;
   name: string;
   desc: string;
-  /** device id or user id (common machine ids) */
-  machineIds: number[];
+  /** device id or user id (common node ids) */
+  nodeIds: number[];
 }
 
 export interface GetDevicesRequest {
@@ -356,8 +356,8 @@ export interface Devices {
 export interface CreateInkRequest {
   name: string;
   desc: string;
-  /** device id or user id (common machine ids) */
-  machineIds: number[];
+  /** device id or user id (common node ids) */
+  nodeIds: number[];
 }
 
 export interface GetInkRequest {
@@ -368,8 +368,8 @@ export interface PatchInkRequest {
   id: string;
   name: string;
   desc: string;
-  /** device id or user id (common machine ids) */
-  machineIds: number[];
+  /** device id or user id (common node ids) */
+  nodeIds: number[];
 }
 
 export interface Inks {
@@ -417,11 +417,11 @@ export interface GetComposeKeysResponse_composeKey {
   isReusable: boolean;
 }
 
-export interface GetComposeMachineStatusRequest {
+export interface GetComposeNodeStatusRequest {
   composeKey: string;
 }
 
-export interface GetComposeMachineStatusResponse {
+export interface GetComposeNodeStatusResponse {
   isConnected: boolean;
   ip: string;
   host: string;
@@ -438,7 +438,7 @@ export interface Resources {
 export interface CreateFleetRequest {
   name: string;
   desc: string;
-  machineIds: number[];
+  nodeIds: number[];
   platformMethod: PlatformMethod;
 }
 
@@ -455,7 +455,7 @@ export interface PatchFleetRequest {
   name: string;
   desc: string;
   /** resource ids */
-  machineIds: number[];
+  nodeIds: number[];
   platformMethod: PlatformMethod;
   action: Action;
 }
@@ -470,7 +470,7 @@ export interface Overview {
   inviteLink: string;
 }
 
-export interface Node {
+export interface Policy {
   fleets: Fleet[];
   resources: Resource[];
   groups: Group[];
@@ -493,7 +493,7 @@ export interface Fleet {
 
 export interface Resource {
   id: string;
-  machineId: number;
+  nodeId: number;
   name: string;
   email: string;
   ip: string;
@@ -515,7 +515,7 @@ export interface Group {
 
 export interface User {
   id: number;
-  machineId: number;
+  nodeId: number;
   name: string;
   picture: string;
   email: string;
@@ -527,7 +527,7 @@ export interface User {
 }
 
 export interface Device {
-  machineId: number;
+  nodeId: number;
   name: string;
   email: string;
   ip: string;
@@ -692,13 +692,13 @@ export const CreateAclRequest = {
 };
 
 function createBaseAclResources(): AclResources {
-  return { machineIds: [], policyId: "", type: 0 };
+  return { nodeIds: [], policyId: "", type: 0 };
 }
 
 export const AclResources = {
   encode(message: AclResources, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     writer.uint32(10).fork();
-    for (const v of message.machineIds) {
+    for (const v of message.nodeIds) {
       writer.uint64(v);
     }
     writer.ldelim();
@@ -720,7 +720,7 @@ export const AclResources = {
       switch (tag >>> 3) {
         case 1:
           if (tag === 8) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
+            message.nodeIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
@@ -728,7 +728,7 @@ export const AclResources = {
           if (tag === 10) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
+              message.nodeIds.push(longToNumber(reader.uint64() as Long));
             }
 
             continue;
@@ -760,9 +760,7 @@ export const AclResources = {
 
   fromJSON(object: any): AclResources {
     return {
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
+      nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
       policyId: isSet(object.policyId) ? globalThis.String(object.policyId) : "",
       type: isSet(object.type) ? aclResourceTypeFromJSON(object.type) : 0,
     };
@@ -770,8 +768,8 @@ export const AclResources = {
 
   toJSON(message: AclResources): unknown {
     const obj: any = {};
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    if (message.nodeIds?.length) {
+      obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
     if (message.policyId !== "") {
       obj.policyId = message.policyId;
@@ -787,7 +785,7 @@ export const AclResources = {
   },
   fromPartial<I extends Exact<DeepPartial<AclResources>, I>>(object: I): AclResources {
     const message = createBaseAclResources();
-    message.machineIds = object.machineIds?.map((e) => e) || [];
+    message.nodeIds = object.nodeIds?.map((e) => e) || [];
     message.policyId = object.policyId ?? "";
     message.type = object.type ?? 0;
     return message;
@@ -1145,10 +1143,10 @@ export const AclResponse = {
       writer.uint32(26).string(message.desc);
     }
     if (message.src !== undefined) {
-      Node.encode(message.src, writer.uint32(34).fork()).ldelim();
+      Policy.encode(message.src, writer.uint32(34).fork()).ldelim();
     }
     if (message.dst !== undefined) {
-      Node.encode(message.dst, writer.uint32(42).fork()).ldelim();
+      Policy.encode(message.dst, writer.uint32(42).fork()).ldelim();
     }
     if (message.proto !== "") {
       writer.uint32(50).string(message.proto);
@@ -1198,14 +1196,14 @@ export const AclResponse = {
             break;
           }
 
-          message.src = Node.decode(reader, reader.uint32());
+          message.src = Policy.decode(reader, reader.uint32());
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.dst = Node.decode(reader, reader.uint32());
+          message.dst = Policy.decode(reader, reader.uint32());
           continue;
         case 6:
           if (tag !== 50) {
@@ -1249,8 +1247,8 @@ export const AclResponse = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      src: isSet(object.src) ? Node.fromJSON(object.src) : undefined,
-      dst: isSet(object.dst) ? Node.fromJSON(object.dst) : undefined,
+      src: isSet(object.src) ? Policy.fromJSON(object.src) : undefined,
+      dst: isSet(object.dst) ? Policy.fromJSON(object.dst) : undefined,
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       age: isSet(object.age) ? globalThis.String(object.age) : "",
@@ -1270,10 +1268,10 @@ export const AclResponse = {
       obj.desc = message.desc;
     }
     if (message.src !== undefined) {
-      obj.src = Node.toJSON(message.src);
+      obj.src = Policy.toJSON(message.src);
     }
     if (message.dst !== undefined) {
-      obj.dst = Node.toJSON(message.dst);
+      obj.dst = Policy.toJSON(message.dst);
     }
     if (message.proto !== "") {
       obj.proto = message.proto;
@@ -1298,8 +1296,8 @@ export const AclResponse = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.src = (object.src !== undefined && object.src !== null) ? Node.fromPartial(object.src) : undefined;
-    message.dst = (object.dst !== undefined && object.dst !== null) ? Node.fromPartial(object.dst) : undefined;
+    message.src = (object.src !== undefined && object.src !== null) ? Policy.fromPartial(object.src) : undefined;
+    message.dst = (object.dst !== undefined && object.dst !== null) ? Policy.fromPartial(object.dst) : undefined;
     message.proto = object.proto ?? "";
     message.port = object.port ?? 0;
     message.age = object.age ?? "";
@@ -1527,7 +1525,7 @@ export const Users = {
 };
 
 function createBaseCreateGroupRequest(): CreateGroupRequest {
-  return { name: "", desc: "", machineIds: [] };
+  return { name: "", desc: "", nodeIds: [] };
 }
 
 export const CreateGroupRequest = {
@@ -1539,7 +1537,7 @@ export const CreateGroupRequest = {
       writer.uint32(18).string(message.desc);
     }
     writer.uint32(26).fork();
-    for (const v of message.machineIds) {
+    for (const v of message.nodeIds) {
       writer.uint64(v);
     }
     writer.ldelim();
@@ -1569,7 +1567,7 @@ export const CreateGroupRequest = {
           continue;
         case 3:
           if (tag === 24) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
+            message.nodeIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
@@ -1577,7 +1575,7 @@ export const CreateGroupRequest = {
           if (tag === 26) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
+              message.nodeIds.push(longToNumber(reader.uint64() as Long));
             }
 
             continue;
@@ -1597,9 +1595,7 @@ export const CreateGroupRequest = {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
+      nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
     };
   },
 
@@ -1611,8 +1607,8 @@ export const CreateGroupRequest = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    if (message.nodeIds?.length) {
+      obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
     return obj;
   },
@@ -1624,7 +1620,7 @@ export const CreateGroupRequest = {
     const message = createBaseCreateGroupRequest();
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
+    message.nodeIds = object.nodeIds?.map((e) => e) || [];
     return message;
   },
 };
@@ -1833,7 +1829,7 @@ export const UserWithPicture = {
 };
 
 function createBasePatchGroupRequest(): PatchGroupRequest {
-  return { id: "", name: "", desc: "", machineIds: [] };
+  return { id: "", name: "", desc: "", nodeIds: [] };
 }
 
 export const PatchGroupRequest = {
@@ -1848,7 +1844,7 @@ export const PatchGroupRequest = {
       writer.uint32(26).string(message.desc);
     }
     writer.uint32(34).fork();
-    for (const v of message.machineIds) {
+    for (const v of message.nodeIds) {
       writer.uint64(v);
     }
     writer.ldelim();
@@ -1885,7 +1881,7 @@ export const PatchGroupRequest = {
           continue;
         case 4:
           if (tag === 32) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
+            message.nodeIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
@@ -1893,7 +1889,7 @@ export const PatchGroupRequest = {
           if (tag === 34) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
+              message.nodeIds.push(longToNumber(reader.uint64() as Long));
             }
 
             continue;
@@ -1914,9 +1910,7 @@ export const PatchGroupRequest = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
+      nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
     };
   },
 
@@ -1931,8 +1925,8 @@ export const PatchGroupRequest = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    if (message.nodeIds?.length) {
+      obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
     return obj;
   },
@@ -1945,7 +1939,7 @@ export const PatchGroupRequest = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
+    message.nodeIds = object.nodeIds?.map((e) => e) || [];
     return message;
   },
 };
@@ -2067,7 +2061,7 @@ export const Devices = {
 };
 
 function createBaseCreateInkRequest(): CreateInkRequest {
-  return { name: "", desc: "", machineIds: [] };
+  return { name: "", desc: "", nodeIds: [] };
 }
 
 export const CreateInkRequest = {
@@ -2079,7 +2073,7 @@ export const CreateInkRequest = {
       writer.uint32(18).string(message.desc);
     }
     writer.uint32(26).fork();
-    for (const v of message.machineIds) {
+    for (const v of message.nodeIds) {
       writer.uint64(v);
     }
     writer.ldelim();
@@ -2109,7 +2103,7 @@ export const CreateInkRequest = {
           continue;
         case 3:
           if (tag === 24) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
+            message.nodeIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
@@ -2117,7 +2111,7 @@ export const CreateInkRequest = {
           if (tag === 26) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
+              message.nodeIds.push(longToNumber(reader.uint64() as Long));
             }
 
             continue;
@@ -2137,9 +2131,7 @@ export const CreateInkRequest = {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
+      nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
     };
   },
 
@@ -2151,8 +2143,8 @@ export const CreateInkRequest = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    if (message.nodeIds?.length) {
+      obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
     return obj;
   },
@@ -2164,7 +2156,7 @@ export const CreateInkRequest = {
     const message = createBaseCreateInkRequest();
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
+    message.nodeIds = object.nodeIds?.map((e) => e) || [];
     return message;
   },
 };
@@ -2227,7 +2219,7 @@ export const GetInkRequest = {
 };
 
 function createBasePatchInkRequest(): PatchInkRequest {
-  return { id: "", name: "", desc: "", machineIds: [] };
+  return { id: "", name: "", desc: "", nodeIds: [] };
 }
 
 export const PatchInkRequest = {
@@ -2242,7 +2234,7 @@ export const PatchInkRequest = {
       writer.uint32(26).string(message.desc);
     }
     writer.uint32(34).fork();
-    for (const v of message.machineIds) {
+    for (const v of message.nodeIds) {
       writer.uint64(v);
     }
     writer.ldelim();
@@ -2279,7 +2271,7 @@ export const PatchInkRequest = {
           continue;
         case 4:
           if (tag === 32) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
+            message.nodeIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
@@ -2287,7 +2279,7 @@ export const PatchInkRequest = {
           if (tag === 34) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
+              message.nodeIds.push(longToNumber(reader.uint64() as Long));
             }
 
             continue;
@@ -2308,9 +2300,7 @@ export const PatchInkRequest = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
+      nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
     };
   },
 
@@ -2325,8 +2315,8 @@ export const PatchInkRequest = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    if (message.nodeIds?.length) {
+      obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
     return obj;
   },
@@ -2339,7 +2329,7 @@ export const PatchInkRequest = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
+    message.nodeIds = object.nodeIds?.map((e) => e) || [];
     return message;
   },
 };
@@ -3031,22 +3021,22 @@ export const GetComposeKeysResponse_composeKey = {
   },
 };
 
-function createBaseGetComposeMachineStatusRequest(): GetComposeMachineStatusRequest {
+function createBaseGetComposeNodeStatusRequest(): GetComposeNodeStatusRequest {
   return { composeKey: "" };
 }
 
-export const GetComposeMachineStatusRequest = {
-  encode(message: GetComposeMachineStatusRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const GetComposeNodeStatusRequest = {
+  encode(message: GetComposeNodeStatusRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.composeKey !== "") {
       writer.uint32(10).string(message.composeKey);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetComposeMachineStatusRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetComposeNodeStatusRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetComposeMachineStatusRequest();
+    const message = createBaseGetComposeNodeStatusRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3066,11 +3056,11 @@ export const GetComposeMachineStatusRequest = {
     return message;
   },
 
-  fromJSON(object: any): GetComposeMachineStatusRequest {
+  fromJSON(object: any): GetComposeNodeStatusRequest {
     return { composeKey: isSet(object.composeKey) ? globalThis.String(object.composeKey) : "" };
   },
 
-  toJSON(message: GetComposeMachineStatusRequest): unknown {
+  toJSON(message: GetComposeNodeStatusRequest): unknown {
     const obj: any = {};
     if (message.composeKey !== "") {
       obj.composeKey = message.composeKey;
@@ -3078,24 +3068,22 @@ export const GetComposeMachineStatusRequest = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetComposeMachineStatusRequest>, I>>(base?: I): GetComposeMachineStatusRequest {
-    return GetComposeMachineStatusRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetComposeNodeStatusRequest>, I>>(base?: I): GetComposeNodeStatusRequest {
+    return GetComposeNodeStatusRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetComposeMachineStatusRequest>, I>>(
-    object: I,
-  ): GetComposeMachineStatusRequest {
-    const message = createBaseGetComposeMachineStatusRequest();
+  fromPartial<I extends Exact<DeepPartial<GetComposeNodeStatusRequest>, I>>(object: I): GetComposeNodeStatusRequest {
+    const message = createBaseGetComposeNodeStatusRequest();
     message.composeKey = object.composeKey ?? "";
     return message;
   },
 };
 
-function createBaseGetComposeMachineStatusResponse(): GetComposeMachineStatusResponse {
+function createBaseGetComposeNodeStatusResponse(): GetComposeNodeStatusResponse {
   return { isConnected: false, ip: "", host: "" };
 }
 
-export const GetComposeMachineStatusResponse = {
-  encode(message: GetComposeMachineStatusResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const GetComposeNodeStatusResponse = {
+  encode(message: GetComposeNodeStatusResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.isConnected !== false) {
       writer.uint32(8).bool(message.isConnected);
     }
@@ -3108,10 +3096,10 @@ export const GetComposeMachineStatusResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetComposeMachineStatusResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetComposeNodeStatusResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetComposeMachineStatusResponse();
+    const message = createBaseGetComposeNodeStatusResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3145,7 +3133,7 @@ export const GetComposeMachineStatusResponse = {
     return message;
   },
 
-  fromJSON(object: any): GetComposeMachineStatusResponse {
+  fromJSON(object: any): GetComposeNodeStatusResponse {
     return {
       isConnected: isSet(object.isConnected) ? globalThis.Boolean(object.isConnected) : false,
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
@@ -3153,7 +3141,7 @@ export const GetComposeMachineStatusResponse = {
     };
   },
 
-  toJSON(message: GetComposeMachineStatusResponse): unknown {
+  toJSON(message: GetComposeNodeStatusResponse): unknown {
     const obj: any = {};
     if (message.isConnected !== false) {
       obj.isConnected = message.isConnected;
@@ -3167,13 +3155,11 @@ export const GetComposeMachineStatusResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetComposeMachineStatusResponse>, I>>(base?: I): GetComposeMachineStatusResponse {
-    return GetComposeMachineStatusResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetComposeNodeStatusResponse>, I>>(base?: I): GetComposeNodeStatusResponse {
+    return GetComposeNodeStatusResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetComposeMachineStatusResponse>, I>>(
-    object: I,
-  ): GetComposeMachineStatusResponse {
-    const message = createBaseGetComposeMachineStatusResponse();
+  fromPartial<I extends Exact<DeepPartial<GetComposeNodeStatusResponse>, I>>(object: I): GetComposeNodeStatusResponse {
+    const message = createBaseGetComposeNodeStatusResponse();
     message.isConnected = object.isConnected ?? false;
     message.ip = object.ip ?? "";
     message.host = object.host ?? "";
@@ -3300,7 +3286,7 @@ export const Resources = {
 };
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", machineIds: [], platformMethod: 0 };
+  return { name: "", desc: "", nodeIds: [], platformMethod: 0 };
 }
 
 export const CreateFleetRequest = {
@@ -3312,7 +3298,7 @@ export const CreateFleetRequest = {
       writer.uint32(18).string(message.desc);
     }
     writer.uint32(26).fork();
-    for (const v of message.machineIds) {
+    for (const v of message.nodeIds) {
       writer.uint64(v);
     }
     writer.ldelim();
@@ -3345,7 +3331,7 @@ export const CreateFleetRequest = {
           continue;
         case 3:
           if (tag === 24) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
+            message.nodeIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
@@ -3353,7 +3339,7 @@ export const CreateFleetRequest = {
           if (tag === 26) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
+              message.nodeIds.push(longToNumber(reader.uint64() as Long));
             }
 
             continue;
@@ -3380,9 +3366,7 @@ export const CreateFleetRequest = {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
+      nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
       platformMethod: isSet(object.platformMethod) ? platformMethodFromJSON(object.platformMethod) : 0,
     };
   },
@@ -3395,8 +3379,8 @@ export const CreateFleetRequest = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    if (message.nodeIds?.length) {
+      obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
     if (message.platformMethod !== 0) {
       obj.platformMethod = platformMethodToJSON(message.platformMethod);
@@ -3411,7 +3395,7 @@ export const CreateFleetRequest = {
     const message = createBaseCreateFleetRequest();
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
+    message.nodeIds = object.nodeIds?.map((e) => e) || [];
     message.platformMethod = object.platformMethod ?? 0;
     return message;
   },
@@ -3532,7 +3516,7 @@ export const Fleets = {
 };
 
 function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { id: "", name: "", desc: "", machineIds: [], platformMethod: 0, action: 0 };
+  return { id: "", name: "", desc: "", nodeIds: [], platformMethod: 0, action: 0 };
 }
 
 export const PatchFleetRequest = {
@@ -3547,7 +3531,7 @@ export const PatchFleetRequest = {
       writer.uint32(26).string(message.desc);
     }
     writer.uint32(34).fork();
-    for (const v of message.machineIds) {
+    for (const v of message.nodeIds) {
       writer.uint64(v);
     }
     writer.ldelim();
@@ -3590,7 +3574,7 @@ export const PatchFleetRequest = {
           continue;
         case 4:
           if (tag === 32) {
-            message.machineIds.push(longToNumber(reader.uint64() as Long));
+            message.nodeIds.push(longToNumber(reader.uint64() as Long));
 
             continue;
           }
@@ -3598,7 +3582,7 @@ export const PatchFleetRequest = {
           if (tag === 34) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.machineIds.push(longToNumber(reader.uint64() as Long));
+              message.nodeIds.push(longToNumber(reader.uint64() as Long));
             }
 
             continue;
@@ -3633,9 +3617,7 @@ export const PatchFleetRequest = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      machineIds: globalThis.Array.isArray(object?.machineIds)
-        ? object.machineIds.map((e: any) => globalThis.Number(e))
-        : [],
+      nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
       platformMethod: isSet(object.platformMethod) ? platformMethodFromJSON(object.platformMethod) : 0,
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
@@ -3652,8 +3634,8 @@ export const PatchFleetRequest = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.machineIds?.length) {
-      obj.machineIds = message.machineIds.map((e) => Math.round(e));
+    if (message.nodeIds?.length) {
+      obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
     if (message.platformMethod !== 0) {
       obj.platformMethod = platformMethodToJSON(message.platformMethod);
@@ -3672,7 +3654,7 @@ export const PatchFleetRequest = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.machineIds = object.machineIds?.map((e) => e) || [];
+    message.nodeIds = object.nodeIds?.map((e) => e) || [];
     message.platformMethod = object.platformMethod ?? 0;
     message.action = object.action ?? 0;
     return message;
@@ -3813,12 +3795,12 @@ export const Overview = {
   },
 };
 
-function createBaseNode(): Node {
+function createBasePolicy(): Policy {
   return { fleets: [], resources: [], groups: [], users: [], inks: [], devices: [] };
 }
 
-export const Node = {
-  encode(message: Node, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const Policy = {
+  encode(message: Policy, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.fleets) {
       Fleet.encode(v!, writer.uint32(10).fork()).ldelim();
     }
@@ -3840,10 +3822,10 @@ export const Node = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): Node {
+  decode(input: _m0.Reader | Uint8Array, length?: number): Policy {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseNode();
+    const message = createBasePolicy();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3898,7 +3880,7 @@ export const Node = {
     return message;
   },
 
-  fromJSON(object: any): Node {
+  fromJSON(object: any): Policy {
     return {
       fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
       resources: globalThis.Array.isArray(object?.resources)
@@ -3911,7 +3893,7 @@ export const Node = {
     };
   },
 
-  toJSON(message: Node): unknown {
+  toJSON(message: Policy): unknown {
     const obj: any = {};
     if (message.fleets?.length) {
       obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
@@ -3934,11 +3916,11 @@ export const Node = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Node>, I>>(base?: I): Node {
-    return Node.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<Policy>, I>>(base?: I): Policy {
+    return Policy.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Node>, I>>(object: I): Node {
-    const message = createBaseNode();
+  fromPartial<I extends Exact<DeepPartial<Policy>, I>>(object: I): Policy {
+    const message = createBasePolicy();
     message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
@@ -4133,7 +4115,7 @@ export const Fleet = {
 function createBaseResource(): Resource {
   return {
     id: "",
-    machineId: 0,
+    nodeId: 0,
     name: "",
     email: "",
     ip: "",
@@ -4151,8 +4133,8 @@ export const Resource = {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
-    if (message.machineId !== 0) {
-      writer.uint32(16).uint64(message.machineId);
+    if (message.nodeId !== 0) {
+      writer.uint32(16).uint64(message.nodeId);
     }
     if (message.name !== "") {
       writer.uint32(26).string(message.name);
@@ -4203,7 +4185,7 @@ export const Resource = {
             break;
           }
 
-          message.machineId = longToNumber(reader.uint64() as Long);
+          message.nodeId = longToNumber(reader.uint64() as Long);
           continue;
         case 3:
           if (tag !== 26) {
@@ -4280,7 +4262,7 @@ export const Resource = {
   fromJSON(object: any): Resource {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
-      machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
@@ -4298,8 +4280,8 @@ export const Resource = {
     if (message.id !== "") {
       obj.id = message.id;
     }
-    if (message.machineId !== 0) {
-      obj.machineId = Math.round(message.machineId);
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -4337,7 +4319,7 @@ export const Resource = {
   fromPartial<I extends Exact<DeepPartial<Resource>, I>>(object: I): Resource {
     const message = createBaseResource();
     message.id = object.id ?? "";
-    message.machineId = object.machineId ?? 0;
+    message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.email = object.email ?? "";
     message.ip = object.ip ?? "";
@@ -4471,7 +4453,7 @@ export const Group = {
 };
 
 function createBaseUser(): User {
-  return { id: 0, machineId: 0, name: "", picture: "", email: "", role: "", joined: "", lastSeen: "", status: false };
+  return { id: 0, nodeId: 0, name: "", picture: "", email: "", role: "", joined: "", lastSeen: "", status: false };
 }
 
 export const User = {
@@ -4479,8 +4461,8 @@ export const User = {
     if (message.id !== 0) {
       writer.uint32(8).uint64(message.id);
     }
-    if (message.machineId !== 0) {
-      writer.uint32(16).uint64(message.machineId);
+    if (message.nodeId !== 0) {
+      writer.uint32(16).uint64(message.nodeId);
     }
     if (message.name !== "") {
       writer.uint32(26).string(message.name);
@@ -4525,7 +4507,7 @@ export const User = {
             break;
           }
 
-          message.machineId = longToNumber(reader.uint64() as Long);
+          message.nodeId = longToNumber(reader.uint64() as Long);
           continue;
         case 3:
           if (tag !== 26) {
@@ -4588,7 +4570,7 @@ export const User = {
   fromJSON(object: any): User {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
@@ -4604,8 +4586,8 @@ export const User = {
     if (message.id !== 0) {
       obj.id = Math.round(message.id);
     }
-    if (message.machineId !== 0) {
-      obj.machineId = Math.round(message.machineId);
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -4637,7 +4619,7 @@ export const User = {
   fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
     const message = createBaseUser();
     message.id = object.id ?? 0;
-    message.machineId = object.machineId ?? 0;
+    message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.picture = object.picture ?? "";
     message.email = object.email ?? "";
@@ -4651,7 +4633,7 @@ export const User = {
 
 function createBaseDevice(): Device {
   return {
-    machineId: 0,
+    nodeId: 0,
     name: "",
     email: "",
     ip: "",
@@ -4668,8 +4650,8 @@ function createBaseDevice(): Device {
 
 export const Device = {
   encode(message: Device, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.machineId !== 0) {
-      writer.uint32(8).uint64(message.machineId);
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
     }
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
@@ -4719,7 +4701,7 @@ export const Device = {
             break;
           }
 
-          message.machineId = longToNumber(reader.uint64() as Long);
+          message.nodeId = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
           if (tag !== 18) {
@@ -4809,7 +4791,7 @@ export const Device = {
 
   fromJSON(object: any): Device {
     return {
-      machineId: isSet(object.machineId) ? globalThis.Number(object.machineId) : 0,
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
@@ -4826,8 +4808,8 @@ export const Device = {
 
   toJSON(message: Device): unknown {
     const obj: any = {};
-    if (message.machineId !== 0) {
-      obj.machineId = Math.round(message.machineId);
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -4870,7 +4852,7 @@ export const Device = {
   },
   fromPartial<I extends Exact<DeepPartial<Device>, I>>(object: I): Device {
     const message = createBaseDevice();
-    message.machineId = object.machineId ?? 0;
+    message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.email = object.email ?? "";
     message.ip = object.ip ?? "";
@@ -4913,10 +4895,10 @@ export interface AdminService {
     metadata?: grpc.Metadata,
   ): Promise<GenerateComposeKeyResponse>;
   GetComposeKeys(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetComposeKeysResponse>;
-  GetComposeMachineStatus(
-    request: DeepPartial<GetComposeMachineStatusRequest>,
+  GetComposeNodeStatus(
+    request: DeepPartial<GetComposeNodeStatusRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<GetComposeMachineStatusResponse>;
+  ): Promise<GetComposeNodeStatusResponse>;
   /** fleets */
   CreateFleet(request: DeepPartial<CreateFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
   GetFleet(request: DeepPartial<GetFleetRequest>, metadata?: grpc.Metadata): Promise<Fleet>;
@@ -4954,7 +4936,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetResources = this.GetResources.bind(this);
     this.GenerateComposeKey = this.GenerateComposeKey.bind(this);
     this.GetComposeKeys = this.GetComposeKeys.bind(this);
-    this.GetComposeMachineStatus = this.GetComposeMachineStatus.bind(this);
+    this.GetComposeNodeStatus = this.GetComposeNodeStatus.bind(this);
     this.CreateFleet = this.CreateFleet.bind(this);
     this.GetFleet = this.GetFleet.bind(this);
     this.GetFleets = this.GetFleets.bind(this);
@@ -5041,13 +5023,13 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGetComposeKeysDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetComposeMachineStatus(
-    request: DeepPartial<GetComposeMachineStatusRequest>,
+  GetComposeNodeStatus(
+    request: DeepPartial<GetComposeNodeStatusRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<GetComposeMachineStatusResponse> {
+  ): Promise<GetComposeNodeStatusResponse> {
     return this.rpc.unary(
-      AdminServiceGetComposeMachineStatusDesc,
-      GetComposeMachineStatusRequest.fromPartial(request),
+      AdminServiceGetComposeNodeStatusDesc,
+      GetComposeNodeStatusRequest.fromPartial(request),
       metadata,
     );
   }
@@ -5505,19 +5487,19 @@ export const AdminServiceGetComposeKeysDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const AdminServiceGetComposeMachineStatusDesc: UnaryMethodDefinitionish = {
-  methodName: "GetComposeMachineStatus",
+export const AdminServiceGetComposeNodeStatusDesc: UnaryMethodDefinitionish = {
+  methodName: "GetComposeNodeStatus",
   service: AdminServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return GetComposeMachineStatusRequest.encode(this).finish();
+      return GetComposeNodeStatusRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GetComposeMachineStatusResponse.decode(data);
+      const value = GetComposeNodeStatusResponse.decode(data);
       return {
         ...value,
         toObject() {

@@ -15,7 +15,7 @@ import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
-export interface LoginMachineResponse {
+export interface LoginNodeResponse {
   isRegistered: boolean;
   loginUrl: string;
   ip: string;
@@ -24,7 +24,7 @@ export interface LoginMachineResponse {
   signalPort: number;
 }
 
-export interface PeerLoginSessionResponse {
+export interface LoginSessionResponse {
   /** host ip */
   ip: string;
   /** host wireguard cidr */
@@ -37,12 +37,12 @@ export interface PeerLoginSessionResponse {
   signalServerPort: number;
 }
 
-function createBaseLoginMachineResponse(): LoginMachineResponse {
+function createBaseLoginNodeResponse(): LoginNodeResponse {
   return { isRegistered: false, loginUrl: "", ip: "", cidr: "", signalHost: "", signalPort: 0 };
 }
 
-export const LoginMachineResponse = {
-  encode(message: LoginMachineResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const LoginNodeResponse = {
+  encode(message: LoginNodeResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.isRegistered !== false) {
       writer.uint32(8).bool(message.isRegistered);
     }
@@ -64,10 +64,10 @@ export const LoginMachineResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): LoginMachineResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): LoginNodeResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseLoginMachineResponse();
+    const message = createBaseLoginNodeResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -122,7 +122,7 @@ export const LoginMachineResponse = {
     return message;
   },
 
-  fromJSON(object: any): LoginMachineResponse {
+  fromJSON(object: any): LoginNodeResponse {
     return {
       isRegistered: isSet(object.isRegistered) ? globalThis.Boolean(object.isRegistered) : false,
       loginUrl: isSet(object.loginUrl) ? globalThis.String(object.loginUrl) : "",
@@ -133,7 +133,7 @@ export const LoginMachineResponse = {
     };
   },
 
-  toJSON(message: LoginMachineResponse): unknown {
+  toJSON(message: LoginNodeResponse): unknown {
     const obj: any = {};
     if (message.isRegistered !== false) {
       obj.isRegistered = message.isRegistered;
@@ -156,11 +156,11 @@ export const LoginMachineResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<LoginMachineResponse>, I>>(base?: I): LoginMachineResponse {
-    return LoginMachineResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<LoginNodeResponse>, I>>(base?: I): LoginNodeResponse {
+    return LoginNodeResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<LoginMachineResponse>, I>>(object: I): LoginMachineResponse {
-    const message = createBaseLoginMachineResponse();
+  fromPartial<I extends Exact<DeepPartial<LoginNodeResponse>, I>>(object: I): LoginNodeResponse {
+    const message = createBaseLoginNodeResponse();
     message.isRegistered = object.isRegistered ?? false;
     message.loginUrl = object.loginUrl ?? "";
     message.ip = object.ip ?? "";
@@ -171,12 +171,12 @@ export const LoginMachineResponse = {
   },
 };
 
-function createBasePeerLoginSessionResponse(): PeerLoginSessionResponse {
+function createBaseLoginSessionResponse(): LoginSessionResponse {
   return { ip: "", cidr: "", host: "", os: "", signalServerHost: "", signalServerPort: 0 };
 }
 
-export const PeerLoginSessionResponse = {
-  encode(message: PeerLoginSessionResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const LoginSessionResponse = {
+  encode(message: LoginSessionResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.ip !== "") {
       writer.uint32(10).string(message.ip);
     }
@@ -198,10 +198,10 @@ export const PeerLoginSessionResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): PeerLoginSessionResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): LoginSessionResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePeerLoginSessionResponse();
+    const message = createBaseLoginSessionResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -256,7 +256,7 @@ export const PeerLoginSessionResponse = {
     return message;
   },
 
-  fromJSON(object: any): PeerLoginSessionResponse {
+  fromJSON(object: any): LoginSessionResponse {
     return {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
@@ -267,7 +267,7 @@ export const PeerLoginSessionResponse = {
     };
   },
 
-  toJSON(message: PeerLoginSessionResponse): unknown {
+  toJSON(message: LoginSessionResponse): unknown {
     const obj: any = {};
     if (message.ip !== "") {
       obj.ip = message.ip;
@@ -290,11 +290,11 @@ export const PeerLoginSessionResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<PeerLoginSessionResponse>, I>>(base?: I): PeerLoginSessionResponse {
-    return PeerLoginSessionResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<LoginSessionResponse>, I>>(base?: I): LoginSessionResponse {
+    return LoginSessionResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<PeerLoginSessionResponse>, I>>(object: I): PeerLoginSessionResponse {
-    const message = createBasePeerLoginSessionResponse();
+  fromPartial<I extends Exact<DeepPartial<LoginSessionResponse>, I>>(object: I): LoginSessionResponse {
+    const message = createBaseLoginSessionResponse();
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
     message.host = object.host ?? "";
@@ -306,11 +306,8 @@ export const PeerLoginSessionResponse = {
 };
 
 export interface LoginService {
-  LoginMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginMachineResponse>;
-  StreamPeerLoginSession(
-    request: Observable<DeepPartial<Empty>>,
-    metadata?: grpc.Metadata,
-  ): Observable<PeerLoginSessionResponse>;
+  LoginNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginNodeResponse>;
+  LoginSession(request: Observable<DeepPartial<Empty>>, metadata?: grpc.Metadata): Observable<LoginSessionResponse>;
 }
 
 export class LoginServiceClientImpl implements LoginService {
@@ -318,26 +315,23 @@ export class LoginServiceClientImpl implements LoginService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.LoginMachine = this.LoginMachine.bind(this);
-    this.StreamPeerLoginSession = this.StreamPeerLoginSession.bind(this);
+    this.LoginNode = this.LoginNode.bind(this);
+    this.LoginSession = this.LoginSession.bind(this);
   }
 
-  LoginMachine(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginMachineResponse> {
-    return this.rpc.unary(LoginServiceLoginMachineDesc, Empty.fromPartial(request), metadata);
+  LoginNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginNodeResponse> {
+    return this.rpc.unary(LoginServiceLoginNodeDesc, Empty.fromPartial(request), metadata);
   }
 
-  StreamPeerLoginSession(
-    request: Observable<DeepPartial<Empty>>,
-    metadata?: grpc.Metadata,
-  ): Observable<PeerLoginSessionResponse> {
+  LoginSession(request: Observable<DeepPartial<Empty>>, metadata?: grpc.Metadata): Observable<LoginSessionResponse> {
     throw new Error("ts-proto does not yet support client streaming!");
   }
 }
 
 export const LoginServiceDesc = { serviceName: "protos.LoginService" };
 
-export const LoginServiceLoginMachineDesc: UnaryMethodDefinitionish = {
-  methodName: "LoginMachine",
+export const LoginServiceLoginNodeDesc: UnaryMethodDefinitionish = {
+  methodName: "LoginNode",
   service: LoginServiceDesc,
   requestStream: false,
   responseStream: false,
@@ -348,7 +342,7 @@ export const LoginServiceLoginMachineDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = LoginMachineResponse.decode(data);
+      const value = LoginNodeResponse.decode(data);
       return {
         ...value,
         toObject() {
