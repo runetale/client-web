@@ -421,7 +421,6 @@ export interface GetComposeMachineStatusResponse {
   isConnected: boolean;
   ip: string;
   cidr: string;
-  name: string;
 }
 
 export interface GetResourceRequest {
@@ -3029,7 +3028,7 @@ export const GetComposeKeysResponse_composeKey = {
 };
 
 function createBaseGetComposeMachineStatusResponse(): GetComposeMachineStatusResponse {
-  return { isConnected: false, ip: "", cidr: "", name: "" };
+  return { isConnected: false, ip: "", cidr: "" };
 }
 
 export const GetComposeMachineStatusResponse = {
@@ -3042,9 +3041,6 @@ export const GetComposeMachineStatusResponse = {
     }
     if (message.cidr !== "") {
       writer.uint32(26).string(message.cidr);
-    }
-    if (message.name !== "") {
-      writer.uint32(34).string(message.name);
     }
     return writer;
   },
@@ -3077,13 +3073,6 @@ export const GetComposeMachineStatusResponse = {
 
           message.cidr = reader.string();
           continue;
-        case 4:
-          if (tag !== 34) {
-            break;
-          }
-
-          message.name = reader.string();
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3098,7 +3087,6 @@ export const GetComposeMachineStatusResponse = {
       isConnected: isSet(object.isConnected) ? globalThis.Boolean(object.isConnected) : false,
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
     };
   },
 
@@ -3113,9 +3101,6 @@ export const GetComposeMachineStatusResponse = {
     if (message.cidr !== "") {
       obj.cidr = message.cidr;
     }
-    if (message.name !== "") {
-      obj.name = message.name;
-    }
     return obj;
   },
 
@@ -3129,7 +3114,6 @@ export const GetComposeMachineStatusResponse = {
     message.isConnected = object.isConnected ?? false;
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
-    message.name = object.name ?? "";
     return message;
   },
 };
