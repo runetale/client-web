@@ -420,7 +420,7 @@ export interface GetComposeKeysResponse_composeKey {
 export interface GetComposeMachineStatusResponse {
   isConnected: boolean;
   ip: string;
-  cidr: string;
+  host: string;
 }
 
 export interface GetResourceRequest {
@@ -3028,7 +3028,7 @@ export const GetComposeKeysResponse_composeKey = {
 };
 
 function createBaseGetComposeMachineStatusResponse(): GetComposeMachineStatusResponse {
-  return { isConnected: false, ip: "", cidr: "" };
+  return { isConnected: false, ip: "", host: "" };
 }
 
 export const GetComposeMachineStatusResponse = {
@@ -3039,8 +3039,8 @@ export const GetComposeMachineStatusResponse = {
     if (message.ip !== "") {
       writer.uint32(18).string(message.ip);
     }
-    if (message.cidr !== "") {
-      writer.uint32(26).string(message.cidr);
+    if (message.host !== "") {
+      writer.uint32(26).string(message.host);
     }
     return writer;
   },
@@ -3071,7 +3071,7 @@ export const GetComposeMachineStatusResponse = {
             break;
           }
 
-          message.cidr = reader.string();
+          message.host = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3086,7 +3086,7 @@ export const GetComposeMachineStatusResponse = {
     return {
       isConnected: isSet(object.isConnected) ? globalThis.Boolean(object.isConnected) : false,
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
+      host: isSet(object.host) ? globalThis.String(object.host) : "",
     };
   },
 
@@ -3098,8 +3098,8 @@ export const GetComposeMachineStatusResponse = {
     if (message.ip !== "") {
       obj.ip = message.ip;
     }
-    if (message.cidr !== "") {
-      obj.cidr = message.cidr;
+    if (message.host !== "") {
+      obj.host = message.host;
     }
     return obj;
   },
@@ -3113,7 +3113,7 @@ export const GetComposeMachineStatusResponse = {
     const message = createBaseGetComposeMachineStatusResponse();
     message.isConnected = object.isConnected ?? false;
     message.ip = object.ip ?? "";
-    message.cidr = object.cidr ?? "";
+    message.host = object.host ?? "";
     return message;
   },
 };
