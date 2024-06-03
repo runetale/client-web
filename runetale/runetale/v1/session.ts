@@ -11,28 +11,23 @@ import _m0 from "protobufjs/minimal";
 
 export const protobufPackage = "protos";
 
-export interface VerifyPeerLoginSessionRequest {
-  /** jwt session id for etcd */
+export interface VerifyLoginSessionRequest {
   sessionID: string;
-  /** DeploymentMethod, for `enum Deployment Method`` on `admin.proto`` */
   deploymentMethod: string;
 }
 
-export interface VerifyPeerLoginSessionResponse {
-  /** host ip */
+export interface VerifyLoginSessionResponse {
   ip: string;
-  /** host name */
   host: string;
-  /** host os */
   os: string;
 }
 
-function createBaseVerifyPeerLoginSessionRequest(): VerifyPeerLoginSessionRequest {
+function createBaseVerifyLoginSessionRequest(): VerifyLoginSessionRequest {
   return { sessionID: "", deploymentMethod: "" };
 }
 
-export const VerifyPeerLoginSessionRequest = {
-  encode(message: VerifyPeerLoginSessionRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const VerifyLoginSessionRequest = {
+  encode(message: VerifyLoginSessionRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.sessionID !== "") {
       writer.uint32(10).string(message.sessionID);
     }
@@ -42,10 +37,10 @@ export const VerifyPeerLoginSessionRequest = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): VerifyPeerLoginSessionRequest {
+  decode(input: _m0.Reader | Uint8Array, length?: number): VerifyLoginSessionRequest {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseVerifyPeerLoginSessionRequest();
+    const message = createBaseVerifyLoginSessionRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -72,14 +67,14 @@ export const VerifyPeerLoginSessionRequest = {
     return message;
   },
 
-  fromJSON(object: any): VerifyPeerLoginSessionRequest {
+  fromJSON(object: any): VerifyLoginSessionRequest {
     return {
       sessionID: isSet(object.sessionID) ? globalThis.String(object.sessionID) : "",
       deploymentMethod: isSet(object.deploymentMethod) ? globalThis.String(object.deploymentMethod) : "",
     };
   },
 
-  toJSON(message: VerifyPeerLoginSessionRequest): unknown {
+  toJSON(message: VerifyLoginSessionRequest): unknown {
     const obj: any = {};
     if (message.sessionID !== "") {
       obj.sessionID = message.sessionID;
@@ -90,25 +85,23 @@ export const VerifyPeerLoginSessionRequest = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<VerifyPeerLoginSessionRequest>, I>>(base?: I): VerifyPeerLoginSessionRequest {
-    return VerifyPeerLoginSessionRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<VerifyLoginSessionRequest>, I>>(base?: I): VerifyLoginSessionRequest {
+    return VerifyLoginSessionRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<VerifyPeerLoginSessionRequest>, I>>(
-    object: I,
-  ): VerifyPeerLoginSessionRequest {
-    const message = createBaseVerifyPeerLoginSessionRequest();
+  fromPartial<I extends Exact<DeepPartial<VerifyLoginSessionRequest>, I>>(object: I): VerifyLoginSessionRequest {
+    const message = createBaseVerifyLoginSessionRequest();
     message.sessionID = object.sessionID ?? "";
     message.deploymentMethod = object.deploymentMethod ?? "";
     return message;
   },
 };
 
-function createBaseVerifyPeerLoginSessionResponse(): VerifyPeerLoginSessionResponse {
+function createBaseVerifyLoginSessionResponse(): VerifyLoginSessionResponse {
   return { ip: "", host: "", os: "" };
 }
 
-export const VerifyPeerLoginSessionResponse = {
-  encode(message: VerifyPeerLoginSessionResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const VerifyLoginSessionResponse = {
+  encode(message: VerifyLoginSessionResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.ip !== "") {
       writer.uint32(10).string(message.ip);
     }
@@ -121,10 +114,10 @@ export const VerifyPeerLoginSessionResponse = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): VerifyPeerLoginSessionResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): VerifyLoginSessionResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseVerifyPeerLoginSessionResponse();
+    const message = createBaseVerifyLoginSessionResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -158,7 +151,7 @@ export const VerifyPeerLoginSessionResponse = {
     return message;
   },
 
-  fromJSON(object: any): VerifyPeerLoginSessionResponse {
+  fromJSON(object: any): VerifyLoginSessionResponse {
     return {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       host: isSet(object.host) ? globalThis.String(object.host) : "",
@@ -166,7 +159,7 @@ export const VerifyPeerLoginSessionResponse = {
     };
   },
 
-  toJSON(message: VerifyPeerLoginSessionResponse): unknown {
+  toJSON(message: VerifyLoginSessionResponse): unknown {
     const obj: any = {};
     if (message.ip !== "") {
       obj.ip = message.ip;
@@ -180,13 +173,11 @@ export const VerifyPeerLoginSessionResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<VerifyPeerLoginSessionResponse>, I>>(base?: I): VerifyPeerLoginSessionResponse {
-    return VerifyPeerLoginSessionResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<VerifyLoginSessionResponse>, I>>(base?: I): VerifyLoginSessionResponse {
+    return VerifyLoginSessionResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<VerifyPeerLoginSessionResponse>, I>>(
-    object: I,
-  ): VerifyPeerLoginSessionResponse {
-    const message = createBaseVerifyPeerLoginSessionResponse();
+  fromPartial<I extends Exact<DeepPartial<VerifyLoginSessionResponse>, I>>(object: I): VerifyLoginSessionResponse {
+    const message = createBaseVerifyLoginSessionResponse();
     message.ip = object.ip ?? "";
     message.host = object.host ?? "";
     message.os = object.os ?? "";
@@ -195,10 +186,10 @@ export const VerifyPeerLoginSessionResponse = {
 };
 
 export interface SessionService {
-  VerifyPeerLoginSession(
-    request: DeepPartial<VerifyPeerLoginSessionRequest>,
+  VerifyLoginSession(
+    request: DeepPartial<VerifyLoginSessionRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<VerifyPeerLoginSessionResponse>;
+  ): Promise<VerifyLoginSessionResponse>;
 }
 
 export class SessionServiceClientImpl implements SessionService {
@@ -206,16 +197,16 @@ export class SessionServiceClientImpl implements SessionService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.VerifyPeerLoginSession = this.VerifyPeerLoginSession.bind(this);
+    this.VerifyLoginSession = this.VerifyLoginSession.bind(this);
   }
 
-  VerifyPeerLoginSession(
-    request: DeepPartial<VerifyPeerLoginSessionRequest>,
+  VerifyLoginSession(
+    request: DeepPartial<VerifyLoginSessionRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<VerifyPeerLoginSessionResponse> {
+  ): Promise<VerifyLoginSessionResponse> {
     return this.rpc.unary(
-      SessionServiceVerifyPeerLoginSessionDesc,
-      VerifyPeerLoginSessionRequest.fromPartial(request),
+      SessionServiceVerifyLoginSessionDesc,
+      VerifyLoginSessionRequest.fromPartial(request),
       metadata,
     );
   }
@@ -223,19 +214,19 @@ export class SessionServiceClientImpl implements SessionService {
 
 export const SessionServiceDesc = { serviceName: "protos.SessionService" };
 
-export const SessionServiceVerifyPeerLoginSessionDesc: UnaryMethodDefinitionish = {
-  methodName: "VerifyPeerLoginSession",
+export const SessionServiceVerifyLoginSessionDesc: UnaryMethodDefinitionish = {
+  methodName: "VerifyLoginSession",
   service: SessionServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return VerifyPeerLoginSessionRequest.encode(this).finish();
+      return VerifyLoginSessionRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = VerifyPeerLoginSessionResponse.decode(data);
+      const value = VerifyLoginSessionResponse.decode(data);
       return {
         ...value,
         toObject() {
