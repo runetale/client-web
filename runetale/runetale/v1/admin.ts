@@ -524,6 +524,11 @@ export interface User {
   /** only when status false */
   lastSeen: string;
   status: boolean;
+  groups: Group[];
+  devices: Device[];
+  resources: Resource[];
+  fleets: Fleet[];
+  inks: Ink[];
 }
 
 export interface Device {
@@ -4453,7 +4458,22 @@ export const Group = {
 };
 
 function createBaseUser(): User {
-  return { id: 0, nodeId: 0, name: "", picture: "", email: "", role: "", joined: "", lastSeen: "", status: false };
+  return {
+    id: 0,
+    nodeId: 0,
+    name: "",
+    picture: "",
+    email: "",
+    role: "",
+    joined: "",
+    lastSeen: "",
+    status: false,
+    groups: [],
+    devices: [],
+    resources: [],
+    fleets: [],
+    inks: [],
+  };
 }
 
 export const User = {
@@ -4484,6 +4504,21 @@ export const User = {
     }
     if (message.status !== false) {
       writer.uint32(72).bool(message.status);
+    }
+    for (const v of message.groups) {
+      Group.encode(v!, writer.uint32(82).fork()).ldelim();
+    }
+    for (const v of message.devices) {
+      Device.encode(v!, writer.uint32(90).fork()).ldelim();
+    }
+    for (const v of message.resources) {
+      Resource.encode(v!, writer.uint32(98).fork()).ldelim();
+    }
+    for (const v of message.fleets) {
+      Fleet.encode(v!, writer.uint32(106).fork()).ldelim();
+    }
+    for (const v of message.inks) {
+      Ink.encode(v!, writer.uint32(114).fork()).ldelim();
     }
     return writer;
   },
@@ -4558,6 +4593,41 @@ export const User = {
 
           message.status = reader.bool();
           continue;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.groups.push(Group.decode(reader, reader.uint32()));
+          continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.devices.push(Device.decode(reader, reader.uint32()));
+          continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.resources.push(Resource.decode(reader, reader.uint32()));
+          continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.fleets.push(Fleet.decode(reader, reader.uint32()));
+          continue;
+        case 14:
+          if (tag !== 114) {
+            break;
+          }
+
+          message.inks.push(Ink.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4578,6 +4648,13 @@ export const User = {
       joined: isSet(object.joined) ? globalThis.String(object.joined) : "",
       lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
+      groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
+      devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
+      resources: globalThis.Array.isArray(object?.resources)
+        ? object.resources.map((e: any) => Resource.fromJSON(e))
+        : [],
+      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
+      inks: globalThis.Array.isArray(object?.inks) ? object.inks.map((e: any) => Ink.fromJSON(e)) : [],
     };
   },
 
@@ -4610,6 +4687,21 @@ export const User = {
     if (message.status !== false) {
       obj.status = message.status;
     }
+    if (message.groups?.length) {
+      obj.groups = message.groups.map((e) => Group.toJSON(e));
+    }
+    if (message.devices?.length) {
+      obj.devices = message.devices.map((e) => Device.toJSON(e));
+    }
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => Resource.toJSON(e));
+    }
+    if (message.fleets?.length) {
+      obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
+    }
+    if (message.inks?.length) {
+      obj.inks = message.inks.map((e) => Ink.toJSON(e));
+    }
     return obj;
   },
 
@@ -4627,6 +4719,11 @@ export const User = {
     message.joined = object.joined ?? "";
     message.lastSeen = object.lastSeen ?? "";
     message.status = object.status ?? false;
+    message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
+    message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
+    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
+    message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
+    message.inks = object.inks?.map((e) => Ink.fromPartial(e)) || [];
     return message;
   },
 };
