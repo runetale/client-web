@@ -8,13 +8,12 @@
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import _m0 from "protobufjs/minimal";
-import { Platform, platformFromJSON, platformToJSON } from "./admin";
 
 export const protobufPackage = "protos";
 
 export interface VerifyLoginSessionRequest {
   sessionID: string;
-  platform: Platform;
+  platform: string;
 }
 
 export interface VerifyLoginSessionResponse {
@@ -24,7 +23,7 @@ export interface VerifyLoginSessionResponse {
 }
 
 function createBaseVerifyLoginSessionRequest(): VerifyLoginSessionRequest {
-  return { sessionID: "", platform: 0 };
+  return { sessionID: "", platform: "" };
 }
 
 export const VerifyLoginSessionRequest = {
@@ -32,8 +31,8 @@ export const VerifyLoginSessionRequest = {
     if (message.sessionID !== "") {
       writer.uint32(10).string(message.sessionID);
     }
-    if (message.platform !== 0) {
-      writer.uint32(16).int32(message.platform);
+    if (message.platform !== "") {
+      writer.uint32(18).string(message.platform);
     }
     return writer;
   },
@@ -53,11 +52,11 @@ export const VerifyLoginSessionRequest = {
           message.sessionID = reader.string();
           continue;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.platform = reader.int32() as any;
+          message.platform = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -71,7 +70,7 @@ export const VerifyLoginSessionRequest = {
   fromJSON(object: any): VerifyLoginSessionRequest {
     return {
       sessionID: isSet(object.sessionID) ? globalThis.String(object.sessionID) : "",
-      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
+      platform: isSet(object.platform) ? globalThis.String(object.platform) : "",
     };
   },
 
@@ -80,8 +79,8 @@ export const VerifyLoginSessionRequest = {
     if (message.sessionID !== "") {
       obj.sessionID = message.sessionID;
     }
-    if (message.platform !== 0) {
-      obj.platform = platformToJSON(message.platform);
+    if (message.platform !== "") {
+      obj.platform = message.platform;
     }
     return obj;
   },
@@ -92,7 +91,7 @@ export const VerifyLoginSessionRequest = {
   fromPartial<I extends Exact<DeepPartial<VerifyLoginSessionRequest>, I>>(object: I): VerifyLoginSessionRequest {
     const message = createBaseVerifyLoginSessionRequest();
     message.sessionID = object.sessionID ?? "";
-    message.platform = object.platform ?? 0;
+    message.platform = object.platform ?? "";
     return message;
   },
 };
