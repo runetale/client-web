@@ -8,12 +8,13 @@
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import _m0 from "protobufjs/minimal";
+import { Platform, platformFromJSON, platformToJSON } from "./admin";
 
 export const protobufPackage = "protos";
 
 export interface VerifyLoginSessionRequest {
   sessionID: string;
-  deploymentMethod: string;
+  platform: Platform;
 }
 
 export interface VerifyLoginSessionResponse {
@@ -23,7 +24,7 @@ export interface VerifyLoginSessionResponse {
 }
 
 function createBaseVerifyLoginSessionRequest(): VerifyLoginSessionRequest {
-  return { sessionID: "", deploymentMethod: "" };
+  return { sessionID: "", platform: 0 };
 }
 
 export const VerifyLoginSessionRequest = {
@@ -31,8 +32,8 @@ export const VerifyLoginSessionRequest = {
     if (message.sessionID !== "") {
       writer.uint32(10).string(message.sessionID);
     }
-    if (message.deploymentMethod !== "") {
-      writer.uint32(18).string(message.deploymentMethod);
+    if (message.platform !== 0) {
+      writer.uint32(16).int32(message.platform);
     }
     return writer;
   },
@@ -52,11 +53,11 @@ export const VerifyLoginSessionRequest = {
           message.sessionID = reader.string();
           continue;
         case 2:
-          if (tag !== 18) {
+          if (tag !== 16) {
             break;
           }
 
-          message.deploymentMethod = reader.string();
+          message.platform = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -70,7 +71,7 @@ export const VerifyLoginSessionRequest = {
   fromJSON(object: any): VerifyLoginSessionRequest {
     return {
       sessionID: isSet(object.sessionID) ? globalThis.String(object.sessionID) : "",
-      deploymentMethod: isSet(object.deploymentMethod) ? globalThis.String(object.deploymentMethod) : "",
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
     };
   },
 
@@ -79,8 +80,8 @@ export const VerifyLoginSessionRequest = {
     if (message.sessionID !== "") {
       obj.sessionID = message.sessionID;
     }
-    if (message.deploymentMethod !== "") {
-      obj.deploymentMethod = message.deploymentMethod;
+    if (message.platform !== 0) {
+      obj.platform = platformToJSON(message.platform);
     }
     return obj;
   },
@@ -91,7 +92,7 @@ export const VerifyLoginSessionRequest = {
   fromPartial<I extends Exact<DeepPartial<VerifyLoginSessionRequest>, I>>(object: I): VerifyLoginSessionRequest {
     const message = createBaseVerifyLoginSessionRequest();
     message.sessionID = object.sessionID ?? "";
-    message.deploymentMethod = object.deploymentMethod ?? "";
+    message.platform = object.platform ?? 0;
     return message;
   },
 };
