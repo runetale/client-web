@@ -13,7 +13,7 @@ import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
-export enum AclResourceType {
+export enum AclType {
   /** FLEET - servers */
   FLEET = 0,
   /** RESOURCE - server */
@@ -29,48 +29,48 @@ export enum AclResourceType {
   UNRECOGNIZED = -1,
 }
 
-export function aclResourceTypeFromJSON(object: any): AclResourceType {
+export function aclTypeFromJSON(object: any): AclType {
   switch (object) {
     case 0:
     case "FLEET":
-      return AclResourceType.FLEET;
+      return AclType.FLEET;
     case 1:
     case "RESOURCE":
-      return AclResourceType.RESOURCE;
+      return AclType.RESOURCE;
     case 2:
     case "GROUP":
-      return AclResourceType.GROUP;
+      return AclType.GROUP;
     case 3:
     case "USER":
-      return AclResourceType.USER;
+      return AclType.USER;
     case 4:
     case "INK":
-      return AclResourceType.INK;
+      return AclType.INK;
     case 5:
     case "DEVICE":
-      return AclResourceType.DEVICE;
+      return AclType.DEVICE;
     case -1:
     case "UNRECOGNIZED":
     default:
-      return AclResourceType.UNRECOGNIZED;
+      return AclType.UNRECOGNIZED;
   }
 }
 
-export function aclResourceTypeToJSON(object: AclResourceType): string {
+export function aclTypeToJSON(object: AclType): string {
   switch (object) {
-    case AclResourceType.FLEET:
+    case AclType.FLEET:
       return "FLEET";
-    case AclResourceType.RESOURCE:
+    case AclType.RESOURCE:
       return "RESOURCE";
-    case AclResourceType.GROUP:
+    case AclType.GROUP:
       return "GROUP";
-    case AclResourceType.USER:
+    case AclType.USER:
       return "USER";
-    case AclResourceType.INK:
+    case AclType.INK:
       return "INK";
-    case AclResourceType.DEVICE:
+    case AclType.DEVICE:
       return "DEVICE";
-    case AclResourceType.UNRECOGNIZED:
+    case AclType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
@@ -260,7 +260,7 @@ export interface AclResources {
   nodeIds: number[];
   /** for fleet or group or ink */
   policyId: string;
-  type: AclResourceType;
+  aclType: AclType;
 }
 
 export interface PatchAclRequest {
@@ -295,7 +295,7 @@ export interface AclResponse {
   proto: string;
   port: number;
   age: string;
-  type: string;
+  aclType: AclType;
 }
 
 export interface GetMeResponse {
@@ -510,7 +510,7 @@ export interface Group {
   name: string;
   users: User[];
   age: string;
-  type: string;
+  platform: Platform;
 }
 
 export interface User {
@@ -697,7 +697,7 @@ export const CreateAclRequest = {
 };
 
 function createBaseAclResources(): AclResources {
-  return { nodeIds: [], policyId: "", type: 0 };
+  return { nodeIds: [], policyId: "", aclType: 0 };
 }
 
 export const AclResources = {
@@ -710,8 +710,8 @@ export const AclResources = {
     if (message.policyId !== "") {
       writer.uint32(18).string(message.policyId);
     }
-    if (message.type !== 0) {
-      writer.uint32(24).int32(message.type);
+    if (message.aclType !== 0) {
+      writer.uint32(24).int32(message.aclType);
     }
     return writer;
   },
@@ -752,7 +752,7 @@ export const AclResources = {
             break;
           }
 
-          message.type = reader.int32() as any;
+          message.aclType = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -767,7 +767,7 @@ export const AclResources = {
     return {
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
       policyId: isSet(object.policyId) ? globalThis.String(object.policyId) : "",
-      type: isSet(object.type) ? aclResourceTypeFromJSON(object.type) : 0,
+      aclType: isSet(object.aclType) ? aclTypeFromJSON(object.aclType) : 0,
     };
   },
 
@@ -779,8 +779,8 @@ export const AclResources = {
     if (message.policyId !== "") {
       obj.policyId = message.policyId;
     }
-    if (message.type !== 0) {
-      obj.type = aclResourceTypeToJSON(message.type);
+    if (message.aclType !== 0) {
+      obj.aclType = aclTypeToJSON(message.aclType);
     }
     return obj;
   },
@@ -792,7 +792,7 @@ export const AclResources = {
     const message = createBaseAclResources();
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
     message.policyId = object.policyId ?? "";
-    message.type = object.type ?? 0;
+    message.aclType = object.aclType ?? 0;
     return message;
   },
 };
@@ -1133,7 +1133,7 @@ export const GetAclsJsonResponse = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: "", port: 0, age: "", type: "" };
+  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: "", port: 0, age: "", aclType: 0 };
 }
 
 export const AclResponse = {
@@ -1162,8 +1162,8 @@ export const AclResponse = {
     if (message.age !== "") {
       writer.uint32(66).string(message.age);
     }
-    if (message.type !== "") {
-      writer.uint32(74).string(message.type);
+    if (message.aclType !== 0) {
+      writer.uint32(72).int32(message.aclType);
     }
     return writer;
   },
@@ -1232,11 +1232,11 @@ export const AclResponse = {
           message.age = reader.string();
           continue;
         case 9:
-          if (tag !== 74) {
+          if (tag !== 72) {
             break;
           }
 
-          message.type = reader.string();
+          message.aclType = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1257,7 +1257,7 @@ export const AclResponse = {
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      aclType: isSet(object.aclType) ? aclTypeFromJSON(object.aclType) : 0,
     };
   },
 
@@ -1287,8 +1287,8 @@ export const AclResponse = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.type !== "") {
-      obj.type = message.type;
+    if (message.aclType !== 0) {
+      obj.aclType = aclTypeToJSON(message.aclType);
     }
     return obj;
   },
@@ -1306,7 +1306,7 @@ export const AclResponse = {
     message.proto = object.proto ?? "";
     message.port = object.port ?? 0;
     message.age = object.age ?? "";
-    message.type = object.type ?? "";
+    message.aclType = object.aclType ?? 0;
     return message;
   },
 };
@@ -4339,7 +4339,7 @@ export const Resource = {
 };
 
 function createBaseGroup(): Group {
-  return { id: "", name: "", users: [], age: "", type: "" };
+  return { id: "", name: "", users: [], age: "", platform: 0 };
 }
 
 export const Group = {
@@ -4356,8 +4356,8 @@ export const Group = {
     if (message.age !== "") {
       writer.uint32(34).string(message.age);
     }
-    if (message.type !== "") {
-      writer.uint32(42).string(message.type);
+    if (message.platform !== 0) {
+      writer.uint32(40).int32(message.platform);
     }
     return writer;
   },
@@ -4398,11 +4398,11 @@ export const Group = {
           message.age = reader.string();
           continue;
         case 5:
-          if (tag !== 42) {
+          if (tag !== 40) {
             break;
           }
 
-          message.type = reader.string();
+          message.platform = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4419,7 +4419,7 @@ export const Group = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
     };
   },
 
@@ -4437,8 +4437,8 @@ export const Group = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.type !== "") {
-      obj.type = message.type;
+    if (message.platform !== 0) {
+      obj.platform = platformToJSON(message.platform);
     }
     return obj;
   },
@@ -4452,7 +4452,7 @@ export const Group = {
     message.name = object.name ?? "";
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
     message.age = object.age ?? "";
-    message.type = object.type ?? "";
+    message.platform = object.platform ?? 0;
     return message;
   },
 };
