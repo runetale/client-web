@@ -151,7 +151,7 @@ export function actionToJSON(object: Action): string {
   }
 }
 
-export enum PlatformMethod {
+export enum Platform {
   DOCKER = 0,
   CLI = 1,
   LINUX = 2,
@@ -167,78 +167,78 @@ export enum PlatformMethod {
   UNRECOGNIZED = -1,
 }
 
-export function platformMethodFromJSON(object: any): PlatformMethod {
+export function platformFromJSON(object: any): Platform {
   switch (object) {
     case 0:
     case "DOCKER":
-      return PlatformMethod.DOCKER;
+      return Platform.DOCKER;
     case 1:
     case "CLI":
-      return PlatformMethod.CLI;
+      return Platform.CLI;
     case 2:
     case "LINUX":
-      return PlatformMethod.LINUX;
+      return Platform.LINUX;
     case 3:
     case "GCP":
-      return PlatformMethod.GCP;
+      return Platform.GCP;
     case 4:
     case "MANUAL":
-      return PlatformMethod.MANUAL;
+      return Platform.MANUAL;
     case 5:
     case "AWS":
-      return PlatformMethod.AWS;
+      return Platform.AWS;
     case 6:
     case "AZURE":
-      return PlatformMethod.AZURE;
+      return Platform.AZURE;
     case 7:
     case "ONPREM":
-      return PlatformMethod.ONPREM;
+      return Platform.ONPREM;
     case 8:
     case "MACOS":
-      return PlatformMethod.MACOS;
+      return Platform.MACOS;
     case 9:
     case "WINDOWS":
-      return PlatformMethod.WINDOWS;
+      return Platform.WINDOWS;
     case 10:
     case "ONBOARDING":
-      return PlatformMethod.ONBOARDING;
+      return Platform.ONBOARDING;
     case 11:
     case "OTHER":
-      return PlatformMethod.OTHER;
+      return Platform.OTHER;
     case -1:
     case "UNRECOGNIZED":
     default:
-      return PlatformMethod.UNRECOGNIZED;
+      return Platform.UNRECOGNIZED;
   }
 }
 
-export function platformMethodToJSON(object: PlatformMethod): string {
+export function platformToJSON(object: Platform): string {
   switch (object) {
-    case PlatformMethod.DOCKER:
+    case Platform.DOCKER:
       return "DOCKER";
-    case PlatformMethod.CLI:
+    case Platform.CLI:
       return "CLI";
-    case PlatformMethod.LINUX:
+    case Platform.LINUX:
       return "LINUX";
-    case PlatformMethod.GCP:
+    case Platform.GCP:
       return "GCP";
-    case PlatformMethod.MANUAL:
+    case Platform.MANUAL:
       return "MANUAL";
-    case PlatformMethod.AWS:
+    case Platform.AWS:
       return "AWS";
-    case PlatformMethod.AZURE:
+    case Platform.AZURE:
       return "AZURE";
-    case PlatformMethod.ONPREM:
+    case Platform.ONPREM:
       return "ONPREM";
-    case PlatformMethod.MACOS:
+    case Platform.MACOS:
       return "MACOS";
-    case PlatformMethod.WINDOWS:
+    case Platform.WINDOWS:
       return "WINDOWS";
-    case PlatformMethod.ONBOARDING:
+    case Platform.ONBOARDING:
       return "ONBOARDING";
-    case PlatformMethod.OTHER:
+    case Platform.OTHER:
       return "OTHER";
-    case PlatformMethod.UNRECOGNIZED:
+    case Platform.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
@@ -386,7 +386,7 @@ export interface Ink {
 }
 
 export interface GenerateComposeKeyRequest {
-  platformMethod: PlatformMethod;
+  platformMethod: Platform;
   expirelyTime: ExpirelyTime;
   name: string;
   desc: string;
@@ -400,7 +400,7 @@ export interface GenerateComposeKeyResponse {
 
 export interface GenerateComposeKeyResponse_installScript {
   script: string;
-  platformMethod: PlatformMethod;
+  platformMethod: Platform;
 }
 
 export interface GetComposeKeysResponse {
@@ -439,7 +439,7 @@ export interface CreateFleetRequest {
   name: string;
   desc: string;
   nodeIds: number[];
-  platformMethod: PlatformMethod;
+  platformMethod: Platform;
 }
 
 export interface GetFleetRequest {
@@ -456,7 +456,7 @@ export interface PatchFleetRequest {
   desc: string;
   /** resource ids */
   nodeIds: number[];
-  platformMethod: PlatformMethod;
+  platformMethod: Platform;
   action: Action;
 }
 
@@ -487,7 +487,7 @@ export interface Fleet {
   proto: string;
   port: string;
   age: string;
-  type: string;
+  platform: Platform;
   createdBy: string;
 }
 
@@ -500,7 +500,7 @@ export interface Resource {
   port: number;
   os: string;
   age: string;
-  deploymentMethod: string;
+  platform: Platform;
   status: boolean;
   createdBy: string;
 }
@@ -2607,7 +2607,7 @@ export const GenerateComposeKeyRequest = {
 
   fromJSON(object: any): GenerateComposeKeyRequest {
     return {
-      platformMethod: isSet(object.platformMethod) ? platformMethodFromJSON(object.platformMethod) : 0,
+      platformMethod: isSet(object.platformMethod) ? platformFromJSON(object.platformMethod) : 0,
       expirelyTime: isSet(object.expirelyTime) ? expirelyTimeFromJSON(object.expirelyTime) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
@@ -2618,7 +2618,7 @@ export const GenerateComposeKeyRequest = {
   toJSON(message: GenerateComposeKeyRequest): unknown {
     const obj: any = {};
     if (message.platformMethod !== 0) {
-      obj.platformMethod = platformMethodToJSON(message.platformMethod);
+      obj.platformMethod = platformToJSON(message.platformMethod);
     }
     if (message.expirelyTime !== 0) {
       obj.expirelyTime = expirelyTimeToJSON(message.expirelyTime);
@@ -2774,7 +2774,7 @@ export const GenerateComposeKeyResponse_installScript = {
   fromJSON(object: any): GenerateComposeKeyResponse_installScript {
     return {
       script: isSet(object.script) ? globalThis.String(object.script) : "",
-      platformMethod: isSet(object.platformMethod) ? platformMethodFromJSON(object.platformMethod) : 0,
+      platformMethod: isSet(object.platformMethod) ? platformFromJSON(object.platformMethod) : 0,
     };
   },
 
@@ -2784,7 +2784,7 @@ export const GenerateComposeKeyResponse_installScript = {
       obj.script = message.script;
     }
     if (message.platformMethod !== 0) {
-      obj.platformMethod = platformMethodToJSON(message.platformMethod);
+      obj.platformMethod = platformToJSON(message.platformMethod);
     }
     return obj;
   },
@@ -3372,7 +3372,7 @@ export const CreateFleetRequest = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
-      platformMethod: isSet(object.platformMethod) ? platformMethodFromJSON(object.platformMethod) : 0,
+      platformMethod: isSet(object.platformMethod) ? platformFromJSON(object.platformMethod) : 0,
     };
   },
 
@@ -3388,7 +3388,7 @@ export const CreateFleetRequest = {
       obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
     if (message.platformMethod !== 0) {
-      obj.platformMethod = platformMethodToJSON(message.platformMethod);
+      obj.platformMethod = platformToJSON(message.platformMethod);
     }
     return obj;
   },
@@ -3623,7 +3623,7 @@ export const PatchFleetRequest = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
-      platformMethod: isSet(object.platformMethod) ? platformMethodFromJSON(object.platformMethod) : 0,
+      platformMethod: isSet(object.platformMethod) ? platformFromJSON(object.platformMethod) : 0,
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
@@ -3643,7 +3643,7 @@ export const PatchFleetRequest = {
       obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
     if (message.platformMethod !== 0) {
-      obj.platformMethod = platformMethodToJSON(message.platformMethod);
+      obj.platformMethod = platformToJSON(message.platformMethod);
     }
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
@@ -3937,7 +3937,7 @@ export const Policy = {
 };
 
 function createBaseFleet(): Fleet {
-  return { id: "", name: "", desc: "", resources: [], proto: "", port: "", age: "", type: "", createdBy: "" };
+  return { id: "", name: "", desc: "", resources: [], proto: "", port: "", age: "", platform: 0, createdBy: "" };
 }
 
 export const Fleet = {
@@ -3963,8 +3963,8 @@ export const Fleet = {
     if (message.age !== "") {
       writer.uint32(58).string(message.age);
     }
-    if (message.type !== "") {
-      writer.uint32(66).string(message.type);
+    if (message.platform !== 0) {
+      writer.uint32(64).int32(message.platform);
     }
     if (message.createdBy !== "") {
       writer.uint32(74).string(message.createdBy);
@@ -4029,11 +4029,11 @@ export const Fleet = {
           message.age = reader.string();
           continue;
         case 8:
-          if (tag !== 66) {
+          if (tag !== 64) {
             break;
           }
 
-          message.type = reader.string();
+          message.platform = reader.int32() as any;
           continue;
         case 9:
           if (tag !== 74) {
@@ -4062,7 +4062,7 @@ export const Fleet = {
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.String(object.port) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
     };
   },
@@ -4090,8 +4090,8 @@ export const Fleet = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.type !== "") {
-      obj.type = message.type;
+    if (message.platform !== 0) {
+      obj.platform = platformToJSON(message.platform);
     }
     if (message.createdBy !== "") {
       obj.createdBy = message.createdBy;
@@ -4111,7 +4111,7 @@ export const Fleet = {
     message.proto = object.proto ?? "";
     message.port = object.port ?? "";
     message.age = object.age ?? "";
-    message.type = object.type ?? "";
+    message.platform = object.platform ?? 0;
     message.createdBy = object.createdBy ?? "";
     return message;
   },
@@ -4127,7 +4127,7 @@ function createBaseResource(): Resource {
     port: 0,
     os: "",
     age: "",
-    deploymentMethod: "",
+    platform: 0,
     status: false,
     createdBy: "",
   };
@@ -4159,8 +4159,8 @@ export const Resource = {
     if (message.age !== "") {
       writer.uint32(66).string(message.age);
     }
-    if (message.deploymentMethod !== "") {
-      writer.uint32(74).string(message.deploymentMethod);
+    if (message.platform !== 0) {
+      writer.uint32(72).int32(message.platform);
     }
     if (message.status !== false) {
       writer.uint32(80).bool(message.status);
@@ -4235,11 +4235,11 @@ export const Resource = {
           message.age = reader.string();
           continue;
         case 9:
-          if (tag !== 74) {
+          if (tag !== 72) {
             break;
           }
 
-          message.deploymentMethod = reader.string();
+          message.platform = reader.int32() as any;
           continue;
         case 10:
           if (tag !== 80) {
@@ -4274,7 +4274,7 @@ export const Resource = {
       port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      deploymentMethod: isSet(object.deploymentMethod) ? globalThis.String(object.deploymentMethod) : "",
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
     };
@@ -4306,8 +4306,8 @@ export const Resource = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.deploymentMethod !== "") {
-      obj.deploymentMethod = message.deploymentMethod;
+    if (message.platform !== 0) {
+      obj.platform = platformToJSON(message.platform);
     }
     if (message.status !== false) {
       obj.status = message.status;
@@ -4331,7 +4331,7 @@ export const Resource = {
     message.port = object.port ?? 0;
     message.os = object.os ?? "";
     message.age = object.age ?? "";
-    message.deploymentMethod = object.deploymentMethod ?? "";
+    message.platform = object.platform ?? 0;
     message.status = object.status ?? false;
     message.createdBy = object.createdBy ?? "";
     return message;
