@@ -470,7 +470,7 @@ export interface Overview {
   inviteLink: string;
 }
 
-export interface InviteResponse {
+export interface InviteUserResponse {
   inviteCode: string;
 }
 
@@ -3803,22 +3803,22 @@ export const Overview = {
   },
 };
 
-function createBaseInviteResponse(): InviteResponse {
+function createBaseInviteUserResponse(): InviteUserResponse {
   return { inviteCode: "" };
 }
 
-export const InviteResponse = {
-  encode(message: InviteResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const InviteUserResponse = {
+  encode(message: InviteUserResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.inviteCode !== "") {
       writer.uint32(10).string(message.inviteCode);
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): InviteResponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): InviteUserResponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseInviteResponse();
+    const message = createBaseInviteUserResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -3838,11 +3838,11 @@ export const InviteResponse = {
     return message;
   },
 
-  fromJSON(object: any): InviteResponse {
+  fromJSON(object: any): InviteUserResponse {
     return { inviteCode: isSet(object.inviteCode) ? globalThis.String(object.inviteCode) : "" };
   },
 
-  toJSON(message: InviteResponse): unknown {
+  toJSON(message: InviteUserResponse): unknown {
     const obj: any = {};
     if (message.inviteCode !== "") {
       obj.inviteCode = message.inviteCode;
@@ -3850,11 +3850,11 @@ export const InviteResponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<InviteResponse>, I>>(base?: I): InviteResponse {
-    return InviteResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<InviteUserResponse>, I>>(base?: I): InviteUserResponse {
+    return InviteUserResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<InviteResponse>, I>>(object: I): InviteResponse {
-    const message = createBaseInviteResponse();
+  fromPartial<I extends Exact<DeepPartial<InviteUserResponse>, I>>(object: I): InviteUserResponse {
+    const message = createBaseInviteUserResponse();
     message.inviteCode = object.inviteCode ?? "";
     return message;
   },
@@ -5054,7 +5054,7 @@ export interface AdminService {
   /** overview */
   GetOverview(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Overview>;
   /** invite */
-  CreateInviteCode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteResponse>;
+  CreateInviteUser(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteUserResponse>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -5090,7 +5090,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetInks = this.GetInks.bind(this);
     this.PatchInk = this.PatchInk.bind(this);
     this.GetOverview = this.GetOverview.bind(this);
-    this.CreateInviteCode = this.CreateInviteCode.bind(this);
+    this.CreateInviteUser = this.CreateInviteUser.bind(this);
   }
 
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse> {
@@ -5215,8 +5215,8 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGetOverviewDesc, Empty.fromPartial(request), metadata);
   }
 
-  CreateInviteCode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteResponse> {
-    return this.rpc.unary(AdminServiceCreateInviteCodeDesc, Empty.fromPartial(request), metadata);
+  CreateInviteUser(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteUserResponse> {
+    return this.rpc.unary(AdminServiceCreateInviteUserDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -5866,8 +5866,8 @@ export const AdminServiceGetOverviewDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const AdminServiceCreateInviteCodeDesc: UnaryMethodDefinitionish = {
-  methodName: "CreateInviteCode",
+export const AdminServiceCreateInviteUserDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateInviteUser",
   service: AdminServiceDesc,
   requestStream: false,
   responseStream: false,
@@ -5878,7 +5878,7 @@ export const AdminServiceCreateInviteCodeDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = InviteResponse.decode(data);
+      const value = InviteUserResponse.decode(data);
       return {
         ...value,
         toObject() {

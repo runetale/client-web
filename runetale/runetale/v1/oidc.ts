@@ -42,11 +42,11 @@ export interface AuthenticateResponse {
 }
 
 export interface GetInvitationRequest {
-  invitationCode: string;
+  inviteCode: string;
 }
 
 export interface GetInvitationResponse {
-  invitationID: string;
+  inviteID: string;
   invitationSub: string;
   invitationEmail: string;
 }
@@ -484,13 +484,13 @@ export const AuthenticateResponse = {
 };
 
 function createBaseGetInvitationRequest(): GetInvitationRequest {
-  return { invitationCode: "" };
+  return { inviteCode: "" };
 }
 
 export const GetInvitationRequest = {
   encode(message: GetInvitationRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.invitationCode !== "") {
-      writer.uint32(10).string(message.invitationCode);
+    if (message.inviteCode !== "") {
+      writer.uint32(10).string(message.inviteCode);
     }
     return writer;
   },
@@ -507,7 +507,7 @@ export const GetInvitationRequest = {
             break;
           }
 
-          message.invitationCode = reader.string();
+          message.inviteCode = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -519,13 +519,13 @@ export const GetInvitationRequest = {
   },
 
   fromJSON(object: any): GetInvitationRequest {
-    return { invitationCode: isSet(object.invitationCode) ? globalThis.String(object.invitationCode) : "" };
+    return { inviteCode: isSet(object.inviteCode) ? globalThis.String(object.inviteCode) : "" };
   },
 
   toJSON(message: GetInvitationRequest): unknown {
     const obj: any = {};
-    if (message.invitationCode !== "") {
-      obj.invitationCode = message.invitationCode;
+    if (message.inviteCode !== "") {
+      obj.inviteCode = message.inviteCode;
     }
     return obj;
   },
@@ -535,19 +535,19 @@ export const GetInvitationRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<GetInvitationRequest>, I>>(object: I): GetInvitationRequest {
     const message = createBaseGetInvitationRequest();
-    message.invitationCode = object.invitationCode ?? "";
+    message.inviteCode = object.inviteCode ?? "";
     return message;
   },
 };
 
 function createBaseGetInvitationResponse(): GetInvitationResponse {
-  return { invitationID: "", invitationSub: "", invitationEmail: "" };
+  return { inviteID: "", invitationSub: "", invitationEmail: "" };
 }
 
 export const GetInvitationResponse = {
   encode(message: GetInvitationResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.invitationID !== "") {
-      writer.uint32(10).string(message.invitationID);
+    if (message.inviteID !== "") {
+      writer.uint32(10).string(message.inviteID);
     }
     if (message.invitationSub !== "") {
       writer.uint32(18).string(message.invitationSub);
@@ -570,7 +570,7 @@ export const GetInvitationResponse = {
             break;
           }
 
-          message.invitationID = reader.string();
+          message.inviteID = reader.string();
           continue;
         case 2:
           if (tag !== 18) {
@@ -597,7 +597,7 @@ export const GetInvitationResponse = {
 
   fromJSON(object: any): GetInvitationResponse {
     return {
-      invitationID: isSet(object.invitationID) ? globalThis.String(object.invitationID) : "",
+      inviteID: isSet(object.inviteID) ? globalThis.String(object.inviteID) : "",
       invitationSub: isSet(object.invitationSub) ? globalThis.String(object.invitationSub) : "",
       invitationEmail: isSet(object.invitationEmail) ? globalThis.String(object.invitationEmail) : "",
     };
@@ -605,8 +605,8 @@ export const GetInvitationResponse = {
 
   toJSON(message: GetInvitationResponse): unknown {
     const obj: any = {};
-    if (message.invitationID !== "") {
-      obj.invitationID = message.invitationID;
+    if (message.inviteID !== "") {
+      obj.inviteID = message.inviteID;
     }
     if (message.invitationSub !== "") {
       obj.invitationSub = message.invitationSub;
@@ -622,7 +622,7 @@ export const GetInvitationResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<GetInvitationResponse>, I>>(object: I): GetInvitationResponse {
     const message = createBaseGetInvitationResponse();
-    message.invitationID = object.invitationID ?? "";
+    message.inviteID = object.inviteID ?? "";
     message.invitationSub = object.invitationSub ?? "";
     message.invitationEmail = object.invitationEmail ?? "";
     return message;
