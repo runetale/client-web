@@ -30,6 +30,7 @@ export interface LoginRequest {
   email: string;
   username: string;
   picture: string;
+  inviteCode: string;
 }
 
 export interface AuthenticateResponse {
@@ -200,7 +201,7 @@ export const LoginResponse = {
 };
 
 function createBaseLoginRequest(): LoginRequest {
-  return { sub: "", tenantID: "", doamin: "", providerID: "", email: "", username: "", picture: "" };
+  return { sub: "", tenantID: "", doamin: "", providerID: "", email: "", username: "", picture: "", inviteCode: "" };
 }
 
 export const LoginRequest = {
@@ -225,6 +226,9 @@ export const LoginRequest = {
     }
     if (message.picture !== "") {
       writer.uint32(58).string(message.picture);
+    }
+    if (message.inviteCode !== "") {
+      writer.uint32(66).string(message.inviteCode);
     }
     return writer;
   },
@@ -285,6 +289,13 @@ export const LoginRequest = {
 
           message.picture = reader.string();
           continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.inviteCode = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -303,6 +314,7 @@ export const LoginRequest = {
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
+      inviteCode: isSet(object.inviteCode) ? globalThis.String(object.inviteCode) : "",
     };
   },
 
@@ -329,6 +341,9 @@ export const LoginRequest = {
     if (message.picture !== "") {
       obj.picture = message.picture;
     }
+    if (message.inviteCode !== "") {
+      obj.inviteCode = message.inviteCode;
+    }
     return obj;
   },
 
@@ -344,6 +359,7 @@ export const LoginRequest = {
     message.email = object.email ?? "";
     message.username = object.username ?? "";
     message.picture = object.picture ?? "";
+    message.inviteCode = object.inviteCode ?? "";
     return message;
   },
 };
@@ -616,10 +632,7 @@ export const GetInvitationResponse = {
 export interface OIDCService {
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse>;
   Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<AuthenticateResponse>;
-  GetInvitationInfo(
-    request: DeepPartial<GetInvitationRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetInvitationResponse>;
+  GetInvitation(request: DeepPartial<GetInvitationRequest>, metadata?: grpc.Metadata): Promise<GetInvitationResponse>;
 }
 
 export class OIDCServiceClientImpl implements OIDCService {
@@ -629,7 +642,7 @@ export class OIDCServiceClientImpl implements OIDCService {
     this.rpc = rpc;
     this.Login = this.Login.bind(this);
     this.Authenticate = this.Authenticate.bind(this);
-    this.GetInvitationInfo = this.GetInvitationInfo.bind(this);
+    this.GetInvitation = this.GetInvitation.bind(this);
   }
 
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse> {
@@ -640,11 +653,8 @@ export class OIDCServiceClientImpl implements OIDCService {
     return this.rpc.unary(OIDCServiceAuthenticateDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetInvitationInfo(
-    request: DeepPartial<GetInvitationRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<GetInvitationResponse> {
-    return this.rpc.unary(OIDCServiceGetInvitationInfoDesc, GetInvitationRequest.fromPartial(request), metadata);
+  GetInvitation(request: DeepPartial<GetInvitationRequest>, metadata?: grpc.Metadata): Promise<GetInvitationResponse> {
+    return this.rpc.unary(OIDCServiceGetInvitationDesc, GetInvitationRequest.fromPartial(request), metadata);
   }
 }
 
@@ -696,8 +706,8 @@ export const OIDCServiceAuthenticateDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const OIDCServiceGetInvitationInfoDesc: UnaryMethodDefinitionish = {
-  methodName: "GetInvitationInfo",
+export const OIDCServiceGetInvitationDesc: UnaryMethodDefinitionish = {
+  methodName: "GetInvitation",
   service: OIDCServiceDesc,
   requestStream: false,
   responseStream: false,

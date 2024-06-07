@@ -470,6 +470,10 @@ export interface Overview {
   inviteLink: string;
 }
 
+export interface InviteResponse {
+  inviteCode: string;
+}
+
 export interface Policy {
   fleets: Fleet[];
   resources: Resource[];
@@ -3799,6 +3803,63 @@ export const Overview = {
   },
 };
 
+function createBaseInviteResponse(): InviteResponse {
+  return { inviteCode: "" };
+}
+
+export const InviteResponse = {
+  encode(message: InviteResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.inviteCode !== "") {
+      writer.uint32(10).string(message.inviteCode);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): InviteResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseInviteResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.inviteCode = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): InviteResponse {
+    return { inviteCode: isSet(object.inviteCode) ? globalThis.String(object.inviteCode) : "" };
+  },
+
+  toJSON(message: InviteResponse): unknown {
+    const obj: any = {};
+    if (message.inviteCode !== "") {
+      obj.inviteCode = message.inviteCode;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<InviteResponse>, I>>(base?: I): InviteResponse {
+    return InviteResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<InviteResponse>, I>>(object: I): InviteResponse {
+    const message = createBaseInviteResponse();
+    message.inviteCode = object.inviteCode ?? "";
+    return message;
+  },
+};
+
 function createBasePolicy(): Policy {
   return { fleets: [], resources: [], groups: [], users: [], inks: [], devices: [] };
 }
@@ -4992,6 +5053,8 @@ export interface AdminService {
   PatchInk(request: DeepPartial<PatchInkRequest>, metadata?: grpc.Metadata): Promise<Ink>;
   /** overview */
   GetOverview(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Overview>;
+  /** invite */
+  CreateInviteCode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteResponse>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -5027,6 +5090,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetInks = this.GetInks.bind(this);
     this.PatchInk = this.PatchInk.bind(this);
     this.GetOverview = this.GetOverview.bind(this);
+    this.CreateInviteCode = this.CreateInviteCode.bind(this);
   }
 
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse> {
@@ -5149,6 +5213,10 @@ export class AdminServiceClientImpl implements AdminService {
 
   GetOverview(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Overview> {
     return this.rpc.unary(AdminServiceGetOverviewDesc, Empty.fromPartial(request), metadata);
+  }
+
+  CreateInviteCode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteResponse> {
+    return this.rpc.unary(AdminServiceCreateInviteCodeDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -5788,6 +5856,29 @@ export const AdminServiceGetOverviewDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = Overview.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceCreateInviteCodeDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateInviteCode",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = InviteResponse.decode(data);
       return {
         ...value,
         toObject() {
