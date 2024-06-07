@@ -386,7 +386,7 @@ export interface Ink {
 }
 
 export interface GenerateComposeKeyRequest {
-  platformMethod: Platform;
+  platform: Platform;
   expirelyTime: ExpirelyTime;
   name: string;
   desc: string;
@@ -400,7 +400,7 @@ export interface GenerateComposeKeyResponse {
 
 export interface GenerateComposeKeyResponse_installScript {
   script: string;
-  platformMethod: Platform;
+  platform: Platform;
 }
 
 export interface GetComposeKeysResponse {
@@ -439,7 +439,7 @@ export interface CreateFleetRequest {
   name: string;
   desc: string;
   nodeIds: number[];
-  platformMethod: Platform;
+  platform: Platform;
 }
 
 export interface GetFleetRequest {
@@ -456,7 +456,7 @@ export interface PatchFleetRequest {
   desc: string;
   /** resource ids */
   nodeIds: number[];
-  platformMethod: Platform;
+  platform: Platform;
   action: Action;
 }
 
@@ -2531,13 +2531,13 @@ export const Ink = {
 };
 
 function createBaseGenerateComposeKeyRequest(): GenerateComposeKeyRequest {
-  return { platformMethod: 0, expirelyTime: 0, name: "", desc: "", isReusable: false };
+  return { platform: 0, expirelyTime: 0, name: "", desc: "", isReusable: false };
 }
 
 export const GenerateComposeKeyRequest = {
   encode(message: GenerateComposeKeyRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.platformMethod !== 0) {
-      writer.uint32(8).int32(message.platformMethod);
+    if (message.platform !== 0) {
+      writer.uint32(8).int32(message.platform);
     }
     if (message.expirelyTime !== 0) {
       writer.uint32(16).int32(message.expirelyTime);
@@ -2566,7 +2566,7 @@ export const GenerateComposeKeyRequest = {
             break;
           }
 
-          message.platformMethod = reader.int32() as any;
+          message.platform = reader.int32() as any;
           continue;
         case 2:
           if (tag !== 16) {
@@ -2607,7 +2607,7 @@ export const GenerateComposeKeyRequest = {
 
   fromJSON(object: any): GenerateComposeKeyRequest {
     return {
-      platformMethod: isSet(object.platformMethod) ? platformFromJSON(object.platformMethod) : 0,
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
       expirelyTime: isSet(object.expirelyTime) ? expirelyTimeFromJSON(object.expirelyTime) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
@@ -2617,8 +2617,8 @@ export const GenerateComposeKeyRequest = {
 
   toJSON(message: GenerateComposeKeyRequest): unknown {
     const obj: any = {};
-    if (message.platformMethod !== 0) {
-      obj.platformMethod = platformToJSON(message.platformMethod);
+    if (message.platform !== 0) {
+      obj.platform = platformToJSON(message.platform);
     }
     if (message.expirelyTime !== 0) {
       obj.expirelyTime = expirelyTimeToJSON(message.expirelyTime);
@@ -2640,7 +2640,7 @@ export const GenerateComposeKeyRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<GenerateComposeKeyRequest>, I>>(object: I): GenerateComposeKeyRequest {
     const message = createBaseGenerateComposeKeyRequest();
-    message.platformMethod = object.platformMethod ?? 0;
+    message.platform = object.platform ?? 0;
     message.expirelyTime = object.expirelyTime ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
@@ -2727,7 +2727,7 @@ export const GenerateComposeKeyResponse = {
 };
 
 function createBaseGenerateComposeKeyResponse_installScript(): GenerateComposeKeyResponse_installScript {
-  return { script: "", platformMethod: 0 };
+  return { script: "", platform: 0 };
 }
 
 export const GenerateComposeKeyResponse_installScript = {
@@ -2735,8 +2735,8 @@ export const GenerateComposeKeyResponse_installScript = {
     if (message.script !== "") {
       writer.uint32(10).string(message.script);
     }
-    if (message.platformMethod !== 0) {
-      writer.uint32(16).int32(message.platformMethod);
+    if (message.platform !== 0) {
+      writer.uint32(16).int32(message.platform);
     }
     return writer;
   },
@@ -2760,7 +2760,7 @@ export const GenerateComposeKeyResponse_installScript = {
             break;
           }
 
-          message.platformMethod = reader.int32() as any;
+          message.platform = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2774,7 +2774,7 @@ export const GenerateComposeKeyResponse_installScript = {
   fromJSON(object: any): GenerateComposeKeyResponse_installScript {
     return {
       script: isSet(object.script) ? globalThis.String(object.script) : "",
-      platformMethod: isSet(object.platformMethod) ? platformFromJSON(object.platformMethod) : 0,
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
     };
   },
 
@@ -2783,8 +2783,8 @@ export const GenerateComposeKeyResponse_installScript = {
     if (message.script !== "") {
       obj.script = message.script;
     }
-    if (message.platformMethod !== 0) {
-      obj.platformMethod = platformToJSON(message.platformMethod);
+    if (message.platform !== 0) {
+      obj.platform = platformToJSON(message.platform);
     }
     return obj;
   },
@@ -2799,7 +2799,7 @@ export const GenerateComposeKeyResponse_installScript = {
   ): GenerateComposeKeyResponse_installScript {
     const message = createBaseGenerateComposeKeyResponse_installScript();
     message.script = object.script ?? "";
-    message.platformMethod = object.platformMethod ?? 0;
+    message.platform = object.platform ?? 0;
     return message;
   },
 };
@@ -3291,7 +3291,7 @@ export const Resources = {
 };
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", nodeIds: [], platformMethod: 0 };
+  return { name: "", desc: "", nodeIds: [], platform: 0 };
 }
 
 export const CreateFleetRequest = {
@@ -3307,8 +3307,8 @@ export const CreateFleetRequest = {
       writer.uint64(v);
     }
     writer.ldelim();
-    if (message.platformMethod !== 0) {
-      writer.uint32(32).int32(message.platformMethod);
+    if (message.platform !== 0) {
+      writer.uint32(32).int32(message.platform);
     }
     return writer;
   },
@@ -3356,7 +3356,7 @@ export const CreateFleetRequest = {
             break;
           }
 
-          message.platformMethod = reader.int32() as any;
+          message.platform = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3372,7 +3372,7 @@ export const CreateFleetRequest = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
-      platformMethod: isSet(object.platformMethod) ? platformFromJSON(object.platformMethod) : 0,
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
     };
   },
 
@@ -3387,8 +3387,8 @@ export const CreateFleetRequest = {
     if (message.nodeIds?.length) {
       obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
-    if (message.platformMethod !== 0) {
-      obj.platformMethod = platformToJSON(message.platformMethod);
+    if (message.platform !== 0) {
+      obj.platform = platformToJSON(message.platform);
     }
     return obj;
   },
@@ -3401,7 +3401,7 @@ export const CreateFleetRequest = {
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
-    message.platformMethod = object.platformMethod ?? 0;
+    message.platform = object.platform ?? 0;
     return message;
   },
 };
@@ -3521,7 +3521,7 @@ export const Fleets = {
 };
 
 function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { id: "", name: "", desc: "", nodeIds: [], platformMethod: 0, action: 0 };
+  return { id: "", name: "", desc: "", nodeIds: [], platform: 0, action: 0 };
 }
 
 export const PatchFleetRequest = {
@@ -3540,8 +3540,8 @@ export const PatchFleetRequest = {
       writer.uint64(v);
     }
     writer.ldelim();
-    if (message.platformMethod !== 0) {
-      writer.uint32(40).int32(message.platformMethod);
+    if (message.platform !== 0) {
+      writer.uint32(40).int32(message.platform);
     }
     if (message.action !== 0) {
       writer.uint32(48).int32(message.action);
@@ -3599,7 +3599,7 @@ export const PatchFleetRequest = {
             break;
           }
 
-          message.platformMethod = reader.int32() as any;
+          message.platform = reader.int32() as any;
           continue;
         case 6:
           if (tag !== 48) {
@@ -3623,7 +3623,7 @@ export const PatchFleetRequest = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
-      platformMethod: isSet(object.platformMethod) ? platformFromJSON(object.platformMethod) : 0,
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
@@ -3642,8 +3642,8 @@ export const PatchFleetRequest = {
     if (message.nodeIds?.length) {
       obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
-    if (message.platformMethod !== 0) {
-      obj.platformMethod = platformToJSON(message.platformMethod);
+    if (message.platform !== 0) {
+      obj.platform = platformToJSON(message.platform);
     }
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
@@ -3660,7 +3660,7 @@ export const PatchFleetRequest = {
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
-    message.platformMethod = object.platformMethod ?? 0;
+    message.platform = object.platform ?? 0;
     message.action = object.action ?? 0;
     return message;
   },
