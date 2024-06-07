@@ -510,7 +510,6 @@ export interface Group {
   name: string;
   users: User[];
   age: string;
-  platform: Platform;
 }
 
 export interface User {
@@ -4339,7 +4338,7 @@ export const Resource = {
 };
 
 function createBaseGroup(): Group {
-  return { id: "", name: "", users: [], age: "", platform: 0 };
+  return { id: "", name: "", users: [], age: "" };
 }
 
 export const Group = {
@@ -4355,9 +4354,6 @@ export const Group = {
     }
     if (message.age !== "") {
       writer.uint32(34).string(message.age);
-    }
-    if (message.platform !== 0) {
-      writer.uint32(40).int32(message.platform);
     }
     return writer;
   },
@@ -4397,13 +4393,6 @@ export const Group = {
 
           message.age = reader.string();
           continue;
-        case 5:
-          if (tag !== 40) {
-            break;
-          }
-
-          message.platform = reader.int32() as any;
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4419,7 +4408,6 @@ export const Group = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
     };
   },
 
@@ -4437,9 +4425,6 @@ export const Group = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.platform !== 0) {
-      obj.platform = platformToJSON(message.platform);
-    }
     return obj;
   },
 
@@ -4452,7 +4437,6 @@ export const Group = {
     message.name = object.name ?? "";
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
     message.age = object.age ?? "";
-    message.platform = object.platform ?? 0;
     return message;
   },
 };
