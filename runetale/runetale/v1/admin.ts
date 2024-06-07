@@ -295,7 +295,7 @@ export interface AclResponse {
   proto: string;
   port: number;
   age: string;
-  aclType: AclType;
+  aclType: string;
 }
 
 export interface GetMeResponse {
@@ -1132,7 +1132,7 @@ export const GetAclsJsonResponse = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: "", port: 0, age: "", aclType: 0 };
+  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: "", port: 0, age: "", aclType: "" };
 }
 
 export const AclResponse = {
@@ -1161,8 +1161,8 @@ export const AclResponse = {
     if (message.age !== "") {
       writer.uint32(66).string(message.age);
     }
-    if (message.aclType !== 0) {
-      writer.uint32(72).int32(message.aclType);
+    if (message.aclType !== "") {
+      writer.uint32(74).string(message.aclType);
     }
     return writer;
   },
@@ -1231,11 +1231,11 @@ export const AclResponse = {
           message.age = reader.string();
           continue;
         case 9:
-          if (tag !== 72) {
+          if (tag !== 74) {
             break;
           }
 
-          message.aclType = reader.int32() as any;
+          message.aclType = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1256,7 +1256,7 @@ export const AclResponse = {
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      aclType: isSet(object.aclType) ? aclTypeFromJSON(object.aclType) : 0,
+      aclType: isSet(object.aclType) ? globalThis.String(object.aclType) : "",
     };
   },
 
@@ -1286,8 +1286,8 @@ export const AclResponse = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.aclType !== 0) {
-      obj.aclType = aclTypeToJSON(message.aclType);
+    if (message.aclType !== "") {
+      obj.aclType = message.aclType;
     }
     return obj;
   },
@@ -1305,7 +1305,7 @@ export const AclResponse = {
     message.proto = object.proto ?? "";
     message.port = object.port ?? 0;
     message.age = object.age ?? "";
-    message.aclType = object.aclType ?? 0;
+    message.aclType = object.aclType ?? "";
     return message;
   },
 };
