@@ -37,6 +37,15 @@ export interface LoginSessionResponse {
   signalServerPort: number;
 }
 
+export interface GetInvitationRequest {
+  inviteCode: string;
+}
+
+export interface GetInvitationResponse {
+  email: string;
+  inviteCode: string;
+}
+
 function createBaseLoginNodeResponse(): LoginNodeResponse {
   return { isRegistered: false, loginUrl: "", ip: "", cidr: "", signalHost: "", signalPort: 0 };
 }
@@ -305,9 +314,141 @@ export const LoginSessionResponse = {
   },
 };
 
+function createBaseGetInvitationRequest(): GetInvitationRequest {
+  return { inviteCode: "" };
+}
+
+export const GetInvitationRequest = {
+  encode(message: GetInvitationRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.inviteCode !== "") {
+      writer.uint32(10).string(message.inviteCode);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetInvitationRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetInvitationRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.inviteCode = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetInvitationRequest {
+    return { inviteCode: isSet(object.inviteCode) ? globalThis.String(object.inviteCode) : "" };
+  },
+
+  toJSON(message: GetInvitationRequest): unknown {
+    const obj: any = {};
+    if (message.inviteCode !== "") {
+      obj.inviteCode = message.inviteCode;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetInvitationRequest>, I>>(base?: I): GetInvitationRequest {
+    return GetInvitationRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetInvitationRequest>, I>>(object: I): GetInvitationRequest {
+    const message = createBaseGetInvitationRequest();
+    message.inviteCode = object.inviteCode ?? "";
+    return message;
+  },
+};
+
+function createBaseGetInvitationResponse(): GetInvitationResponse {
+  return { email: "", inviteCode: "" };
+}
+
+export const GetInvitationResponse = {
+  encode(message: GetInvitationResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.email !== "") {
+      writer.uint32(10).string(message.email);
+    }
+    if (message.inviteCode !== "") {
+      writer.uint32(18).string(message.inviteCode);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetInvitationResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetInvitationResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.inviteCode = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetInvitationResponse {
+    return {
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      inviteCode: isSet(object.inviteCode) ? globalThis.String(object.inviteCode) : "",
+    };
+  },
+
+  toJSON(message: GetInvitationResponse): unknown {
+    const obj: any = {};
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.inviteCode !== "") {
+      obj.inviteCode = message.inviteCode;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetInvitationResponse>, I>>(base?: I): GetInvitationResponse {
+    return GetInvitationResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetInvitationResponse>, I>>(object: I): GetInvitationResponse {
+    const message = createBaseGetInvitationResponse();
+    message.email = object.email ?? "";
+    message.inviteCode = object.inviteCode ?? "";
+    return message;
+  },
+};
+
 export interface LoginService {
   LoginNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginNodeResponse>;
   LoginSession(request: Observable<DeepPartial<Empty>>, metadata?: grpc.Metadata): Observable<LoginSessionResponse>;
+  GetInvitation(request: DeepPartial<GetInvitationRequest>, metadata?: grpc.Metadata): Promise<GetInvitationResponse>;
 }
 
 export class LoginServiceClientImpl implements LoginService {
@@ -317,6 +458,7 @@ export class LoginServiceClientImpl implements LoginService {
     this.rpc = rpc;
     this.LoginNode = this.LoginNode.bind(this);
     this.LoginSession = this.LoginSession.bind(this);
+    this.GetInvitation = this.GetInvitation.bind(this);
   }
 
   LoginNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginNodeResponse> {
@@ -325,6 +467,10 @@ export class LoginServiceClientImpl implements LoginService {
 
   LoginSession(request: Observable<DeepPartial<Empty>>, metadata?: grpc.Metadata): Observable<LoginSessionResponse> {
     throw new Error("ts-proto does not yet support client streaming!");
+  }
+
+  GetInvitation(request: DeepPartial<GetInvitationRequest>, metadata?: grpc.Metadata): Promise<GetInvitationResponse> {
+    return this.rpc.unary(LoginServiceGetInvitationDesc, GetInvitationRequest.fromPartial(request), metadata);
   }
 }
 
@@ -343,6 +489,29 @@ export const LoginServiceLoginNodeDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = LoginNodeResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const LoginServiceGetInvitationDesc: UnaryMethodDefinitionish = {
+  methodName: "GetInvitation",
+  service: LoginServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetInvitationRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetInvitationResponse.decode(data);
       return {
         ...value,
         toObject() {
