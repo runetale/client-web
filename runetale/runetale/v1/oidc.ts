@@ -48,6 +48,7 @@ export interface GetInvitationRequest {
 
 export interface GetInvitationResponse {
   email: string;
+  inviteCode: string;
 }
 
 function createBaseLoginResponse(): LoginResponse {
@@ -555,13 +556,16 @@ export const GetInvitationRequest = {
 };
 
 function createBaseGetInvitationResponse(): GetInvitationResponse {
-  return { email: "" };
+  return { email: "", inviteCode: "" };
 }
 
 export const GetInvitationResponse = {
   encode(message: GetInvitationResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.email !== "") {
       writer.uint32(10).string(message.email);
+    }
+    if (message.inviteCode !== "") {
+      writer.uint32(18).string(message.inviteCode);
     }
     return writer;
   },
@@ -580,6 +584,13 @@ export const GetInvitationResponse = {
 
           message.email = reader.string();
           continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.inviteCode = reader.string();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -590,13 +601,19 @@ export const GetInvitationResponse = {
   },
 
   fromJSON(object: any): GetInvitationResponse {
-    return { email: isSet(object.email) ? globalThis.String(object.email) : "" };
+    return {
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      inviteCode: isSet(object.inviteCode) ? globalThis.String(object.inviteCode) : "",
+    };
   },
 
   toJSON(message: GetInvitationResponse): unknown {
     const obj: any = {};
     if (message.email !== "") {
       obj.email = message.email;
+    }
+    if (message.inviteCode !== "") {
+      obj.inviteCode = message.inviteCode;
     }
     return obj;
   },
@@ -607,6 +624,7 @@ export const GetInvitationResponse = {
   fromPartial<I extends Exact<DeepPartial<GetInvitationResponse>, I>>(object: I): GetInvitationResponse {
     const message = createBaseGetInvitationResponse();
     message.email = object.email ?? "";
+    message.inviteCode = object.inviteCode ?? "";
     return message;
   },
 };
