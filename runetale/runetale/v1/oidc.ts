@@ -42,6 +42,14 @@ export interface AuthenticateResponse {
   isInvited: boolean;
 }
 
+export interface GetInvitationRequest {
+  inviteCode: string;
+}
+
+export interface GetInvitationResponse {
+  email: string;
+}
+
 function createBaseLoginResponse(): LoginResponse {
   return { sub: "", tenantID: "", doamin: "", providerID: "", email: "", username: "", picture: "" };
 }
@@ -489,9 +497,124 @@ export const AuthenticateResponse = {
   },
 };
 
+function createBaseGetInvitationRequest(): GetInvitationRequest {
+  return { inviteCode: "" };
+}
+
+export const GetInvitationRequest = {
+  encode(message: GetInvitationRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.inviteCode !== "") {
+      writer.uint32(10).string(message.inviteCode);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetInvitationRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetInvitationRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.inviteCode = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetInvitationRequest {
+    return { inviteCode: isSet(object.inviteCode) ? globalThis.String(object.inviteCode) : "" };
+  },
+
+  toJSON(message: GetInvitationRequest): unknown {
+    const obj: any = {};
+    if (message.inviteCode !== "") {
+      obj.inviteCode = message.inviteCode;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetInvitationRequest>, I>>(base?: I): GetInvitationRequest {
+    return GetInvitationRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetInvitationRequest>, I>>(object: I): GetInvitationRequest {
+    const message = createBaseGetInvitationRequest();
+    message.inviteCode = object.inviteCode ?? "";
+    return message;
+  },
+};
+
+function createBaseGetInvitationResponse(): GetInvitationResponse {
+  return { email: "" };
+}
+
+export const GetInvitationResponse = {
+  encode(message: GetInvitationResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.email !== "") {
+      writer.uint32(10).string(message.email);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetInvitationResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetInvitationResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetInvitationResponse {
+    return { email: isSet(object.email) ? globalThis.String(object.email) : "" };
+  },
+
+  toJSON(message: GetInvitationResponse): unknown {
+    const obj: any = {};
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetInvitationResponse>, I>>(base?: I): GetInvitationResponse {
+    return GetInvitationResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetInvitationResponse>, I>>(object: I): GetInvitationResponse {
+    const message = createBaseGetInvitationResponse();
+    message.email = object.email ?? "";
+    return message;
+  },
+};
+
 export interface OIDCService {
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse>;
   Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<AuthenticateResponse>;
+  GetInvitation(request: DeepPartial<GetInvitationRequest>, metadata?: grpc.Metadata): Promise<GetInvitationResponse>;
 }
 
 export class OIDCServiceClientImpl implements OIDCService {
@@ -501,6 +624,7 @@ export class OIDCServiceClientImpl implements OIDCService {
     this.rpc = rpc;
     this.Login = this.Login.bind(this);
     this.Authenticate = this.Authenticate.bind(this);
+    this.GetInvitation = this.GetInvitation.bind(this);
   }
 
   Login(request: DeepPartial<LoginRequest>, metadata?: grpc.Metadata): Promise<LoginResponse> {
@@ -509,6 +633,10 @@ export class OIDCServiceClientImpl implements OIDCService {
 
   Authenticate(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<AuthenticateResponse> {
     return this.rpc.unary(OIDCServiceAuthenticateDesc, Empty.fromPartial(request), metadata);
+  }
+
+  GetInvitation(request: DeepPartial<GetInvitationRequest>, metadata?: grpc.Metadata): Promise<GetInvitationResponse> {
+    return this.rpc.unary(OIDCServiceGetInvitationDesc, GetInvitationRequest.fromPartial(request), metadata);
   }
 }
 
@@ -550,6 +678,29 @@ export const OIDCServiceAuthenticateDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = AuthenticateResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const OIDCServiceGetInvitationDesc: UnaryMethodDefinitionish = {
+  methodName: "GetInvitation",
+  service: OIDCServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetInvitationRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetInvitationResponse.decode(data);
       return {
         ...value,
         toObject() {
