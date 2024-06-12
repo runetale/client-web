@@ -295,7 +295,7 @@ export interface AclResponse {
   proto: string;
   port: number;
   age: string;
-  aclType: string;
+  nodeType: string;
 }
 
 export interface GetMeResponse {
@@ -1136,7 +1136,7 @@ export const GetAclsJsonResponse = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: "", port: 0, age: "", aclType: "" };
+  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: "", port: 0, age: "", nodeType: "" };
 }
 
 export const AclResponse = {
@@ -1165,8 +1165,8 @@ export const AclResponse = {
     if (message.age !== "") {
       writer.uint32(66).string(message.age);
     }
-    if (message.aclType !== "") {
-      writer.uint32(74).string(message.aclType);
+    if (message.nodeType !== "") {
+      writer.uint32(74).string(message.nodeType);
     }
     return writer;
   },
@@ -1239,7 +1239,7 @@ export const AclResponse = {
             break;
           }
 
-          message.aclType = reader.string();
+          message.nodeType = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1260,7 +1260,7 @@ export const AclResponse = {
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
       port: isSet(object.port) ? globalThis.Number(object.port) : 0,
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      aclType: isSet(object.aclType) ? globalThis.String(object.aclType) : "",
+      nodeType: isSet(object.nodeType) ? globalThis.String(object.nodeType) : "",
     };
   },
 
@@ -1290,8 +1290,8 @@ export const AclResponse = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.aclType !== "") {
-      obj.aclType = message.aclType;
+    if (message.nodeType !== "") {
+      obj.nodeType = message.nodeType;
     }
     return obj;
   },
@@ -1309,7 +1309,7 @@ export const AclResponse = {
     message.proto = object.proto ?? "";
     message.port = object.port ?? 0;
     message.age = object.age ?? "";
-    message.aclType = object.aclType ?? "";
+    message.nodeType = object.nodeType ?? "";
     return message;
   },
 };
