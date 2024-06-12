@@ -474,6 +474,18 @@ export interface InviteUserResponse {
   inviteCode: string;
 }
 
+export interface CreateSubnetLinkerRequest {
+  name: string;
+  desc: string;
+  /** 192.168.0.0.0/24 */
+  advertiseRoute: string;
+}
+
+export interface CreateSubnetLinkerResponse {
+  installScripts: string;
+  composeKey: string;
+}
+
 export interface Policy {
   fleets: Fleet[];
   resources: Resource[];
@@ -3860,6 +3872,169 @@ export const InviteUserResponse = {
   },
 };
 
+function createBaseCreateSubnetLinkerRequest(): CreateSubnetLinkerRequest {
+  return { name: "", desc: "", advertiseRoute: "" };
+}
+
+export const CreateSubnetLinkerRequest = {
+  encode(message: CreateSubnetLinkerRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.desc !== "") {
+      writer.uint32(18).string(message.desc);
+    }
+    if (message.advertiseRoute !== "") {
+      writer.uint32(26).string(message.advertiseRoute);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateSubnetLinkerRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateSubnetLinkerRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.advertiseRoute = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateSubnetLinkerRequest {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      advertiseRoute: isSet(object.advertiseRoute) ? globalThis.String(object.advertiseRoute) : "",
+    };
+  },
+
+  toJSON(message: CreateSubnetLinkerRequest): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
+    }
+    if (message.advertiseRoute !== "") {
+      obj.advertiseRoute = message.advertiseRoute;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateSubnetLinkerRequest>, I>>(base?: I): CreateSubnetLinkerRequest {
+    return CreateSubnetLinkerRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateSubnetLinkerRequest>, I>>(object: I): CreateSubnetLinkerRequest {
+    const message = createBaseCreateSubnetLinkerRequest();
+    message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
+    message.advertiseRoute = object.advertiseRoute ?? "";
+    return message;
+  },
+};
+
+function createBaseCreateSubnetLinkerResponse(): CreateSubnetLinkerResponse {
+  return { installScripts: "", composeKey: "" };
+}
+
+export const CreateSubnetLinkerResponse = {
+  encode(message: CreateSubnetLinkerResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.installScripts !== "") {
+      writer.uint32(10).string(message.installScripts);
+    }
+    if (message.composeKey !== "") {
+      writer.uint32(18).string(message.composeKey);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): CreateSubnetLinkerResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseCreateSubnetLinkerResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.installScripts = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.composeKey = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): CreateSubnetLinkerResponse {
+    return {
+      installScripts: isSet(object.installScripts) ? globalThis.String(object.installScripts) : "",
+      composeKey: isSet(object.composeKey) ? globalThis.String(object.composeKey) : "",
+    };
+  },
+
+  toJSON(message: CreateSubnetLinkerResponse): unknown {
+    const obj: any = {};
+    if (message.installScripts !== "") {
+      obj.installScripts = message.installScripts;
+    }
+    if (message.composeKey !== "") {
+      obj.composeKey = message.composeKey;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<CreateSubnetLinkerResponse>, I>>(base?: I): CreateSubnetLinkerResponse {
+    return CreateSubnetLinkerResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<CreateSubnetLinkerResponse>, I>>(object: I): CreateSubnetLinkerResponse {
+    const message = createBaseCreateSubnetLinkerResponse();
+    message.installScripts = object.installScripts ?? "";
+    message.composeKey = object.composeKey ?? "";
+    return message;
+  },
+};
+
 function createBasePolicy(): Policy {
   return { fleets: [], resources: [], groups: [], users: [], inks: [], devices: [] };
 }
@@ -5056,7 +5231,10 @@ export interface AdminService {
   /** invite */
   CreateInviteUser(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteUserResponse>;
   /** linker */
-  CreateSubnetLinker(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty>;
+  CreateSubnetLinker(
+    request: DeepPartial<CreateSubnetLinkerRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<CreateSubnetLinkerResponse>;
   DeleteSubnetLinker(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
@@ -5224,8 +5402,11 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceCreateInviteUserDesc, Empty.fromPartial(request), metadata);
   }
 
-  CreateSubnetLinker(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(AdminServiceCreateSubnetLinkerDesc, Empty.fromPartial(request), metadata);
+  CreateSubnetLinker(
+    request: DeepPartial<CreateSubnetLinkerRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<CreateSubnetLinkerResponse> {
+    return this.rpc.unary(AdminServiceCreateSubnetLinkerDesc, CreateSubnetLinkerRequest.fromPartial(request), metadata);
   }
 
   DeleteSubnetLinker(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty> {
@@ -5909,12 +6090,12 @@ export const AdminServiceCreateSubnetLinkerDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return Empty.encode(this).finish();
+      return CreateSubnetLinkerRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
+      const value = CreateSubnetLinkerResponse.decode(data);
       return {
         ...value,
         toObject() {
