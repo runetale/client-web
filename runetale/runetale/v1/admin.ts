@@ -13,7 +13,7 @@ import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
-export enum AclType {
+export enum NodeType {
   /** FLEET - servers */
   FLEET = 0,
   /** RESOURCE - server */
@@ -29,48 +29,48 @@ export enum AclType {
   UNRECOGNIZED = -1,
 }
 
-export function aclTypeFromJSON(object: any): AclType {
+export function nodeTypeFromJSON(object: any): NodeType {
   switch (object) {
     case 0:
     case "FLEET":
-      return AclType.FLEET;
+      return NodeType.FLEET;
     case 1:
     case "RESOURCE":
-      return AclType.RESOURCE;
+      return NodeType.RESOURCE;
     case 2:
     case "GROUP":
-      return AclType.GROUP;
+      return NodeType.GROUP;
     case 3:
     case "USER":
-      return AclType.USER;
+      return NodeType.USER;
     case 4:
     case "INK":
-      return AclType.INK;
+      return NodeType.INK;
     case 5:
     case "DEVICE":
-      return AclType.DEVICE;
+      return NodeType.DEVICE;
     case -1:
     case "UNRECOGNIZED":
     default:
-      return AclType.UNRECOGNIZED;
+      return NodeType.UNRECOGNIZED;
   }
 }
 
-export function aclTypeToJSON(object: AclType): string {
+export function nodeTypeToJSON(object: NodeType): string {
   switch (object) {
-    case AclType.FLEET:
+    case NodeType.FLEET:
       return "FLEET";
-    case AclType.RESOURCE:
+    case NodeType.RESOURCE:
       return "RESOURCE";
-    case AclType.GROUP:
+    case NodeType.GROUP:
       return "GROUP";
-    case AclType.USER:
+    case NodeType.USER:
       return "USER";
-    case AclType.INK:
+    case NodeType.INK:
       return "INK";
-    case AclType.DEVICE:
+    case NodeType.DEVICE:
       return "DEVICE";
-    case AclType.UNRECOGNIZED:
+    case NodeType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
@@ -260,7 +260,7 @@ export interface AclResources {
   nodeIds: number[];
   /** for fleet or group or ink */
   policyId: string;
-  aclType: AclType;
+  nodeType: NodeType;
 }
 
 export interface PatchAclRequest {
@@ -700,7 +700,7 @@ export const CreateAclRequest = {
 };
 
 function createBaseAclResources(): AclResources {
-  return { nodeIds: [], policyId: "", aclType: 0 };
+  return { nodeIds: [], policyId: "", nodeType: 0 };
 }
 
 export const AclResources = {
@@ -713,8 +713,8 @@ export const AclResources = {
     if (message.policyId !== "") {
       writer.uint32(18).string(message.policyId);
     }
-    if (message.aclType !== 0) {
-      writer.uint32(24).int32(message.aclType);
+    if (message.nodeType !== 0) {
+      writer.uint32(24).int32(message.nodeType);
     }
     return writer;
   },
@@ -755,7 +755,7 @@ export const AclResources = {
             break;
           }
 
-          message.aclType = reader.int32() as any;
+          message.nodeType = reader.int32() as any;
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -770,7 +770,7 @@ export const AclResources = {
     return {
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
       policyId: isSet(object.policyId) ? globalThis.String(object.policyId) : "",
-      aclType: isSet(object.aclType) ? aclTypeFromJSON(object.aclType) : 0,
+      nodeType: isSet(object.nodeType) ? nodeTypeFromJSON(object.nodeType) : 0,
     };
   },
 
@@ -782,8 +782,8 @@ export const AclResources = {
     if (message.policyId !== "") {
       obj.policyId = message.policyId;
     }
-    if (message.aclType !== 0) {
-      obj.aclType = aclTypeToJSON(message.aclType);
+    if (message.nodeType !== 0) {
+      obj.nodeType = nodeTypeToJSON(message.nodeType);
     }
     return obj;
   },
@@ -795,7 +795,7 @@ export const AclResources = {
     const message = createBaseAclResources();
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
     message.policyId = object.policyId ?? "";
-    message.aclType = object.aclType ?? 0;
+    message.nodeType = object.nodeType ?? 0;
     return message;
   },
 };
@@ -5055,6 +5055,9 @@ export interface AdminService {
   GetOverview(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Overview>;
   /** invite */
   CreateInviteUser(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteUserResponse>;
+  /** linker */
+  CreateSubnetLinker(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty>;
+  DeleteSubnetLinker(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -5091,6 +5094,8 @@ export class AdminServiceClientImpl implements AdminService {
     this.PatchInk = this.PatchInk.bind(this);
     this.GetOverview = this.GetOverview.bind(this);
     this.CreateInviteUser = this.CreateInviteUser.bind(this);
+    this.CreateSubnetLinker = this.CreateSubnetLinker.bind(this);
+    this.DeleteSubnetLinker = this.DeleteSubnetLinker.bind(this);
   }
 
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse> {
@@ -5217,6 +5222,14 @@ export class AdminServiceClientImpl implements AdminService {
 
   CreateInviteUser(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteUserResponse> {
     return this.rpc.unary(AdminServiceCreateInviteUserDesc, Empty.fromPartial(request), metadata);
+  }
+
+  CreateSubnetLinker(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(AdminServiceCreateSubnetLinkerDesc, Empty.fromPartial(request), metadata);
+  }
+
+  DeleteSubnetLinker(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(AdminServiceDeleteSubnetLinkerDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -5879,6 +5892,52 @@ export const AdminServiceCreateInviteUserDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = InviteUserResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceCreateSubnetLinkerDesc: UnaryMethodDefinitionish = {
+  methodName: "CreateSubnetLinker",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceDeleteSubnetLinkerDesc: UnaryMethodDefinitionish = {
+  methodName: "DeleteSubnetLinker",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
       return {
         ...value,
         toObject() {
