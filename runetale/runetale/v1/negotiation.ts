@@ -63,8 +63,6 @@ export interface NegotiationRequest {
   type: NegotiationType;
   /** remote node key of the Peer you want to connect to */
   dstNodeKey: string;
-  /** wireGuard pub key of the Peer that sent the request (src) */
-  srcWgPubKey: string;
   uFlag: string;
   pwd: string;
   candidate: string;
@@ -98,6 +96,7 @@ export interface CandidateRequest {
 
 export interface JoinRequest {
   type: NegotiationType;
+  dstNodeKey: string;
   srcNodeKey: string;
   srcWgPubKey: string;
   ip: string;
@@ -105,7 +104,7 @@ export interface JoinRequest {
 }
 
 function createBaseNegotiationRequest(): NegotiationRequest {
-  return { type: 0, dstNodeKey: "", srcWgPubKey: "", uFlag: "", pwd: "", candidate: "" };
+  return { type: 0, dstNodeKey: "", uFlag: "", pwd: "", candidate: "" };
 }
 
 export const NegotiationRequest = {
@@ -116,17 +115,14 @@ export const NegotiationRequest = {
     if (message.dstNodeKey !== "") {
       writer.uint32(18).string(message.dstNodeKey);
     }
-    if (message.srcWgPubKey !== "") {
-      writer.uint32(26).string(message.srcWgPubKey);
-    }
     if (message.uFlag !== "") {
-      writer.uint32(34).string(message.uFlag);
+      writer.uint32(26).string(message.uFlag);
     }
     if (message.pwd !== "") {
-      writer.uint32(42).string(message.pwd);
+      writer.uint32(34).string(message.pwd);
     }
     if (message.candidate !== "") {
-      writer.uint32(50).string(message.candidate);
+      writer.uint32(42).string(message.candidate);
     }
     return writer;
   },
@@ -157,24 +153,17 @@ export const NegotiationRequest = {
             break;
           }
 
-          message.srcWgPubKey = reader.string();
+          message.uFlag = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.uFlag = reader.string();
+          message.pwd = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
-            break;
-          }
-
-          message.pwd = reader.string();
-          continue;
-        case 6:
-          if (tag !== 50) {
             break;
           }
 
@@ -193,7 +182,6 @@ export const NegotiationRequest = {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
       dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
-      srcWgPubKey: isSet(object.srcWgPubKey) ? globalThis.String(object.srcWgPubKey) : "",
       uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
       candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
@@ -207,9 +195,6 @@ export const NegotiationRequest = {
     }
     if (message.dstNodeKey !== "") {
       obj.dstNodeKey = message.dstNodeKey;
-    }
-    if (message.srcWgPubKey !== "") {
-      obj.srcWgPubKey = message.srcWgPubKey;
     }
     if (message.uFlag !== "") {
       obj.uFlag = message.uFlag;
@@ -230,7 +215,6 @@ export const NegotiationRequest = {
     const message = createBaseNegotiationRequest();
     message.type = object.type ?? 0;
     message.dstNodeKey = object.dstNodeKey ?? "";
-    message.srcWgPubKey = object.srcWgPubKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
     message.candidate = object.candidate ?? "";
@@ -551,7 +535,7 @@ export const CandidateRequest = {
 };
 
 function createBaseJoinRequest(): JoinRequest {
-  return { type: 0, srcNodeKey: "", srcWgPubKey: "", ip: "", cidr: "" };
+  return { type: 0, dstNodeKey: "", srcNodeKey: "", srcWgPubKey: "", ip: "", cidr: "" };
 }
 
 export const JoinRequest = {
@@ -559,17 +543,20 @@ export const JoinRequest = {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
+    if (message.dstNodeKey !== "") {
+      writer.uint32(18).string(message.dstNodeKey);
+    }
     if (message.srcNodeKey !== "") {
-      writer.uint32(18).string(message.srcNodeKey);
+      writer.uint32(26).string(message.srcNodeKey);
     }
     if (message.srcWgPubKey !== "") {
-      writer.uint32(26).string(message.srcWgPubKey);
+      writer.uint32(34).string(message.srcWgPubKey);
     }
     if (message.ip !== "") {
-      writer.uint32(34).string(message.ip);
+      writer.uint32(42).string(message.ip);
     }
     if (message.cidr !== "") {
-      writer.uint32(42).string(message.cidr);
+      writer.uint32(50).string(message.cidr);
     }
     return writer;
   },
@@ -593,24 +580,31 @@ export const JoinRequest = {
             break;
           }
 
-          message.srcNodeKey = reader.string();
+          message.dstNodeKey = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.srcWgPubKey = reader.string();
+          message.srcNodeKey = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.ip = reader.string();
+          message.srcWgPubKey = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
+            break;
+          }
+
+          message.ip = reader.string();
+          continue;
+        case 6:
+          if (tag !== 50) {
             break;
           }
 
@@ -628,6 +622,7 @@ export const JoinRequest = {
   fromJSON(object: any): JoinRequest {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
+      dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
       srcNodeKey: isSet(object.srcNodeKey) ? globalThis.String(object.srcNodeKey) : "",
       srcWgPubKey: isSet(object.srcWgPubKey) ? globalThis.String(object.srcWgPubKey) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
@@ -639,6 +634,9 @@ export const JoinRequest = {
     const obj: any = {};
     if (message.type !== 0) {
       obj.type = negotiationTypeToJSON(message.type);
+    }
+    if (message.dstNodeKey !== "") {
+      obj.dstNodeKey = message.dstNodeKey;
     }
     if (message.srcNodeKey !== "") {
       obj.srcNodeKey = message.srcNodeKey;
@@ -661,6 +659,7 @@ export const JoinRequest = {
   fromPartial<I extends Exact<DeepPartial<JoinRequest>, I>>(object: I): JoinRequest {
     const message = createBaseJoinRequest();
     message.type = object.type ?? 0;
+    message.dstNodeKey = object.dstNodeKey ?? "";
     message.srcNodeKey = object.srcNodeKey ?? "";
     message.srcWgPubKey = object.srcWgPubKey ?? "";
     message.ip = object.ip ?? "";
