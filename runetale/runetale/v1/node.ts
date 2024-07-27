@@ -35,11 +35,6 @@ export interface ComposeNodeResponse {
   cidr: string;
 }
 
-export interface PortRange {
-  first: number;
-  last: number;
-}
-
 export interface NetPortRange {
   /**
    * srcIpsと同じフォーマット
@@ -52,7 +47,12 @@ export interface NetPortRange {
    * - UDP or TCP portの番号を"0-65535"で指定する
    * - "80" などの単一のportの場合はlastにも同じポート番号が入る
    */
-  ports: PortRange | undefined;
+  ports: NetPortRange_portRange | undefined;
+}
+
+export interface NetPortRange_portRange {
+  first: number;
+  last: number;
 }
 
 export interface FilterRule {
@@ -388,12 +388,88 @@ export const ComposeNodeResponse = {
   },
 };
 
-function createBasePortRange(): PortRange {
+function createBaseNetPortRange(): NetPortRange {
+  return { ip: "", ports: undefined };
+}
+
+export const NetPortRange = {
+  encode(message: NetPortRange, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.ip !== "") {
+      writer.uint32(10).string(message.ip);
+    }
+    if (message.ports !== undefined) {
+      NetPortRange_portRange.encode(message.ports, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): NetPortRange {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetPortRange();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ip = reader.string();
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.ports = NetPortRange_portRange.decode(reader, reader.uint32());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetPortRange {
+    return {
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      ports: isSet(object.ports) ? NetPortRange_portRange.fromJSON(object.ports) : undefined,
+    };
+  },
+
+  toJSON(message: NetPortRange): unknown {
+    const obj: any = {};
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.ports !== undefined) {
+      obj.ports = NetPortRange_portRange.toJSON(message.ports);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetPortRange>, I>>(base?: I): NetPortRange {
+    return NetPortRange.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetPortRange>, I>>(object: I): NetPortRange {
+    const message = createBaseNetPortRange();
+    message.ip = object.ip ?? "";
+    message.ports = (object.ports !== undefined && object.ports !== null)
+      ? NetPortRange_portRange.fromPartial(object.ports)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseNetPortRange_portRange(): NetPortRange_portRange {
   return { first: 0, last: 0 };
 }
 
-export const PortRange = {
-  encode(message: PortRange, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const NetPortRange_portRange = {
+  encode(message: NetPortRange_portRange, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     if (message.first !== 0) {
       writer.uint32(8).uint64(message.first);
     }
@@ -403,10 +479,10 @@ export const PortRange = {
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): PortRange {
+  decode(input: _m0.Reader | Uint8Array, length?: number): NetPortRange_portRange {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePortRange();
+    const message = createBaseNetPortRange_portRange();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -433,14 +509,14 @@ export const PortRange = {
     return message;
   },
 
-  fromJSON(object: any): PortRange {
+  fromJSON(object: any): NetPortRange_portRange {
     return {
       first: isSet(object.first) ? globalThis.Number(object.first) : 0,
       last: isSet(object.last) ? globalThis.Number(object.last) : 0,
     };
   },
 
-  toJSON(message: PortRange): unknown {
+  toJSON(message: NetPortRange_portRange): unknown {
     const obj: any = {};
     if (message.first !== 0) {
       obj.first = Math.round(message.first);
@@ -451,89 +527,13 @@ export const PortRange = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<PortRange>, I>>(base?: I): PortRange {
-    return PortRange.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<NetPortRange_portRange>, I>>(base?: I): NetPortRange_portRange {
+    return NetPortRange_portRange.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<PortRange>, I>>(object: I): PortRange {
-    const message = createBasePortRange();
+  fromPartial<I extends Exact<DeepPartial<NetPortRange_portRange>, I>>(object: I): NetPortRange_portRange {
+    const message = createBaseNetPortRange_portRange();
     message.first = object.first ?? 0;
     message.last = object.last ?? 0;
-    return message;
-  },
-};
-
-function createBaseNetPortRange(): NetPortRange {
-  return { ip: "", ports: undefined };
-}
-
-export const NetPortRange = {
-  encode(message: NetPortRange, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.ip !== "") {
-      writer.uint32(10).string(message.ip);
-    }
-    if (message.ports !== undefined) {
-      PortRange.encode(message.ports, writer.uint32(18).fork()).ldelim();
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): NetPortRange {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseNetPortRange();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 10) {
-            break;
-          }
-
-          message.ip = reader.string();
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.ports = PortRange.decode(reader, reader.uint32());
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): NetPortRange {
-    return {
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      ports: isSet(object.ports) ? PortRange.fromJSON(object.ports) : undefined,
-    };
-  },
-
-  toJSON(message: NetPortRange): unknown {
-    const obj: any = {};
-    if (message.ip !== "") {
-      obj.ip = message.ip;
-    }
-    if (message.ports !== undefined) {
-      obj.ports = PortRange.toJSON(message.ports);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<NetPortRange>, I>>(base?: I): NetPortRange {
-    return NetPortRange.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<NetPortRange>, I>>(object: I): NetPortRange {
-    const message = createBaseNetPortRange();
-    message.ip = object.ip ?? "";
-    message.ports = (object.ports !== undefined && object.ports !== null)
-      ? PortRange.fromPartial(object.ports)
-      : undefined;
     return message;
   },
 };
