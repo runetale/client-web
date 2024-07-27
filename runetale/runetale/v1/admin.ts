@@ -256,7 +256,7 @@ export interface CreateAclRequest {
    * https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
    * 0の場合はTCP, UDP, ICMPv4,ICMPv6が有効になる
    */
-  proto: number;
+  proto: number[];
   ports: string;
   action: Action;
 }
@@ -449,7 +449,7 @@ export interface CreateFleetRequest {
   desc: string;
   nodeIds: number[];
   platform: Platform;
-  port: string;
+  ports: string;
 }
 
 export interface GetFleetRequest {
@@ -468,7 +468,7 @@ export interface PatchFleetRequest {
   nodeIds: number[];
   platform: Platform;
   action: Action;
-  port: string;
+  ports: string;
 }
 
 export interface Overview {
@@ -574,7 +574,7 @@ export interface Device {
 }
 
 function createBaseCreateAclRequest(): CreateAclRequest {
-  return { name: "", desc: "", src: [], dst: [], proto: 0, ports: "", action: 0 };
+  return { name: "", desc: "", src: [], dst: [], proto: [], ports: "", action: 0 };
 }
 
 export const CreateAclRequest = {
@@ -591,9 +591,11 @@ export const CreateAclRequest = {
     for (const v of message.dst) {
       AclResources.encode(v!, writer.uint32(34).fork()).ldelim();
     }
-    if (message.proto !== 0) {
-      writer.uint32(40).uint32(message.proto);
+    writer.uint32(42).fork();
+    for (const v of message.proto) {
+      writer.uint32(v);
     }
+    writer.ldelim();
     if (message.ports !== "") {
       writer.uint32(50).string(message.ports);
     }
@@ -639,12 +641,22 @@ export const CreateAclRequest = {
           message.dst.push(AclResources.decode(reader, reader.uint32()));
           continue;
         case 5:
-          if (tag !== 40) {
-            break;
+          if (tag === 40) {
+            message.proto.push(reader.uint32());
+
+            continue;
           }
 
-          message.proto = reader.uint32();
-          continue;
+          if (tag === 42) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.proto.push(reader.uint32());
+            }
+
+            continue;
+          }
+
+          break;
         case 6:
           if (tag !== 50) {
             break;
@@ -674,7 +686,7 @@ export const CreateAclRequest = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
-      proto: isSet(object.proto) ? globalThis.Number(object.proto) : 0,
+      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
@@ -694,8 +706,8 @@ export const CreateAclRequest = {
     if (message.dst?.length) {
       obj.dst = message.dst.map((e) => AclResources.toJSON(e));
     }
-    if (message.proto !== 0) {
-      obj.proto = Math.round(message.proto);
+    if (message.proto?.length) {
+      obj.proto = message.proto.map((e) => Math.round(e));
     }
     if (message.ports !== "") {
       obj.ports = message.ports;
@@ -715,7 +727,7 @@ export const CreateAclRequest = {
     message.desc = object.desc ?? "";
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
-    message.proto = object.proto ?? 0;
+    message.proto = object.proto?.map((e) => e) || [];
     message.ports = object.ports ?? "";
     message.action = object.action ?? 0;
     return message;
@@ -3329,7 +3341,7 @@ export const Resources = {
 };
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", nodeIds: [], platform: 0, port: "" };
+  return { name: "", desc: "", nodeIds: [], platform: 0, ports: "" };
 }
 
 export const CreateFleetRequest = {
@@ -3348,8 +3360,8 @@ export const CreateFleetRequest = {
     if (message.platform !== 0) {
       writer.uint32(32).int32(message.platform);
     }
-    if (message.port !== "") {
-      writer.uint32(50).string(message.port);
+    if (message.ports !== "") {
+      writer.uint32(50).string(message.ports);
     }
     return writer;
   },
@@ -3404,7 +3416,7 @@ export const CreateFleetRequest = {
             break;
           }
 
-          message.port = reader.string();
+          message.ports = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3421,7 +3433,7 @@ export const CreateFleetRequest = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
     };
   },
 
@@ -3439,8 +3451,8 @@ export const CreateFleetRequest = {
     if (message.platform !== 0) {
       obj.platform = platformToJSON(message.platform);
     }
-    if (message.port !== "") {
-      obj.port = message.port;
+    if (message.ports !== "") {
+      obj.ports = message.ports;
     }
     return obj;
   },
@@ -3454,7 +3466,7 @@ export const CreateFleetRequest = {
     message.desc = object.desc ?? "";
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
     message.platform = object.platform ?? 0;
-    message.port = object.port ?? "";
+    message.ports = object.ports ?? "";
     return message;
   },
 };
@@ -3574,7 +3586,7 @@ export const Fleets = {
 };
 
 function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { id: "", name: "", desc: "", nodeIds: [], platform: 0, action: 0, port: "" };
+  return { id: "", name: "", desc: "", nodeIds: [], platform: 0, action: 0, ports: "" };
 }
 
 export const PatchFleetRequest = {
@@ -3599,8 +3611,8 @@ export const PatchFleetRequest = {
     if (message.action !== 0) {
       writer.uint32(48).int32(message.action);
     }
-    if (message.port !== "") {
-      writer.uint32(58).string(message.port);
+    if (message.ports !== "") {
+      writer.uint32(58).string(message.ports);
     }
     return writer;
   },
@@ -3669,7 +3681,7 @@ export const PatchFleetRequest = {
             break;
           }
 
-          message.port = reader.string();
+          message.ports = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3688,7 +3700,7 @@ export const PatchFleetRequest = {
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
     };
   },
 
@@ -3712,8 +3724,8 @@ export const PatchFleetRequest = {
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
     }
-    if (message.port !== "") {
-      obj.port = message.port;
+    if (message.ports !== "") {
+      obj.ports = message.ports;
     }
     return obj;
   },
@@ -3729,7 +3741,7 @@ export const PatchFleetRequest = {
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
     message.platform = object.platform ?? 0;
     message.action = object.action ?? 0;
-    message.port = object.port ?? "";
+    message.ports = object.ports ?? "";
     return message;
   },
 };
