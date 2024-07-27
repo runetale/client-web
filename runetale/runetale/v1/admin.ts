@@ -244,11 +244,6 @@ export function platformToJSON(object: Platform): string {
   }
 }
 
-export interface PortRange {
-  first: number;
-  last: number;
-}
-
 export interface CreateAclRequest {
   name: string;
   desc: string;
@@ -262,7 +257,7 @@ export interface CreateAclRequest {
    * 0の場合はTCP, UDP, ICMPv4,ICMPv6が有効になる
    */
   proto: number;
-  ports: PortRange | undefined;
+  ports: string;
   action: Action;
 }
 
@@ -284,7 +279,7 @@ export interface PatchAclRequest {
    * 0の場合はTCP, UDP, ICMPv4,ICMPv6が有効になる
    */
   proto: number;
-  ports: PortRange | undefined;
+  ports: string;
   action: Action;
 }
 
@@ -517,7 +512,7 @@ export interface Fleet {
   desc: string;
   resources: Resource[];
   proto: string;
-  port: string;
+  ports: string;
   age: string;
   platform: Platform;
   createdBy: string;
@@ -529,7 +524,7 @@ export interface Resource {
   name: string;
   email: string;
   ip: string;
-  port: number;
+  ports: string;
   os: string;
   age: string;
   platform: Platform;
@@ -578,82 +573,8 @@ export interface Device {
   keyExpiry: string;
 }
 
-function createBasePortRange(): PortRange {
-  return { first: 0, last: 0 };
-}
-
-export const PortRange = {
-  encode(message: PortRange, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.first !== 0) {
-      writer.uint32(8).uint32(message.first);
-    }
-    if (message.last !== 0) {
-      writer.uint32(16).uint32(message.last);
-    }
-    return writer;
-  },
-
-  decode(input: _m0.Reader | Uint8Array, length?: number): PortRange {
-    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePortRange();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1:
-          if (tag !== 8) {
-            break;
-          }
-
-          message.first = reader.uint32();
-          continue;
-        case 2:
-          if (tag !== 16) {
-            break;
-          }
-
-          message.last = reader.uint32();
-          continue;
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skipType(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): PortRange {
-    return {
-      first: isSet(object.first) ? globalThis.Number(object.first) : 0,
-      last: isSet(object.last) ? globalThis.Number(object.last) : 0,
-    };
-  },
-
-  toJSON(message: PortRange): unknown {
-    const obj: any = {};
-    if (message.first !== 0) {
-      obj.first = Math.round(message.first);
-    }
-    if (message.last !== 0) {
-      obj.last = Math.round(message.last);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<PortRange>, I>>(base?: I): PortRange {
-    return PortRange.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<PortRange>, I>>(object: I): PortRange {
-    const message = createBasePortRange();
-    message.first = object.first ?? 0;
-    message.last = object.last ?? 0;
-    return message;
-  },
-};
-
 function createBaseCreateAclRequest(): CreateAclRequest {
-  return { name: "", desc: "", src: [], dst: [], proto: 0, ports: undefined, action: 0 };
+  return { name: "", desc: "", src: [], dst: [], proto: 0, ports: "", action: 0 };
 }
 
 export const CreateAclRequest = {
@@ -673,8 +594,8 @@ export const CreateAclRequest = {
     if (message.proto !== 0) {
       writer.uint32(40).uint32(message.proto);
     }
-    if (message.ports !== undefined) {
-      PortRange.encode(message.ports, writer.uint32(50).fork()).ldelim();
+    if (message.ports !== "") {
+      writer.uint32(50).string(message.ports);
     }
     if (message.action !== 0) {
       writer.uint32(56).int32(message.action);
@@ -729,7 +650,7 @@ export const CreateAclRequest = {
             break;
           }
 
-          message.ports = PortRange.decode(reader, reader.uint32());
+          message.ports = reader.string();
           continue;
         case 7:
           if (tag !== 56) {
@@ -754,7 +675,7 @@ export const CreateAclRequest = {
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       proto: isSet(object.proto) ? globalThis.Number(object.proto) : 0,
-      ports: isSet(object.ports) ? PortRange.fromJSON(object.ports) : undefined,
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
@@ -776,8 +697,8 @@ export const CreateAclRequest = {
     if (message.proto !== 0) {
       obj.proto = Math.round(message.proto);
     }
-    if (message.ports !== undefined) {
-      obj.ports = PortRange.toJSON(message.ports);
+    if (message.ports !== "") {
+      obj.ports = message.ports;
     }
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
@@ -795,9 +716,7 @@ export const CreateAclRequest = {
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.proto = object.proto ?? 0;
-    message.ports = (object.ports !== undefined && object.ports !== null)
-      ? PortRange.fromPartial(object.ports)
-      : undefined;
+    message.ports = object.ports ?? "";
     message.action = object.action ?? 0;
     return message;
   },
@@ -905,7 +824,7 @@ export const AclResources = {
 };
 
 function createBasePatchAclRequest(): PatchAclRequest {
-  return { id: "", name: "", desc: "", src: [], dst: [], proto: 0, ports: undefined, action: 0 };
+  return { id: "", name: "", desc: "", src: [], dst: [], proto: 0, ports: "", action: 0 };
 }
 
 export const PatchAclRequest = {
@@ -928,8 +847,8 @@ export const PatchAclRequest = {
     if (message.proto !== 0) {
       writer.uint32(48).uint32(message.proto);
     }
-    if (message.ports !== undefined) {
-      PortRange.encode(message.ports, writer.uint32(58).fork()).ldelim();
+    if (message.ports !== "") {
+      writer.uint32(58).string(message.ports);
     }
     if (message.action !== 0) {
       writer.uint32(64).int32(message.action);
@@ -991,7 +910,7 @@ export const PatchAclRequest = {
             break;
           }
 
-          message.ports = PortRange.decode(reader, reader.uint32());
+          message.ports = reader.string();
           continue;
         case 8:
           if (tag !== 64) {
@@ -1017,7 +936,7 @@ export const PatchAclRequest = {
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       proto: isSet(object.proto) ? globalThis.Number(object.proto) : 0,
-      ports: isSet(object.ports) ? PortRange.fromJSON(object.ports) : undefined,
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
@@ -1042,8 +961,8 @@ export const PatchAclRequest = {
     if (message.proto !== 0) {
       obj.proto = Math.round(message.proto);
     }
-    if (message.ports !== undefined) {
-      obj.ports = PortRange.toJSON(message.ports);
+    if (message.ports !== "") {
+      obj.ports = message.ports;
     }
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
@@ -1062,9 +981,7 @@ export const PatchAclRequest = {
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.proto = object.proto ?? 0;
-    message.ports = (object.ports !== undefined && object.ports !== null)
-      ? PortRange.fromPartial(object.ports)
-      : undefined;
+    message.ports = object.ports ?? "";
     message.action = object.action ?? 0;
     return message;
   },
@@ -4296,7 +4213,7 @@ export const Policy = {
 };
 
 function createBaseFleet(): Fleet {
-  return { id: "", name: "", desc: "", resources: [], proto: "", port: "", age: "", platform: 0, createdBy: "" };
+  return { id: "", name: "", desc: "", resources: [], proto: "", ports: "", age: "", platform: 0, createdBy: "" };
 }
 
 export const Fleet = {
@@ -4316,8 +4233,8 @@ export const Fleet = {
     if (message.proto !== "") {
       writer.uint32(42).string(message.proto);
     }
-    if (message.port !== "") {
-      writer.uint32(50).string(message.port);
+    if (message.ports !== "") {
+      writer.uint32(50).string(message.ports);
     }
     if (message.age !== "") {
       writer.uint32(58).string(message.age);
@@ -4378,7 +4295,7 @@ export const Fleet = {
             break;
           }
 
-          message.port = reader.string();
+          message.ports = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
@@ -4419,7 +4336,7 @@ export const Fleet = {
         ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
       proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
-      port: isSet(object.port) ? globalThis.String(object.port) : "",
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
@@ -4443,8 +4360,8 @@ export const Fleet = {
     if (message.proto !== "") {
       obj.proto = message.proto;
     }
-    if (message.port !== "") {
-      obj.port = message.port;
+    if (message.ports !== "") {
+      obj.ports = message.ports;
     }
     if (message.age !== "") {
       obj.age = message.age;
@@ -4468,7 +4385,7 @@ export const Fleet = {
     message.desc = object.desc ?? "";
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     message.proto = object.proto ?? "";
-    message.port = object.port ?? "";
+    message.ports = object.ports ?? "";
     message.age = object.age ?? "";
     message.platform = object.platform ?? 0;
     message.createdBy = object.createdBy ?? "";
@@ -4483,7 +4400,7 @@ function createBaseResource(): Resource {
     name: "",
     email: "",
     ip: "",
-    port: 0,
+    ports: "",
     os: "",
     age: "",
     platform: 0,
@@ -4509,8 +4426,8 @@ export const Resource = {
     if (message.ip !== "") {
       writer.uint32(42).string(message.ip);
     }
-    if (message.port !== 0) {
-      writer.uint32(48).uint64(message.port);
+    if (message.ports !== "") {
+      writer.uint32(50).string(message.ports);
     }
     if (message.os !== "") {
       writer.uint32(58).string(message.os);
@@ -4573,11 +4490,11 @@ export const Resource = {
           message.ip = reader.string();
           continue;
         case 6:
-          if (tag !== 48) {
+          if (tag !== 50) {
             break;
           }
 
-          message.port = longToNumber(reader.uint64() as Long);
+          message.ports = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
@@ -4630,7 +4547,7 @@ export const Resource = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
@@ -4656,8 +4573,8 @@ export const Resource = {
     if (message.ip !== "") {
       obj.ip = message.ip;
     }
-    if (message.port !== 0) {
-      obj.port = Math.round(message.port);
+    if (message.ports !== "") {
+      obj.ports = message.ports;
     }
     if (message.os !== "") {
       obj.os = message.os;
@@ -4687,7 +4604,7 @@ export const Resource = {
     message.name = object.name ?? "";
     message.email = object.email ?? "";
     message.ip = object.ip ?? "";
-    message.port = object.port ?? 0;
+    message.ports = object.ports ?? "";
     message.os = object.os ?? "";
     message.age = object.age ?? "";
     message.platform = object.platform ?? 0;
