@@ -511,7 +511,7 @@ export interface Fleet {
   name: string;
   desc: string;
   resources: Resource[];
-  proto: string;
+  proto: number[];
   ports: string;
   age: string;
   platform: Platform;
@@ -525,6 +525,7 @@ export interface Resource {
   email: string;
   ip: string;
   ports: string;
+  proto: number[];
   os: string;
   age: string;
   platform: Platform;
@@ -4237,7 +4238,7 @@ export const Policy = {
 };
 
 function createBaseFleet(): Fleet {
-  return { id: "", name: "", desc: "", resources: [], proto: "", ports: "", age: "", platform: 0, createdBy: "" };
+  return { id: "", name: "", desc: "", resources: [], proto: [], ports: "", age: "", platform: 0, createdBy: "" };
 }
 
 export const Fleet = {
@@ -4254,9 +4255,11 @@ export const Fleet = {
     for (const v of message.resources) {
       Resource.encode(v!, writer.uint32(34).fork()).ldelim();
     }
-    if (message.proto !== "") {
-      writer.uint32(42).string(message.proto);
+    writer.uint32(42).fork();
+    for (const v of message.proto) {
+      writer.uint32(v);
     }
+    writer.ldelim();
     if (message.ports !== "") {
       writer.uint32(50).string(message.ports);
     }
@@ -4308,12 +4311,22 @@ export const Fleet = {
           message.resources.push(Resource.decode(reader, reader.uint32()));
           continue;
         case 5:
-          if (tag !== 42) {
-            break;
+          if (tag === 40) {
+            message.proto.push(reader.uint32());
+
+            continue;
           }
 
-          message.proto = reader.string();
-          continue;
+          if (tag === 42) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.proto.push(reader.uint32());
+            }
+
+            continue;
+          }
+
+          break;
         case 6:
           if (tag !== 50) {
             break;
@@ -4359,7 +4372,7 @@ export const Fleet = {
       resources: globalThis.Array.isArray(object?.resources)
         ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
-      proto: isSet(object.proto) ? globalThis.String(object.proto) : "",
+      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
@@ -4381,8 +4394,8 @@ export const Fleet = {
     if (message.resources?.length) {
       obj.resources = message.resources.map((e) => Resource.toJSON(e));
     }
-    if (message.proto !== "") {
-      obj.proto = message.proto;
+    if (message.proto?.length) {
+      obj.proto = message.proto.map((e) => Math.round(e));
     }
     if (message.ports !== "") {
       obj.ports = message.ports;
@@ -4408,7 +4421,7 @@ export const Fleet = {
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
-    message.proto = object.proto ?? "";
+    message.proto = object.proto?.map((e) => e) || [];
     message.ports = object.ports ?? "";
     message.age = object.age ?? "";
     message.platform = object.platform ?? 0;
@@ -4425,6 +4438,7 @@ function createBaseResource(): Resource {
     email: "",
     ip: "",
     ports: "",
+    proto: [],
     os: "",
     age: "",
     platform: 0,
@@ -4453,20 +4467,25 @@ export const Resource = {
     if (message.ports !== "") {
       writer.uint32(50).string(message.ports);
     }
+    writer.uint32(58).fork();
+    for (const v of message.proto) {
+      writer.uint32(v);
+    }
+    writer.ldelim();
     if (message.os !== "") {
-      writer.uint32(58).string(message.os);
+      writer.uint32(66).string(message.os);
     }
     if (message.age !== "") {
-      writer.uint32(66).string(message.age);
+      writer.uint32(74).string(message.age);
     }
     if (message.platform !== 0) {
-      writer.uint32(72).int32(message.platform);
+      writer.uint32(80).int32(message.platform);
     }
     if (message.status !== false) {
-      writer.uint32(80).bool(message.status);
+      writer.uint32(88).bool(message.status);
     }
     if (message.createdBy !== "") {
-      writer.uint32(90).string(message.createdBy);
+      writer.uint32(98).string(message.createdBy);
     }
     return writer;
   },
@@ -4521,35 +4540,52 @@ export const Resource = {
           message.ports = reader.string();
           continue;
         case 7:
-          if (tag !== 58) {
-            break;
+          if (tag === 56) {
+            message.proto.push(reader.uint32());
+
+            continue;
           }
 
-          message.os = reader.string();
-          continue;
+          if (tag === 58) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.proto.push(reader.uint32());
+            }
+
+            continue;
+          }
+
+          break;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.age = reader.string();
+          message.os = reader.string();
           continue;
         case 9:
-          if (tag !== 72) {
+          if (tag !== 74) {
             break;
           }
 
-          message.platform = reader.int32() as any;
+          message.age = reader.string();
           continue;
         case 10:
           if (tag !== 80) {
             break;
           }
 
-          message.status = reader.bool();
+          message.platform = reader.int32() as any;
           continue;
         case 11:
-          if (tag !== 90) {
+          if (tag !== 88) {
+            break;
+          }
+
+          message.status = reader.bool();
+          continue;
+        case 12:
+          if (tag !== 98) {
             break;
           }
 
@@ -4572,6 +4608,7 @@ export const Resource = {
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
+      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
@@ -4599,6 +4636,9 @@ export const Resource = {
     }
     if (message.ports !== "") {
       obj.ports = message.ports;
+    }
+    if (message.proto?.length) {
+      obj.proto = message.proto.map((e) => Math.round(e));
     }
     if (message.os !== "") {
       obj.os = message.os;
@@ -4629,6 +4669,7 @@ export const Resource = {
     message.email = object.email ?? "";
     message.ip = object.ip ?? "";
     message.ports = object.ports ?? "";
+    message.proto = object.proto?.map((e) => e) || [];
     message.os = object.os ?? "";
     message.age = object.age ?? "";
     message.platform = object.platform ?? 0;
