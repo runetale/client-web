@@ -302,7 +302,8 @@ export interface AclResponse {
   src: Policy | undefined;
   dst: Policy | undefined;
   proto: number[];
-  ports: string;
+  srcPorts: string;
+  dstPorts: string;
   age: string;
   nodeType: string;
 }
@@ -1172,7 +1173,18 @@ export const GetAclsJsonResponse = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: [], ports: "", age: "", nodeType: "" };
+  return {
+    id: "",
+    name: "",
+    desc: "",
+    src: undefined,
+    dst: undefined,
+    proto: [],
+    srcPorts: "",
+    dstPorts: "",
+    age: "",
+    nodeType: "",
+  };
 }
 
 export const AclResponse = {
@@ -1197,14 +1209,17 @@ export const AclResponse = {
       writer.uint32(v);
     }
     writer.ldelim();
-    if (message.ports !== "") {
-      writer.uint32(58).string(message.ports);
+    if (message.srcPorts !== "") {
+      writer.uint32(58).string(message.srcPorts);
+    }
+    if (message.dstPorts !== "") {
+      writer.uint32(66).string(message.dstPorts);
     }
     if (message.age !== "") {
-      writer.uint32(66).string(message.age);
+      writer.uint32(74).string(message.age);
     }
     if (message.nodeType !== "") {
-      writer.uint32(74).string(message.nodeType);
+      writer.uint32(82).string(message.nodeType);
     }
     return writer;
   },
@@ -1273,17 +1288,24 @@ export const AclResponse = {
             break;
           }
 
-          message.ports = reader.string();
+          message.srcPorts = reader.string();
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.age = reader.string();
+          message.dstPorts = reader.string();
           continue;
         case 9:
           if (tag !== 74) {
+            break;
+          }
+
+          message.age = reader.string();
+          continue;
+        case 10:
+          if (tag !== 82) {
             break;
           }
 
@@ -1306,7 +1328,8 @@ export const AclResponse = {
       src: isSet(object.src) ? Policy.fromJSON(object.src) : undefined,
       dst: isSet(object.dst) ? Policy.fromJSON(object.dst) : undefined,
       proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
-      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
+      srcPorts: isSet(object.srcPorts) ? globalThis.String(object.srcPorts) : "",
+      dstPorts: isSet(object.dstPorts) ? globalThis.String(object.dstPorts) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       nodeType: isSet(object.nodeType) ? globalThis.String(object.nodeType) : "",
     };
@@ -1332,8 +1355,11 @@ export const AclResponse = {
     if (message.proto?.length) {
       obj.proto = message.proto.map((e) => Math.round(e));
     }
-    if (message.ports !== "") {
-      obj.ports = message.ports;
+    if (message.srcPorts !== "") {
+      obj.srcPorts = message.srcPorts;
+    }
+    if (message.dstPorts !== "") {
+      obj.dstPorts = message.dstPorts;
     }
     if (message.age !== "") {
       obj.age = message.age;
@@ -1355,7 +1381,8 @@ export const AclResponse = {
     message.src = (object.src !== undefined && object.src !== null) ? Policy.fromPartial(object.src) : undefined;
     message.dst = (object.dst !== undefined && object.dst !== null) ? Policy.fromPartial(object.dst) : undefined;
     message.proto = object.proto?.map((e) => e) || [];
-    message.ports = object.ports ?? "";
+    message.srcPorts = object.srcPorts ?? "";
+    message.dstPorts = object.dstPorts ?? "";
     message.age = object.age ?? "";
     message.nodeType = object.nodeType ?? "";
     return message;
