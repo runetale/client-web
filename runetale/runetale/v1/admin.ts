@@ -257,7 +257,8 @@ export interface CreateAclRequest {
    * 0の場合はTCP, UDP, ICMPv4,ICMPv6が有効になる
    */
   proto: number[];
-  ports: string;
+  srcPorts: string;
+  dstPorts: string;
   action: Action;
 }
 
@@ -279,7 +280,8 @@ export interface PatchAclRequest {
    * 0の場合はTCP, UDP, ICMPv4,ICMPv6が有効になる
    */
   proto: number;
-  ports: string;
+  srcPorts: string;
+  dstPorts: string;
   action: Action;
 }
 
@@ -576,7 +578,7 @@ export interface Device {
 }
 
 function createBaseCreateAclRequest(): CreateAclRequest {
-  return { name: "", desc: "", src: [], dst: [], proto: [], ports: "", action: 0 };
+  return { name: "", desc: "", src: [], dst: [], proto: [], srcPorts: "", dstPorts: "", action: 0 };
 }
 
 export const CreateAclRequest = {
@@ -598,11 +600,14 @@ export const CreateAclRequest = {
       writer.uint32(v);
     }
     writer.ldelim();
-    if (message.ports !== "") {
-      writer.uint32(50).string(message.ports);
+    if (message.srcPorts !== "") {
+      writer.uint32(50).string(message.srcPorts);
+    }
+    if (message.dstPorts !== "") {
+      writer.uint32(58).string(message.dstPorts);
     }
     if (message.action !== 0) {
-      writer.uint32(56).int32(message.action);
+      writer.uint32(64).int32(message.action);
     }
     return writer;
   },
@@ -664,10 +669,17 @@ export const CreateAclRequest = {
             break;
           }
 
-          message.ports = reader.string();
+          message.srcPorts = reader.string();
           continue;
         case 7:
-          if (tag !== 56) {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.dstPorts = reader.string();
+          continue;
+        case 8:
+          if (tag !== 64) {
             break;
           }
 
@@ -689,7 +701,8 @@ export const CreateAclRequest = {
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
-      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
+      srcPorts: isSet(object.srcPorts) ? globalThis.String(object.srcPorts) : "",
+      dstPorts: isSet(object.dstPorts) ? globalThis.String(object.dstPorts) : "",
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
@@ -711,8 +724,11 @@ export const CreateAclRequest = {
     if (message.proto?.length) {
       obj.proto = message.proto.map((e) => Math.round(e));
     }
-    if (message.ports !== "") {
-      obj.ports = message.ports;
+    if (message.srcPorts !== "") {
+      obj.srcPorts = message.srcPorts;
+    }
+    if (message.dstPorts !== "") {
+      obj.dstPorts = message.dstPorts;
     }
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
@@ -730,7 +746,8 @@ export const CreateAclRequest = {
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.proto = object.proto?.map((e) => e) || [];
-    message.ports = object.ports ?? "";
+    message.srcPorts = object.srcPorts ?? "";
+    message.dstPorts = object.dstPorts ?? "";
     message.action = object.action ?? 0;
     return message;
   },
@@ -838,7 +855,7 @@ export const AclResources = {
 };
 
 function createBasePatchAclRequest(): PatchAclRequest {
-  return { id: "", name: "", desc: "", src: [], dst: [], proto: 0, ports: "", action: 0 };
+  return { id: "", name: "", desc: "", src: [], dst: [], proto: 0, srcPorts: "", dstPorts: "", action: 0 };
 }
 
 export const PatchAclRequest = {
@@ -861,11 +878,14 @@ export const PatchAclRequest = {
     if (message.proto !== 0) {
       writer.uint32(48).uint32(message.proto);
     }
-    if (message.ports !== "") {
-      writer.uint32(58).string(message.ports);
+    if (message.srcPorts !== "") {
+      writer.uint32(58).string(message.srcPorts);
+    }
+    if (message.dstPorts !== "") {
+      writer.uint32(66).string(message.dstPorts);
     }
     if (message.action !== 0) {
-      writer.uint32(64).int32(message.action);
+      writer.uint32(72).int32(message.action);
     }
     return writer;
   },
@@ -924,10 +944,17 @@ export const PatchAclRequest = {
             break;
           }
 
-          message.ports = reader.string();
+          message.srcPorts = reader.string();
           continue;
         case 8:
-          if (tag !== 64) {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.dstPorts = reader.string();
+          continue;
+        case 9:
+          if (tag !== 72) {
             break;
           }
 
@@ -950,7 +977,8 @@ export const PatchAclRequest = {
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       proto: isSet(object.proto) ? globalThis.Number(object.proto) : 0,
-      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
+      srcPorts: isSet(object.srcPorts) ? globalThis.String(object.srcPorts) : "",
+      dstPorts: isSet(object.dstPorts) ? globalThis.String(object.dstPorts) : "",
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
@@ -975,8 +1003,11 @@ export const PatchAclRequest = {
     if (message.proto !== 0) {
       obj.proto = Math.round(message.proto);
     }
-    if (message.ports !== "") {
-      obj.ports = message.ports;
+    if (message.srcPorts !== "") {
+      obj.srcPorts = message.srcPorts;
+    }
+    if (message.dstPorts !== "") {
+      obj.dstPorts = message.dstPorts;
     }
     if (message.action !== 0) {
       obj.action = actionToJSON(message.action);
@@ -995,7 +1026,8 @@ export const PatchAclRequest = {
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.proto = object.proto ?? 0;
-    message.ports = object.ports ?? "";
+    message.srcPorts = object.srcPorts ?? "";
+    message.dstPorts = object.dstPorts ?? "";
     message.action = object.action ?? 0;
     return message;
   },
