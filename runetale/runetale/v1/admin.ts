@@ -279,7 +279,7 @@ export interface PatchAclRequest {
    * ianaのプロトコル番号を使用する
    * 0の場合はTCP, UDP, ICMPv4,ICMPv6が有効になる
    */
-  proto: number;
+  proto: number[];
   srcPorts: string;
   dstPorts: string;
   action: Action;
@@ -855,7 +855,7 @@ export const AclResources = {
 };
 
 function createBasePatchAclRequest(): PatchAclRequest {
-  return { id: "", name: "", desc: "", src: [], dst: [], proto: 0, srcPorts: "", dstPorts: "", action: 0 };
+  return { id: "", name: "", desc: "", src: [], dst: [], proto: [], srcPorts: "", dstPorts: "", action: 0 };
 }
 
 export const PatchAclRequest = {
@@ -875,9 +875,11 @@ export const PatchAclRequest = {
     for (const v of message.dst) {
       AclResources.encode(v!, writer.uint32(42).fork()).ldelim();
     }
-    if (message.proto !== 0) {
-      writer.uint32(48).uint32(message.proto);
+    writer.uint32(50).fork();
+    for (const v of message.proto) {
+      writer.uint32(v);
     }
+    writer.ldelim();
     if (message.srcPorts !== "") {
       writer.uint32(58).string(message.srcPorts);
     }
@@ -933,12 +935,22 @@ export const PatchAclRequest = {
           message.dst.push(AclResources.decode(reader, reader.uint32()));
           continue;
         case 6:
-          if (tag !== 48) {
-            break;
+          if (tag === 48) {
+            message.proto.push(reader.uint32());
+
+            continue;
           }
 
-          message.proto = reader.uint32();
-          continue;
+          if (tag === 50) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.proto.push(reader.uint32());
+            }
+
+            continue;
+          }
+
+          break;
         case 7:
           if (tag !== 58) {
             break;
@@ -976,7 +988,7 @@ export const PatchAclRequest = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
-      proto: isSet(object.proto) ? globalThis.Number(object.proto) : 0,
+      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
       srcPorts: isSet(object.srcPorts) ? globalThis.String(object.srcPorts) : "",
       dstPorts: isSet(object.dstPorts) ? globalThis.String(object.dstPorts) : "",
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
@@ -1000,8 +1012,8 @@ export const PatchAclRequest = {
     if (message.dst?.length) {
       obj.dst = message.dst.map((e) => AclResources.toJSON(e));
     }
-    if (message.proto !== 0) {
-      obj.proto = Math.round(message.proto);
+    if (message.proto?.length) {
+      obj.proto = message.proto.map((e) => Math.round(e));
     }
     if (message.srcPorts !== "") {
       obj.srcPorts = message.srcPorts;
@@ -1025,7 +1037,7 @@ export const PatchAclRequest = {
     message.desc = object.desc ?? "";
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
-    message.proto = object.proto ?? 0;
+    message.proto = object.proto?.map((e) => e) || [];
     message.srcPorts = object.srcPorts ?? "";
     message.dstPorts = object.dstPorts ?? "";
     message.action = object.action ?? 0;
