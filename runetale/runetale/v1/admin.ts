@@ -76,6 +76,45 @@ export function nodeTypeToJSON(object: NodeType): string {
   }
 }
 
+export enum LinkerType {
+  SUBNET = 0,
+  UNIVERSAL = 1,
+  APP = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function linkerTypeFromJSON(object: any): LinkerType {
+  switch (object) {
+    case 0:
+    case "SUBNET":
+      return LinkerType.SUBNET;
+    case 1:
+    case "UNIVERSAL":
+      return LinkerType.UNIVERSAL;
+    case 2:
+    case "APP":
+      return LinkerType.APP;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return LinkerType.UNRECOGNIZED;
+  }
+}
+
+export function linkerTypeToJSON(object: LinkerType): string {
+  switch (object) {
+    case LinkerType.SUBNET:
+      return "SUBNET";
+    case LinkerType.UNIVERSAL:
+      return "UNIVERSAL";
+    case LinkerType.APP:
+      return "APP";
+    case LinkerType.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export enum ExpirelyTime {
   /** ONEMONTH - 30days */
   ONEMONTH = 0,
@@ -487,15 +526,54 @@ export interface InviteUserResponse {
 }
 
 export interface CreateSubnetLinkerRequest {
+  nodeIds: number;
   name: string;
   desc: string;
-  /** 192.168.0.0.0/24 */
-  advertiseRoute: string;
+  /** 192.168.0.0/24, 192.154.0.0/24 */
+  advertiseRoute: string[];
+}
+
+export interface GetLinkersReponse {
+  linker: Linker[];
+}
+
+export interface Linker {
+  nodeType: NodeType;
+  linkerType: LinkerType;
+  id: number;
+  nodeId: number;
+  name: string;
+  email: string;
+  ip: string;
+  /** こちらはResourceのみに存在する */
+  ports: string;
+  /** こちらはResourceのみに存在する */
+  proto: number[];
+  os: string;
+  /** こちらはResourceのみに存在する */
+  age: string;
+  /** こちらはResourceのみに存在する */
+  platform: Platform;
+  status: boolean;
+  createdBy: string;
+  /** こちらはDeviceのみに存在する */
+  lastSeen: string;
+  /** こちらはDeviceのみに存在する */
+  version: string;
+  /** こちらはDeviceのみに存在する */
+  nodeKey: string;
+  /** こちらはDeviceのみに存在する */
+  createdAt: string;
+  /** こちらはDeviceのみに存在する */
+  keyExpiry: string;
 }
 
 export interface CreateSubnetLinkerResponse {
-  installScripts: string;
-  composeKey: string;
+  nodeIds: number;
+  name: string;
+  desc: string;
+  /** 192.168.0.0/24, 192.154.0.0/24 */
+  advertiseRoute: string[];
 }
 
 export interface Policy {
@@ -560,6 +638,7 @@ export interface User {
 }
 
 export interface Device {
+  id: number;
   nodeId: number;
   name: string;
   email: string;
@@ -3978,19 +4057,22 @@ export const InviteUserResponse = {
 };
 
 function createBaseCreateSubnetLinkerRequest(): CreateSubnetLinkerRequest {
-  return { name: "", desc: "", advertiseRoute: "" };
+  return { nodeIds: 0, name: "", desc: "", advertiseRoute: [] };
 }
 
 export const CreateSubnetLinkerRequest = {
   encode(message: CreateSubnetLinkerRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.nodeIds !== 0) {
+      writer.uint32(8).uint64(message.nodeIds);
+    }
     if (message.name !== "") {
-      writer.uint32(10).string(message.name);
+      writer.uint32(18).string(message.name);
     }
     if (message.desc !== "") {
-      writer.uint32(18).string(message.desc);
+      writer.uint32(26).string(message.desc);
     }
-    if (message.advertiseRoute !== "") {
-      writer.uint32(26).string(message.advertiseRoute);
+    for (const v of message.advertiseRoute) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -4003,25 +4085,32 @@ export const CreateSubnetLinkerRequest = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.name = reader.string();
+          message.nodeIds = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.desc = reader.string();
+          message.name = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.advertiseRoute = reader.string();
+          message.desc = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.advertiseRoute.push(reader.string());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4034,21 +4123,27 @@ export const CreateSubnetLinkerRequest = {
 
   fromJSON(object: any): CreateSubnetLinkerRequest {
     return {
+      nodeIds: isSet(object.nodeIds) ? globalThis.Number(object.nodeIds) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      advertiseRoute: isSet(object.advertiseRoute) ? globalThis.String(object.advertiseRoute) : "",
+      advertiseRoute: globalThis.Array.isArray(object?.advertiseRoute)
+        ? object.advertiseRoute.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
   toJSON(message: CreateSubnetLinkerRequest): unknown {
     const obj: any = {};
+    if (message.nodeIds !== 0) {
+      obj.nodeIds = Math.round(message.nodeIds);
+    }
     if (message.name !== "") {
       obj.name = message.name;
     }
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.advertiseRoute !== "") {
+    if (message.advertiseRoute?.length) {
       obj.advertiseRoute = message.advertiseRoute;
     }
     return obj;
@@ -4059,24 +4154,451 @@ export const CreateSubnetLinkerRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<CreateSubnetLinkerRequest>, I>>(object: I): CreateSubnetLinkerRequest {
     const message = createBaseCreateSubnetLinkerRequest();
+    message.nodeIds = object.nodeIds ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.advertiseRoute = object.advertiseRoute ?? "";
+    message.advertiseRoute = object.advertiseRoute?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseGetLinkersReponse(): GetLinkersReponse {
+  return { linker: [] };
+}
+
+export const GetLinkersReponse = {
+  encode(message: GetLinkersReponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    for (const v of message.linker) {
+      Linker.encode(v!, writer.uint32(18).fork()).ldelim();
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetLinkersReponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetLinkersReponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.linker.push(Linker.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetLinkersReponse {
+    return {
+      linker: globalThis.Array.isArray(object?.linker) ? object.linker.map((e: any) => Linker.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: GetLinkersReponse): unknown {
+    const obj: any = {};
+    if (message.linker?.length) {
+      obj.linker = message.linker.map((e) => Linker.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetLinkersReponse>, I>>(base?: I): GetLinkersReponse {
+    return GetLinkersReponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetLinkersReponse>, I>>(object: I): GetLinkersReponse {
+    const message = createBaseGetLinkersReponse();
+    message.linker = object.linker?.map((e) => Linker.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseLinker(): Linker {
+  return {
+    nodeType: 0,
+    linkerType: 0,
+    id: 0,
+    nodeId: 0,
+    name: "",
+    email: "",
+    ip: "",
+    ports: "",
+    proto: [],
+    os: "",
+    age: "",
+    platform: 0,
+    status: false,
+    createdBy: "",
+    lastSeen: "",
+    version: "",
+    nodeKey: "",
+    createdAt: "",
+    keyExpiry: "",
+  };
+}
+
+export const Linker = {
+  encode(message: Linker, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.nodeType !== 0) {
+      writer.uint32(8).int32(message.nodeType);
+    }
+    if (message.linkerType !== 0) {
+      writer.uint32(16).int32(message.linkerType);
+    }
+    if (message.id !== 0) {
+      writer.uint32(24).uint64(message.id);
+    }
+    if (message.nodeId !== 0) {
+      writer.uint32(32).uint64(message.nodeId);
+    }
+    if (message.name !== "") {
+      writer.uint32(42).string(message.name);
+    }
+    if (message.email !== "") {
+      writer.uint32(50).string(message.email);
+    }
+    if (message.ip !== "") {
+      writer.uint32(58).string(message.ip);
+    }
+    if (message.ports !== "") {
+      writer.uint32(66).string(message.ports);
+    }
+    writer.uint32(74).fork();
+    for (const v of message.proto) {
+      writer.uint32(v);
+    }
+    writer.ldelim();
+    if (message.os !== "") {
+      writer.uint32(82).string(message.os);
+    }
+    if (message.age !== "") {
+      writer.uint32(90).string(message.age);
+    }
+    if (message.platform !== 0) {
+      writer.uint32(96).int32(message.platform);
+    }
+    if (message.status !== false) {
+      writer.uint32(104).bool(message.status);
+    }
+    if (message.createdBy !== "") {
+      writer.uint32(114).string(message.createdBy);
+    }
+    if (message.lastSeen !== "") {
+      writer.uint32(122).string(message.lastSeen);
+    }
+    if (message.version !== "") {
+      writer.uint32(130).string(message.version);
+    }
+    if (message.nodeKey !== "") {
+      writer.uint32(138).string(message.nodeKey);
+    }
+    if (message.createdAt !== "") {
+      writer.uint32(146).string(message.createdAt);
+    }
+    if (message.keyExpiry !== "") {
+      writer.uint32(154).string(message.keyExpiry);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): Linker {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLinker();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.nodeType = reader.int32() as any;
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.linkerType = reader.int32() as any;
+          continue;
+        case 3:
+          if (tag !== 24) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64() as Long);
+          continue;
+        case 4:
+          if (tag !== 32) {
+            break;
+          }
+
+          message.nodeId = longToNumber(reader.uint64() as Long);
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 6:
+          if (tag !== 50) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.ip = reader.string();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.ports = reader.string();
+          continue;
+        case 9:
+          if (tag === 72) {
+            message.proto.push(reader.uint32());
+
+            continue;
+          }
+
+          if (tag === 74) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.proto.push(reader.uint32());
+            }
+
+            continue;
+          }
+
+          break;
+        case 10:
+          if (tag !== 82) {
+            break;
+          }
+
+          message.os = reader.string();
+          continue;
+        case 11:
+          if (tag !== 90) {
+            break;
+          }
+
+          message.age = reader.string();
+          continue;
+        case 12:
+          if (tag !== 96) {
+            break;
+          }
+
+          message.platform = reader.int32() as any;
+          continue;
+        case 13:
+          if (tag !== 104) {
+            break;
+          }
+
+          message.status = reader.bool();
+          continue;
+        case 14:
+          if (tag !== 114) {
+            break;
+          }
+
+          message.createdBy = reader.string();
+          continue;
+        case 15:
+          if (tag !== 122) {
+            break;
+          }
+
+          message.lastSeen = reader.string();
+          continue;
+        case 16:
+          if (tag !== 130) {
+            break;
+          }
+
+          message.version = reader.string();
+          continue;
+        case 17:
+          if (tag !== 138) {
+            break;
+          }
+
+          message.nodeKey = reader.string();
+          continue;
+        case 18:
+          if (tag !== 146) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        case 19:
+          if (tag !== 154) {
+            break;
+          }
+
+          message.keyExpiry = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Linker {
+    return {
+      nodeType: isSet(object.nodeType) ? nodeTypeFromJSON(object.nodeType) : 0,
+      linkerType: isSet(object.linkerType) ? linkerTypeFromJSON(object.linkerType) : 0,
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
+      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
+      os: isSet(object.os) ? globalThis.String(object.os) : "",
+      age: isSet(object.age) ? globalThis.String(object.age) : "",
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
+      status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
+      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
+      lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
+      version: isSet(object.version) ? globalThis.String(object.version) : "",
+      nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
+      createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      keyExpiry: isSet(object.keyExpiry) ? globalThis.String(object.keyExpiry) : "",
+    };
+  },
+
+  toJSON(message: Linker): unknown {
+    const obj: any = {};
+    if (message.nodeType !== 0) {
+      obj.nodeType = nodeTypeToJSON(message.nodeType);
+    }
+    if (message.linkerType !== 0) {
+      obj.linkerType = linkerTypeToJSON(message.linkerType);
+    }
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.ports !== "") {
+      obj.ports = message.ports;
+    }
+    if (message.proto?.length) {
+      obj.proto = message.proto.map((e) => Math.round(e));
+    }
+    if (message.os !== "") {
+      obj.os = message.os;
+    }
+    if (message.age !== "") {
+      obj.age = message.age;
+    }
+    if (message.platform !== 0) {
+      obj.platform = platformToJSON(message.platform);
+    }
+    if (message.status !== false) {
+      obj.status = message.status;
+    }
+    if (message.createdBy !== "") {
+      obj.createdBy = message.createdBy;
+    }
+    if (message.lastSeen !== "") {
+      obj.lastSeen = message.lastSeen;
+    }
+    if (message.version !== "") {
+      obj.version = message.version;
+    }
+    if (message.nodeKey !== "") {
+      obj.nodeKey = message.nodeKey;
+    }
+    if (message.createdAt !== "") {
+      obj.createdAt = message.createdAt;
+    }
+    if (message.keyExpiry !== "") {
+      obj.keyExpiry = message.keyExpiry;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Linker>, I>>(base?: I): Linker {
+    return Linker.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Linker>, I>>(object: I): Linker {
+    const message = createBaseLinker();
+    message.nodeType = object.nodeType ?? 0;
+    message.linkerType = object.linkerType ?? 0;
+    message.id = object.id ?? 0;
+    message.nodeId = object.nodeId ?? 0;
+    message.name = object.name ?? "";
+    message.email = object.email ?? "";
+    message.ip = object.ip ?? "";
+    message.ports = object.ports ?? "";
+    message.proto = object.proto?.map((e) => e) || [];
+    message.os = object.os ?? "";
+    message.age = object.age ?? "";
+    message.platform = object.platform ?? 0;
+    message.status = object.status ?? false;
+    message.createdBy = object.createdBy ?? "";
+    message.lastSeen = object.lastSeen ?? "";
+    message.version = object.version ?? "";
+    message.nodeKey = object.nodeKey ?? "";
+    message.createdAt = object.createdAt ?? "";
+    message.keyExpiry = object.keyExpiry ?? "";
     return message;
   },
 };
 
 function createBaseCreateSubnetLinkerResponse(): CreateSubnetLinkerResponse {
-  return { installScripts: "", composeKey: "" };
+  return { nodeIds: 0, name: "", desc: "", advertiseRoute: [] };
 }
 
 export const CreateSubnetLinkerResponse = {
   encode(message: CreateSubnetLinkerResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.installScripts !== "") {
-      writer.uint32(10).string(message.installScripts);
+    if (message.nodeIds !== 0) {
+      writer.uint32(8).uint64(message.nodeIds);
     }
-    if (message.composeKey !== "") {
-      writer.uint32(18).string(message.composeKey);
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.desc !== "") {
+      writer.uint32(26).string(message.desc);
+    }
+    for (const v of message.advertiseRoute) {
+      writer.uint32(34).string(v!);
     }
     return writer;
   },
@@ -4089,18 +4611,32 @@ export const CreateSubnetLinkerResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.installScripts = reader.string();
+          message.nodeIds = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.composeKey = reader.string();
+          message.name = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.advertiseRoute.push(reader.string());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4113,18 +4649,28 @@ export const CreateSubnetLinkerResponse = {
 
   fromJSON(object: any): CreateSubnetLinkerResponse {
     return {
-      installScripts: isSet(object.installScripts) ? globalThis.String(object.installScripts) : "",
-      composeKey: isSet(object.composeKey) ? globalThis.String(object.composeKey) : "",
+      nodeIds: isSet(object.nodeIds) ? globalThis.Number(object.nodeIds) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      advertiseRoute: globalThis.Array.isArray(object?.advertiseRoute)
+        ? object.advertiseRoute.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
   toJSON(message: CreateSubnetLinkerResponse): unknown {
     const obj: any = {};
-    if (message.installScripts !== "") {
-      obj.installScripts = message.installScripts;
+    if (message.nodeIds !== 0) {
+      obj.nodeIds = Math.round(message.nodeIds);
     }
-    if (message.composeKey !== "") {
-      obj.composeKey = message.composeKey;
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
+    }
+    if (message.advertiseRoute?.length) {
+      obj.advertiseRoute = message.advertiseRoute;
     }
     return obj;
   },
@@ -4134,8 +4680,10 @@ export const CreateSubnetLinkerResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<CreateSubnetLinkerResponse>, I>>(object: I): CreateSubnetLinkerResponse {
     const message = createBaseCreateSubnetLinkerResponse();
-    message.installScripts = object.installScripts ?? "";
-    message.composeKey = object.composeKey ?? "";
+    message.nodeIds = object.nodeIds ?? 0;
+    message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
+    message.advertiseRoute = object.advertiseRoute?.map((e) => e) || [];
     return message;
   },
 };
@@ -5095,6 +5643,7 @@ export const User = {
 
 function createBaseDevice(): Device {
   return {
+    id: 0,
     nodeId: 0,
     name: "",
     email: "",
@@ -5112,41 +5661,44 @@ function createBaseDevice(): Device {
 
 export const Device = {
   encode(message: Device, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
     if (message.nodeId !== 0) {
-      writer.uint32(8).uint64(message.nodeId);
+      writer.uint32(16).uint64(message.nodeId);
     }
     if (message.name !== "") {
-      writer.uint32(18).string(message.name);
+      writer.uint32(26).string(message.name);
     }
     if (message.email !== "") {
-      writer.uint32(26).string(message.email);
+      writer.uint32(34).string(message.email);
     }
     if (message.ip !== "") {
-      writer.uint32(34).string(message.ip);
+      writer.uint32(42).string(message.ip);
     }
     if (message.os !== "") {
-      writer.uint32(42).string(message.os);
+      writer.uint32(50).string(message.os);
     }
     if (message.status !== false) {
-      writer.uint32(48).bool(message.status);
+      writer.uint32(56).bool(message.status);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(58).string(message.lastSeen);
+      writer.uint32(66).string(message.lastSeen);
     }
     if (message.createdBy !== "") {
-      writer.uint32(66).string(message.createdBy);
+      writer.uint32(74).string(message.createdBy);
     }
     if (message.version !== "") {
-      writer.uint32(74).string(message.version);
+      writer.uint32(82).string(message.version);
     }
     if (message.nodeKey !== "") {
-      writer.uint32(82).string(message.nodeKey);
+      writer.uint32(90).string(message.nodeKey);
     }
     if (message.createdAt !== "") {
-      writer.uint32(90).string(message.createdAt);
+      writer.uint32(98).string(message.createdAt);
     }
     if (message.keyExpiry !== "") {
-      writer.uint32(98).string(message.keyExpiry);
+      writer.uint32(106).string(message.keyExpiry);
     }
     return writer;
   },
@@ -5163,80 +5715,87 @@ export const Device = {
             break;
           }
 
-          message.nodeId = longToNumber(reader.uint64() as Long);
+          message.id = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
-          if (tag !== 18) {
+          if (tag !== 16) {
             break;
           }
 
-          message.name = reader.string();
+          message.nodeId = longToNumber(reader.uint64() as Long);
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.email = reader.string();
+          message.name = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.ip = reader.string();
+          message.email = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.os = reader.string();
+          message.ip = reader.string();
           continue;
         case 6:
-          if (tag !== 48) {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.os = reader.string();
+          continue;
+        case 7:
+          if (tag !== 56) {
             break;
           }
 
           message.status = reader.bool();
-          continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
-          message.lastSeen = reader.string();
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.createdBy = reader.string();
+          message.lastSeen = reader.string();
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.version = reader.string();
+          message.createdBy = reader.string();
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.nodeKey = reader.string();
+          message.version = reader.string();
           continue;
         case 11:
           if (tag !== 90) {
             break;
           }
 
-          message.createdAt = reader.string();
+          message.nodeKey = reader.string();
           continue;
         case 12:
           if (tag !== 98) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        case 13:
+          if (tag !== 106) {
             break;
           }
 
@@ -5253,6 +5812,7 @@ export const Device = {
 
   fromJSON(object: any): Device {
     return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
@@ -5270,6 +5830,9 @@ export const Device = {
 
   toJSON(message: Device): unknown {
     const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
     if (message.nodeId !== 0) {
       obj.nodeId = Math.round(message.nodeId);
     }
@@ -5314,6 +5877,7 @@ export const Device = {
   },
   fromPartial<I extends Exact<DeepPartial<Device>, I>>(object: I): Device {
     const message = createBaseDevice();
+    message.id = object.id ?? 0;
     message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.email = object.email ?? "";
@@ -5376,6 +5940,7 @@ export interface AdminService {
   /** invite */
   CreateInviteUser(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteUserResponse>;
   /** linker */
+  GetLinkers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetLinkersReponse>;
   CreateSubnetLinker(
     request: DeepPartial<CreateSubnetLinkerRequest>,
     metadata?: grpc.Metadata,
@@ -5417,6 +5982,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.PatchInk = this.PatchInk.bind(this);
     this.GetOverview = this.GetOverview.bind(this);
     this.CreateInviteUser = this.CreateInviteUser.bind(this);
+    this.GetLinkers = this.GetLinkers.bind(this);
     this.CreateSubnetLinker = this.CreateSubnetLinker.bind(this);
     this.DeleteSubnetLinker = this.DeleteSubnetLinker.bind(this);
   }
@@ -5545,6 +6111,10 @@ export class AdminServiceClientImpl implements AdminService {
 
   CreateInviteUser(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteUserResponse> {
     return this.rpc.unary(AdminServiceCreateInviteUserDesc, Empty.fromPartial(request), metadata);
+  }
+
+  GetLinkers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetLinkersReponse> {
+    return this.rpc.unary(AdminServiceGetLinkersDesc, Empty.fromPartial(request), metadata);
   }
 
   CreateSubnetLinker(
@@ -6218,6 +6788,29 @@ export const AdminServiceCreateInviteUserDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = InviteUserResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGetLinkersDesc: UnaryMethodDefinitionish = {
+  methodName: "GetLinkers",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetLinkersReponse.decode(data);
       return {
         ...value,
         toObject() {
