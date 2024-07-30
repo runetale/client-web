@@ -537,7 +537,7 @@ export interface DeleteSubnetLinkerRequest {
   id: string;
 }
 
-export interface GetLinkersReponse {
+export interface GetSubnetLinkersReponse {
   linker: Linker[];
 }
 
@@ -4231,22 +4231,22 @@ export const DeleteSubnetLinkerRequest = {
   },
 };
 
-function createBaseGetLinkersReponse(): GetLinkersReponse {
+function createBaseGetSubnetLinkersReponse(): GetSubnetLinkersReponse {
   return { linker: [] };
 }
 
-export const GetLinkersReponse = {
-  encode(message: GetLinkersReponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+export const GetSubnetLinkersReponse = {
+  encode(message: GetSubnetLinkersReponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
     for (const v of message.linker) {
       Linker.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     return writer;
   },
 
-  decode(input: _m0.Reader | Uint8Array, length?: number): GetLinkersReponse {
+  decode(input: _m0.Reader | Uint8Array, length?: number): GetSubnetLinkersReponse {
     const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetLinkersReponse();
+    const message = createBaseGetSubnetLinkersReponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -4266,13 +4266,13 @@ export const GetLinkersReponse = {
     return message;
   },
 
-  fromJSON(object: any): GetLinkersReponse {
+  fromJSON(object: any): GetSubnetLinkersReponse {
     return {
       linker: globalThis.Array.isArray(object?.linker) ? object.linker.map((e: any) => Linker.fromJSON(e)) : [],
     };
   },
 
-  toJSON(message: GetLinkersReponse): unknown {
+  toJSON(message: GetSubnetLinkersReponse): unknown {
     const obj: any = {};
     if (message.linker?.length) {
       obj.linker = message.linker.map((e) => Linker.toJSON(e));
@@ -4280,11 +4280,11 @@ export const GetLinkersReponse = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetLinkersReponse>, I>>(base?: I): GetLinkersReponse {
-    return GetLinkersReponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetSubnetLinkersReponse>, I>>(base?: I): GetSubnetLinkersReponse {
+    return GetSubnetLinkersReponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetLinkersReponse>, I>>(object: I): GetLinkersReponse {
-    const message = createBaseGetLinkersReponse();
+  fromPartial<I extends Exact<DeepPartial<GetSubnetLinkersReponse>, I>>(object: I): GetSubnetLinkersReponse {
+    const message = createBaseGetSubnetLinkersReponse();
     message.linker = object.linker?.map((e) => Linker.fromPartial(e)) || [];
     return message;
   },
@@ -6115,7 +6115,7 @@ export interface AdminService {
   /** invite */
   CreateInviteUser(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteUserResponse>;
   /** linker */
-  GetSubnetLinkers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetLinkersReponse>;
+  GetSubnetLinkers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetSubnetLinkersReponse>;
   CreateSubnetLinker(
     request: DeepPartial<CreateSubnetLinkerRequest>,
     metadata?: grpc.Metadata,
@@ -6291,7 +6291,7 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceCreateInviteUserDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetSubnetLinkers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetLinkersReponse> {
+  GetSubnetLinkers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetSubnetLinkersReponse> {
     return this.rpc.unary(AdminServiceGetSubnetLinkersDesc, Empty.fromPartial(request), metadata);
   }
 
@@ -6991,7 +6991,7 @@ export const AdminServiceGetSubnetLinkersDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GetLinkersReponse.decode(data);
+      const value = GetSubnetLinkersReponse.decode(data);
       return {
         ...value,
         toObject() {
