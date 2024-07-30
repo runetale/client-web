@@ -6115,7 +6115,7 @@ export interface AdminService {
   /** invite */
   CreateInviteUser(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<InviteUserResponse>;
   /** linker */
-  GetLinkers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetLinkersReponse>;
+  GetSubnetLinkers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetLinkersReponse>;
   CreateSubnetLinker(
     request: DeepPartial<CreateSubnetLinkerRequest>,
     metadata?: grpc.Metadata,
@@ -6160,7 +6160,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.PatchInk = this.PatchInk.bind(this);
     this.GetOverview = this.GetOverview.bind(this);
     this.CreateInviteUser = this.CreateInviteUser.bind(this);
-    this.GetLinkers = this.GetLinkers.bind(this);
+    this.GetSubnetLinkers = this.GetSubnetLinkers.bind(this);
     this.CreateSubnetLinker = this.CreateSubnetLinker.bind(this);
     this.DeleteSubnetLinker = this.DeleteSubnetLinker.bind(this);
   }
@@ -6291,8 +6291,8 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceCreateInviteUserDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetLinkers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetLinkersReponse> {
-    return this.rpc.unary(AdminServiceGetLinkersDesc, Empty.fromPartial(request), metadata);
+  GetSubnetLinkers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetLinkersReponse> {
+    return this.rpc.unary(AdminServiceGetSubnetLinkersDesc, Empty.fromPartial(request), metadata);
   }
 
   CreateSubnetLinker(
@@ -6979,8 +6979,8 @@ export const AdminServiceCreateInviteUserDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const AdminServiceGetLinkersDesc: UnaryMethodDefinitionish = {
-  methodName: "GetLinkers",
+export const AdminServiceGetSubnetLinkersDesc: UnaryMethodDefinitionish = {
+  methodName: "GetSubnetLinkers",
   service: AdminServiceDesc,
   requestStream: false,
   responseStream: false,
