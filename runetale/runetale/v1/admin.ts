@@ -533,14 +533,18 @@ export interface CreateSubnetLinkerRequest {
   advertiseRoute: string[];
 }
 
+export interface DeleteSubnetLinkerRequest {
+  id: string;
+}
+
 export interface GetLinkersReponse {
   linker: Linker[];
 }
 
 export interface Linker {
+  id: number;
   nodeType: NodeType;
   linkerType: LinkerType;
-  id: number;
   nodeId: number;
   name: string;
   email: string;
@@ -569,6 +573,14 @@ export interface Linker {
 }
 
 export interface CreateSubnetLinkerResponse {
+  nodeIds: number;
+  name: string;
+  desc: string;
+  /** 192.168.0.0/24, 192.154.0.0/24 */
+  advertiseRoute: string[];
+}
+
+export interface DeleteSubnetLinkerResponse {
   nodeIds: number;
   name: string;
   desc: string;
@@ -4162,6 +4174,63 @@ export const CreateSubnetLinkerRequest = {
   },
 };
 
+function createBaseDeleteSubnetLinkerRequest(): DeleteSubnetLinkerRequest {
+  return { id: "" };
+}
+
+export const DeleteSubnetLinkerRequest = {
+  encode(message: DeleteSubnetLinkerRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DeleteSubnetLinkerRequest {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteSubnetLinkerRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteSubnetLinkerRequest {
+    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+  },
+
+  toJSON(message: DeleteSubnetLinkerRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteSubnetLinkerRequest>, I>>(base?: I): DeleteSubnetLinkerRequest {
+    return DeleteSubnetLinkerRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DeleteSubnetLinkerRequest>, I>>(object: I): DeleteSubnetLinkerRequest {
+    const message = createBaseDeleteSubnetLinkerRequest();
+    message.id = object.id ?? "";
+    return message;
+  },
+};
+
 function createBaseGetLinkersReponse(): GetLinkersReponse {
   return { linker: [] };
 }
@@ -4223,9 +4292,9 @@ export const GetLinkersReponse = {
 
 function createBaseLinker(): Linker {
   return {
+    id: 0,
     nodeType: 0,
     linkerType: 0,
-    id: 0,
     nodeId: 0,
     name: "",
     email: "",
@@ -4247,14 +4316,14 @@ function createBaseLinker(): Linker {
 
 export const Linker = {
   encode(message: Linker, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
     if (message.nodeType !== 0) {
-      writer.uint32(8).int32(message.nodeType);
+      writer.uint32(16).int32(message.nodeType);
     }
     if (message.linkerType !== 0) {
-      writer.uint32(16).int32(message.linkerType);
-    }
-    if (message.id !== 0) {
-      writer.uint32(24).uint64(message.id);
+      writer.uint32(24).int32(message.linkerType);
     }
     if (message.nodeId !== 0) {
       writer.uint32(32).uint64(message.nodeId);
@@ -4321,21 +4390,21 @@ export const Linker = {
             break;
           }
 
-          message.nodeType = reader.int32() as any;
+          message.id = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
           if (tag !== 16) {
             break;
           }
 
-          message.linkerType = reader.int32() as any;
+          message.nodeType = reader.int32() as any;
           continue;
         case 3:
           if (tag !== 24) {
             break;
           }
 
-          message.id = longToNumber(reader.uint64() as Long);
+          message.linkerType = reader.int32() as any;
           continue;
         case 4:
           if (tag !== 32) {
@@ -4470,9 +4539,9 @@ export const Linker = {
 
   fromJSON(object: any): Linker {
     return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       nodeType: isSet(object.nodeType) ? nodeTypeFromJSON(object.nodeType) : 0,
       linkerType: isSet(object.linkerType) ? linkerTypeFromJSON(object.linkerType) : 0,
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
@@ -4494,14 +4563,14 @@ export const Linker = {
 
   toJSON(message: Linker): unknown {
     const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
     if (message.nodeType !== 0) {
       obj.nodeType = nodeTypeToJSON(message.nodeType);
     }
     if (message.linkerType !== 0) {
       obj.linkerType = linkerTypeToJSON(message.linkerType);
-    }
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
     }
     if (message.nodeId !== 0) {
       obj.nodeId = Math.round(message.nodeId);
@@ -4559,9 +4628,9 @@ export const Linker = {
   },
   fromPartial<I extends Exact<DeepPartial<Linker>, I>>(object: I): Linker {
     const message = createBaseLinker();
+    message.id = object.id ?? 0;
     message.nodeType = object.nodeType ?? 0;
     message.linkerType = object.linkerType ?? 0;
-    message.id = object.id ?? 0;
     message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.email = object.email ?? "";
@@ -4680,6 +4749,112 @@ export const CreateSubnetLinkerResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<CreateSubnetLinkerResponse>, I>>(object: I): CreateSubnetLinkerResponse {
     const message = createBaseCreateSubnetLinkerResponse();
+    message.nodeIds = object.nodeIds ?? 0;
+    message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
+    message.advertiseRoute = object.advertiseRoute?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseDeleteSubnetLinkerResponse(): DeleteSubnetLinkerResponse {
+  return { nodeIds: 0, name: "", desc: "", advertiseRoute: [] };
+}
+
+export const DeleteSubnetLinkerResponse = {
+  encode(message: DeleteSubnetLinkerResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.nodeIds !== 0) {
+      writer.uint32(8).uint64(message.nodeIds);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.desc !== "") {
+      writer.uint32(26).string(message.desc);
+    }
+    for (const v of message.advertiseRoute) {
+      writer.uint32(34).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: _m0.Reader | Uint8Array, length?: number): DeleteSubnetLinkerResponse {
+    const reader = input instanceof _m0.Reader ? input : _m0.Reader.create(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDeleteSubnetLinkerResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 8) {
+            break;
+          }
+
+          message.nodeIds = longToNumber(reader.uint64() as Long);
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.advertiseRoute.push(reader.string());
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skipType(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DeleteSubnetLinkerResponse {
+    return {
+      nodeIds: isSet(object.nodeIds) ? globalThis.Number(object.nodeIds) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      advertiseRoute: globalThis.Array.isArray(object?.advertiseRoute)
+        ? object.advertiseRoute.map((e: any) => globalThis.String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: DeleteSubnetLinkerResponse): unknown {
+    const obj: any = {};
+    if (message.nodeIds !== 0) {
+      obj.nodeIds = Math.round(message.nodeIds);
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
+    }
+    if (message.advertiseRoute?.length) {
+      obj.advertiseRoute = message.advertiseRoute;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DeleteSubnetLinkerResponse>, I>>(base?: I): DeleteSubnetLinkerResponse {
+    return DeleteSubnetLinkerResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DeleteSubnetLinkerResponse>, I>>(object: I): DeleteSubnetLinkerResponse {
+    const message = createBaseDeleteSubnetLinkerResponse();
     message.nodeIds = object.nodeIds ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
@@ -5945,7 +6120,10 @@ export interface AdminService {
     request: DeepPartial<CreateSubnetLinkerRequest>,
     metadata?: grpc.Metadata,
   ): Promise<CreateSubnetLinkerResponse>;
-  DeleteSubnetLinker(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty>;
+  DeleteSubnetLinker(
+    request: DeepPartial<DeleteSubnetLinkerRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<DeleteSubnetLinkerResponse>;
 }
 
 export class AdminServiceClientImpl implements AdminService {
@@ -6124,8 +6302,11 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceCreateSubnetLinkerDesc, CreateSubnetLinkerRequest.fromPartial(request), metadata);
   }
 
-  DeleteSubnetLinker(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(AdminServiceDeleteSubnetLinkerDesc, Empty.fromPartial(request), metadata);
+  DeleteSubnetLinker(
+    request: DeepPartial<DeleteSubnetLinkerRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<DeleteSubnetLinkerResponse> {
+    return this.rpc.unary(AdminServiceDeleteSubnetLinkerDesc, DeleteSubnetLinkerRequest.fromPartial(request), metadata);
   }
 }
 
@@ -6851,12 +7032,12 @@ export const AdminServiceDeleteSubnetLinkerDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return Empty.encode(this).finish();
+      return DeleteSubnetLinkerRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = Empty.decode(data);
+      const value = DeleteSubnetLinkerResponse.decode(data);
       return {
         ...value,
         toObject() {
