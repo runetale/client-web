@@ -547,33 +547,20 @@ export interface GetSubnetLinkersReponse {
 
 export interface Linker {
   id: number;
-  nodeType: NodeType;
   linkerType: LinkerType;
   nodeId: number;
   name: string;
   email: string;
+  domain: string;
   ip: string;
-  /** こちらはResourceのみに存在する */
-  ports: string;
-  /** こちらはResourceのみに存在する */
-  proto: number[];
+  /** 192.168.0.0/24, 192.154.0.0/24 */
+  advertiseRoute: string[];
+  host: string;
   os: string;
-  /** こちらはResourceのみに存在する */
-  age: string;
-  /** こちらはResourceのみに存在する */
-  platform: Platform;
-  status: boolean;
-  createdBy: string;
-  /** こちらはDeviceのみに存在する */
-  lastSeen: string;
-  /** こちらはDeviceのみに存在する */
-  version: string;
-  /** こちらはDeviceのみに存在する */
   nodeKey: string;
-  /** こちらはDeviceのみに存在する */
+  platform: Platform;
+  createdBy: string;
   createdAt: string;
-  /** こちらはDeviceのみに存在する */
-  keyExpiry: string;
 }
 
 export interface CreateSubnetLinkerResponse {
@@ -4336,24 +4323,19 @@ export const GetSubnetLinkersReponse = {
 function createBaseLinker(): Linker {
   return {
     id: 0,
-    nodeType: 0,
     linkerType: 0,
     nodeId: 0,
     name: "",
     email: "",
+    domain: "",
     ip: "",
-    ports: "",
-    proto: [],
+    advertiseRoute: [],
+    host: "",
     os: "",
-    age: "",
-    platform: 0,
-    status: false,
-    createdBy: "",
-    lastSeen: "",
-    version: "",
     nodeKey: "",
+    platform: 0,
+    createdBy: "",
     createdAt: "",
-    keyExpiry: "",
   };
 }
 
@@ -4362,61 +4344,44 @@ export const Linker = {
     if (message.id !== 0) {
       writer.uint32(8).uint64(message.id);
     }
-    if (message.nodeType !== 0) {
-      writer.uint32(16).int32(message.nodeType);
-    }
     if (message.linkerType !== 0) {
-      writer.uint32(24).int32(message.linkerType);
+      writer.uint32(16).int32(message.linkerType);
     }
     if (message.nodeId !== 0) {
-      writer.uint32(32).uint64(message.nodeId);
+      writer.uint32(24).uint64(message.nodeId);
     }
     if (message.name !== "") {
-      writer.uint32(42).string(message.name);
+      writer.uint32(34).string(message.name);
     }
     if (message.email !== "") {
-      writer.uint32(50).string(message.email);
+      writer.uint32(42).string(message.email);
+    }
+    if (message.domain !== "") {
+      writer.uint32(50).string(message.domain);
     }
     if (message.ip !== "") {
       writer.uint32(58).string(message.ip);
     }
-    if (message.ports !== "") {
-      writer.uint32(66).string(message.ports);
+    for (const v of message.advertiseRoute) {
+      writer.uint32(66).string(v!);
     }
-    writer.uint32(74).fork();
-    for (const v of message.proto) {
-      writer.uint32(v);
+    if (message.host !== "") {
+      writer.uint32(74).string(message.host);
     }
-    writer.ldelim();
     if (message.os !== "") {
       writer.uint32(82).string(message.os);
     }
-    if (message.age !== "") {
-      writer.uint32(90).string(message.age);
+    if (message.nodeKey !== "") {
+      writer.uint32(90).string(message.nodeKey);
     }
     if (message.platform !== 0) {
       writer.uint32(96).int32(message.platform);
     }
-    if (message.status !== false) {
-      writer.uint32(104).bool(message.status);
-    }
     if (message.createdBy !== "") {
-      writer.uint32(114).string(message.createdBy);
-    }
-    if (message.lastSeen !== "") {
-      writer.uint32(122).string(message.lastSeen);
-    }
-    if (message.version !== "") {
-      writer.uint32(130).string(message.version);
-    }
-    if (message.nodeKey !== "") {
-      writer.uint32(138).string(message.nodeKey);
+      writer.uint32(106).string(message.createdBy);
     }
     if (message.createdAt !== "") {
-      writer.uint32(146).string(message.createdAt);
-    }
-    if (message.keyExpiry !== "") {
-      writer.uint32(154).string(message.keyExpiry);
+      writer.uint32(114).string(message.createdAt);
     }
     return writer;
   },
@@ -4440,35 +4405,35 @@ export const Linker = {
             break;
           }
 
-          message.nodeType = reader.int32() as any;
+          message.linkerType = reader.int32() as any;
           continue;
         case 3:
           if (tag !== 24) {
             break;
           }
 
-          message.linkerType = reader.int32() as any;
+          message.nodeId = longToNumber(reader.uint64() as Long);
           continue;
         case 4:
-          if (tag !== 32) {
+          if (tag !== 34) {
             break;
           }
 
-          message.nodeId = longToNumber(reader.uint64() as Long);
+          message.name = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.name = reader.string();
+          message.email = reader.string();
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.email = reader.string();
+          message.domain = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
@@ -4482,25 +4447,15 @@ export const Linker = {
             break;
           }
 
-          message.ports = reader.string();
+          message.advertiseRoute.push(reader.string());
           continue;
         case 9:
-          if (tag === 72) {
-            message.proto.push(reader.uint32());
-
-            continue;
+          if (tag !== 74) {
+            break;
           }
 
-          if (tag === 74) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.proto.push(reader.uint32());
-            }
-
-            continue;
-          }
-
-          break;
+          message.host = reader.string();
+          continue;
         case 10:
           if (tag !== 82) {
             break;
@@ -4513,7 +4468,7 @@ export const Linker = {
             break;
           }
 
-          message.age = reader.string();
+          message.nodeKey = reader.string();
           continue;
         case 12:
           if (tag !== 96) {
@@ -4523,53 +4478,18 @@ export const Linker = {
           message.platform = reader.int32() as any;
           continue;
         case 13:
-          if (tag !== 104) {
+          if (tag !== 106) {
             break;
           }
 
-          message.status = reader.bool();
+          message.createdBy = reader.string();
           continue;
         case 14:
           if (tag !== 114) {
             break;
           }
 
-          message.createdBy = reader.string();
-          continue;
-        case 15:
-          if (tag !== 122) {
-            break;
-          }
-
-          message.lastSeen = reader.string();
-          continue;
-        case 16:
-          if (tag !== 130) {
-            break;
-          }
-
-          message.version = reader.string();
-          continue;
-        case 17:
-          if (tag !== 138) {
-            break;
-          }
-
-          message.nodeKey = reader.string();
-          continue;
-        case 18:
-          if (tag !== 146) {
-            break;
-          }
-
           message.createdAt = reader.string();
-          continue;
-        case 19:
-          if (tag !== 154) {
-            break;
-          }
-
-          message.keyExpiry = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4583,24 +4503,21 @@ export const Linker = {
   fromJSON(object: any): Linker {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      nodeType: isSet(object.nodeType) ? nodeTypeFromJSON(object.nodeType) : 0,
       linkerType: isSet(object.linkerType) ? linkerTypeFromJSON(object.linkerType) : 0,
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
+      domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
-      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
+      advertiseRoute: globalThis.Array.isArray(object?.advertiseRoute)
+        ? object.advertiseRoute.map((e: any) => globalThis.String(e))
+        : [],
+      host: isSet(object.host) ? globalThis.String(object.host) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
-      age: isSet(object.age) ? globalThis.String(object.age) : "",
-      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
-      status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
-      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
-      lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
-      version: isSet(object.version) ? globalThis.String(object.version) : "",
       nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
+      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
       createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
-      keyExpiry: isSet(object.keyExpiry) ? globalThis.String(object.keyExpiry) : "",
     };
   },
 
@@ -4608,9 +4525,6 @@ export const Linker = {
     const obj: any = {};
     if (message.id !== 0) {
       obj.id = Math.round(message.id);
-    }
-    if (message.nodeType !== 0) {
-      obj.nodeType = nodeTypeToJSON(message.nodeType);
     }
     if (message.linkerType !== 0) {
       obj.linkerType = linkerTypeToJSON(message.linkerType);
@@ -4624,44 +4538,32 @@ export const Linker = {
     if (message.email !== "") {
       obj.email = message.email;
     }
+    if (message.domain !== "") {
+      obj.domain = message.domain;
+    }
     if (message.ip !== "") {
       obj.ip = message.ip;
     }
-    if (message.ports !== "") {
-      obj.ports = message.ports;
+    if (message.advertiseRoute?.length) {
+      obj.advertiseRoute = message.advertiseRoute;
     }
-    if (message.proto?.length) {
-      obj.proto = message.proto.map((e) => Math.round(e));
+    if (message.host !== "") {
+      obj.host = message.host;
     }
     if (message.os !== "") {
       obj.os = message.os;
     }
-    if (message.age !== "") {
-      obj.age = message.age;
+    if (message.nodeKey !== "") {
+      obj.nodeKey = message.nodeKey;
     }
     if (message.platform !== 0) {
       obj.platform = platformToJSON(message.platform);
     }
-    if (message.status !== false) {
-      obj.status = message.status;
-    }
     if (message.createdBy !== "") {
       obj.createdBy = message.createdBy;
     }
-    if (message.lastSeen !== "") {
-      obj.lastSeen = message.lastSeen;
-    }
-    if (message.version !== "") {
-      obj.version = message.version;
-    }
-    if (message.nodeKey !== "") {
-      obj.nodeKey = message.nodeKey;
-    }
     if (message.createdAt !== "") {
       obj.createdAt = message.createdAt;
-    }
-    if (message.keyExpiry !== "") {
-      obj.keyExpiry = message.keyExpiry;
     }
     return obj;
   },
@@ -4672,24 +4574,19 @@ export const Linker = {
   fromPartial<I extends Exact<DeepPartial<Linker>, I>>(object: I): Linker {
     const message = createBaseLinker();
     message.id = object.id ?? 0;
-    message.nodeType = object.nodeType ?? 0;
     message.linkerType = object.linkerType ?? 0;
     message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.email = object.email ?? "";
+    message.domain = object.domain ?? "";
     message.ip = object.ip ?? "";
-    message.ports = object.ports ?? "";
-    message.proto = object.proto?.map((e) => e) || [];
+    message.advertiseRoute = object.advertiseRoute?.map((e) => e) || [];
+    message.host = object.host ?? "";
     message.os = object.os ?? "";
-    message.age = object.age ?? "";
-    message.platform = object.platform ?? 0;
-    message.status = object.status ?? false;
-    message.createdBy = object.createdBy ?? "";
-    message.lastSeen = object.lastSeen ?? "";
-    message.version = object.version ?? "";
     message.nodeKey = object.nodeKey ?? "";
+    message.platform = object.platform ?? 0;
+    message.createdBy = object.createdBy ?? "";
     message.createdAt = object.createdAt ?? "";
-    message.keyExpiry = object.keyExpiry ?? "";
     return message;
   },
 };
