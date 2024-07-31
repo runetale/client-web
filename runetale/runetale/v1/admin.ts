@@ -430,6 +430,7 @@ export interface Ink {
   desc: string;
   domain: string;
   devices: Device[];
+  ports: string;
   age: string;
 }
 
@@ -654,6 +655,7 @@ export interface Device {
   name: string;
   email: string;
   ip: string;
+  ports: string;
   os: string;
   status: boolean;
   /** only when status false */
@@ -2551,7 +2553,7 @@ export const Inks = {
 };
 
 function createBaseInk(): Ink {
-  return { id: "", name: "", desc: "", domain: "", devices: [], age: "" };
+  return { id: "", name: "", desc: "", domain: "", devices: [], ports: "", age: "" };
 }
 
 export const Ink = {
@@ -2571,8 +2573,11 @@ export const Ink = {
     for (const v of message.devices) {
       Device.encode(v!, writer.uint32(42).fork()).ldelim();
     }
+    if (message.ports !== "") {
+      writer.uint32(58).string(message.ports);
+    }
     if (message.age !== "") {
-      writer.uint32(50).string(message.age);
+      writer.uint32(66).string(message.age);
     }
     return writer;
   },
@@ -2619,8 +2624,15 @@ export const Ink = {
 
           message.devices.push(Device.decode(reader, reader.uint32()));
           continue;
-        case 6:
-          if (tag !== 50) {
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.ports = reader.string();
+          continue;
+        case 8:
+          if (tag !== 66) {
             break;
           }
 
@@ -2642,6 +2654,7 @@ export const Ink = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
       devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
     };
   },
@@ -2663,6 +2676,9 @@ export const Ink = {
     if (message.devices?.length) {
       obj.devices = message.devices.map((e) => Device.toJSON(e));
     }
+    if (message.ports !== "") {
+      obj.ports = message.ports;
+    }
     if (message.age !== "") {
       obj.age = message.age;
     }
@@ -2679,6 +2695,7 @@ export const Ink = {
     message.desc = object.desc ?? "";
     message.domain = object.domain ?? "";
     message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
+    message.ports = object.ports ?? "";
     message.age = object.age ?? "";
     return message;
   },
@@ -5796,6 +5813,7 @@ function createBaseDevice(): Device {
     name: "",
     email: "",
     ip: "",
+    ports: "",
     os: "",
     status: false,
     lastSeen: "",
@@ -5824,29 +5842,32 @@ export const Device = {
     if (message.ip !== "") {
       writer.uint32(42).string(message.ip);
     }
+    if (message.ports !== "") {
+      writer.uint32(50).string(message.ports);
+    }
     if (message.os !== "") {
-      writer.uint32(50).string(message.os);
+      writer.uint32(58).string(message.os);
     }
     if (message.status !== false) {
-      writer.uint32(56).bool(message.status);
+      writer.uint32(64).bool(message.status);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(66).string(message.lastSeen);
+      writer.uint32(74).string(message.lastSeen);
     }
     if (message.createdBy !== "") {
-      writer.uint32(74).string(message.createdBy);
+      writer.uint32(82).string(message.createdBy);
     }
     if (message.version !== "") {
-      writer.uint32(82).string(message.version);
+      writer.uint32(90).string(message.version);
     }
     if (message.nodeKey !== "") {
-      writer.uint32(90).string(message.nodeKey);
+      writer.uint32(98).string(message.nodeKey);
     }
     if (message.createdAt !== "") {
-      writer.uint32(98).string(message.createdAt);
+      writer.uint32(106).string(message.createdAt);
     }
     if (message.keyExpiry !== "") {
-      writer.uint32(106).string(message.keyExpiry);
+      writer.uint32(114).string(message.keyExpiry);
     }
     return writer;
   },
@@ -5898,52 +5919,59 @@ export const Device = {
             break;
           }
 
-          message.os = reader.string();
+          message.ports = reader.string();
           continue;
         case 7:
-          if (tag !== 56) {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.os = reader.string();
+          continue;
+        case 8:
+          if (tag !== 64) {
             break;
           }
 
           message.status = reader.bool();
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
-          message.lastSeen = reader.string();
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.createdBy = reader.string();
+          message.lastSeen = reader.string();
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.version = reader.string();
+          message.createdBy = reader.string();
           continue;
         case 11:
           if (tag !== 90) {
             break;
           }
 
-          message.nodeKey = reader.string();
+          message.version = reader.string();
           continue;
         case 12:
           if (tag !== 98) {
             break;
           }
 
-          message.createdAt = reader.string();
+          message.nodeKey = reader.string();
           continue;
         case 13:
           if (tag !== 106) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        case 14:
+          if (tag !== 114) {
             break;
           }
 
@@ -5965,6 +5993,7 @@ export const Device = {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
@@ -5992,6 +6021,9 @@ export const Device = {
     }
     if (message.ip !== "") {
       obj.ip = message.ip;
+    }
+    if (message.ports !== "") {
+      obj.ports = message.ports;
     }
     if (message.os !== "") {
       obj.os = message.os;
@@ -6030,6 +6062,7 @@ export const Device = {
     message.name = object.name ?? "";
     message.email = object.email ?? "";
     message.ip = object.ip ?? "";
+    message.ports = object.ports ?? "";
     message.os = object.os ?? "";
     message.status = object.status ?? false;
     message.lastSeen = object.lastSeen ?? "";
