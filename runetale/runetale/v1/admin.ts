@@ -542,7 +542,7 @@ export interface PatchSubnetLinkerRequest {
 }
 
 export interface GetSubnetLinkersReponse {
-  linker: Linker[];
+  linkers: Linker[];
 }
 
 export interface Linker {
@@ -4275,12 +4275,12 @@ export const PatchSubnetLinkerRequest = {
 };
 
 function createBaseGetSubnetLinkersReponse(): GetSubnetLinkersReponse {
-  return { linker: [] };
+  return { linkers: [] };
 }
 
 export const GetSubnetLinkersReponse = {
   encode(message: GetSubnetLinkersReponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    for (const v of message.linker) {
+    for (const v of message.linkers) {
       Linker.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     return writer;
@@ -4298,7 +4298,7 @@ export const GetSubnetLinkersReponse = {
             break;
           }
 
-          message.linker.push(Linker.decode(reader, reader.uint32()));
+          message.linkers.push(Linker.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4311,14 +4311,14 @@ export const GetSubnetLinkersReponse = {
 
   fromJSON(object: any): GetSubnetLinkersReponse {
     return {
-      linker: globalThis.Array.isArray(object?.linker) ? object.linker.map((e: any) => Linker.fromJSON(e)) : [],
+      linkers: globalThis.Array.isArray(object?.linkers) ? object.linkers.map((e: any) => Linker.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: GetSubnetLinkersReponse): unknown {
     const obj: any = {};
-    if (message.linker?.length) {
-      obj.linker = message.linker.map((e) => Linker.toJSON(e));
+    if (message.linkers?.length) {
+      obj.linkers = message.linkers.map((e) => Linker.toJSON(e));
     }
     return obj;
   },
@@ -4328,7 +4328,7 @@ export const GetSubnetLinkersReponse = {
   },
   fromPartial<I extends Exact<DeepPartial<GetSubnetLinkersReponse>, I>>(object: I): GetSubnetLinkersReponse {
     const message = createBaseGetSubnetLinkersReponse();
-    message.linker = object.linker?.map((e) => Linker.fromPartial(e)) || [];
+    message.linkers = object.linkers?.map((e) => Linker.fromPartial(e)) || [];
     return message;
   },
 };
