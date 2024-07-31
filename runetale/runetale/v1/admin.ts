@@ -26,6 +26,7 @@ export enum NodeType {
   INK = 4,
   /** DEVICE - device */
   DEVICE = 5,
+  LINKER = 6,
   UNRECOGNIZED = -1,
 }
 
@@ -49,6 +50,9 @@ export function nodeTypeFromJSON(object: any): NodeType {
     case 5:
     case "DEVICE":
       return NodeType.DEVICE;
+    case 6:
+    case "LINKER":
+      return NodeType.LINKER;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -70,6 +74,8 @@ export function nodeTypeToJSON(object: NodeType): string {
       return "INK";
     case NodeType.DEVICE:
       return "DEVICE";
+    case NodeType.LINKER:
+      return "LINKER";
     case NodeType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
