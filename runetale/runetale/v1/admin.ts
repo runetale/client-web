@@ -564,6 +564,7 @@ export interface Linker {
 }
 
 export interface CreateSubnetLinkerResponse {
+  id: string;
   nodeIds: number;
   name: string;
   desc: string;
@@ -572,6 +573,7 @@ export interface CreateSubnetLinkerResponse {
 }
 
 export interface PatchSubnetLinkerResponse {
+  id: string;
   nodeIds: number;
   name: string;
   desc: string;
@@ -4592,22 +4594,25 @@ export const Linker = {
 };
 
 function createBaseCreateSubnetLinkerResponse(): CreateSubnetLinkerResponse {
-  return { nodeIds: 0, name: "", desc: "", advertiseRoute: [] };
+  return { id: "", nodeIds: 0, name: "", desc: "", advertiseRoute: [] };
 }
 
 export const CreateSubnetLinkerResponse = {
   encode(message: CreateSubnetLinkerResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
     if (message.nodeIds !== 0) {
-      writer.uint32(8).uint64(message.nodeIds);
+      writer.uint32(16).uint64(message.nodeIds);
     }
     if (message.name !== "") {
-      writer.uint32(18).string(message.name);
+      writer.uint32(26).string(message.name);
     }
     if (message.desc !== "") {
-      writer.uint32(26).string(message.desc);
+      writer.uint32(34).string(message.desc);
     }
     for (const v of message.advertiseRoute) {
-      writer.uint32(34).string(v!);
+      writer.uint32(42).string(v!);
     }
     return writer;
   },
@@ -4620,28 +4625,35 @@ export const CreateSubnetLinkerResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
             break;
           }
 
           message.nodeIds = longToNumber(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.desc = reader.string();
+          message.name = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
             break;
           }
 
@@ -4658,6 +4670,7 @@ export const CreateSubnetLinkerResponse = {
 
   fromJSON(object: any): CreateSubnetLinkerResponse {
     return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
       nodeIds: isSet(object.nodeIds) ? globalThis.Number(object.nodeIds) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
@@ -4669,6 +4682,9 @@ export const CreateSubnetLinkerResponse = {
 
   toJSON(message: CreateSubnetLinkerResponse): unknown {
     const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
     if (message.nodeIds !== 0) {
       obj.nodeIds = Math.round(message.nodeIds);
     }
@@ -4689,6 +4705,7 @@ export const CreateSubnetLinkerResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<CreateSubnetLinkerResponse>, I>>(object: I): CreateSubnetLinkerResponse {
     const message = createBaseCreateSubnetLinkerResponse();
+    message.id = object.id ?? "";
     message.nodeIds = object.nodeIds ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
@@ -4698,22 +4715,25 @@ export const CreateSubnetLinkerResponse = {
 };
 
 function createBasePatchSubnetLinkerResponse(): PatchSubnetLinkerResponse {
-  return { nodeIds: 0, name: "", desc: "", advertiseRoute: [] };
+  return { id: "", nodeIds: 0, name: "", desc: "", advertiseRoute: [] };
 }
 
 export const PatchSubnetLinkerResponse = {
   encode(message: PatchSubnetLinkerResponse, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
     if (message.nodeIds !== 0) {
-      writer.uint32(8).uint64(message.nodeIds);
+      writer.uint32(16).uint64(message.nodeIds);
     }
     if (message.name !== "") {
-      writer.uint32(18).string(message.name);
+      writer.uint32(26).string(message.name);
     }
     if (message.desc !== "") {
-      writer.uint32(26).string(message.desc);
+      writer.uint32(34).string(message.desc);
     }
     for (const v of message.advertiseRoute) {
-      writer.uint32(34).string(v!);
+      writer.uint32(42).string(v!);
     }
     return writer;
   },
@@ -4726,28 +4746,35 @@ export const PatchSubnetLinkerResponse = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
             break;
           }
 
           message.nodeIds = longToNumber(reader.uint64() as Long);
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.name = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.desc = reader.string();
+          message.name = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
+            break;
+          }
+
+          message.desc = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
             break;
           }
 
@@ -4764,6 +4791,7 @@ export const PatchSubnetLinkerResponse = {
 
   fromJSON(object: any): PatchSubnetLinkerResponse {
     return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
       nodeIds: isSet(object.nodeIds) ? globalThis.Number(object.nodeIds) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
@@ -4775,6 +4803,9 @@ export const PatchSubnetLinkerResponse = {
 
   toJSON(message: PatchSubnetLinkerResponse): unknown {
     const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
     if (message.nodeIds !== 0) {
       obj.nodeIds = Math.round(message.nodeIds);
     }
@@ -4795,6 +4826,7 @@ export const PatchSubnetLinkerResponse = {
   },
   fromPartial<I extends Exact<DeepPartial<PatchSubnetLinkerResponse>, I>>(object: I): PatchSubnetLinkerResponse {
     const message = createBasePatchSubnetLinkerResponse();
+    message.id = object.id ?? "";
     message.nodeIds = object.nodeIds ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
