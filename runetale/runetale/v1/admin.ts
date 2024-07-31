@@ -546,7 +546,7 @@ export interface GetSubnetLinkersReponse {
 }
 
 export interface Linker {
-  id: number;
+  id: string;
   linkerType: LinkerType;
   nodeId: number;
   name: string;
@@ -4322,7 +4322,7 @@ export const GetSubnetLinkersReponse = {
 
 function createBaseLinker(): Linker {
   return {
-    id: 0,
+    id: "",
     linkerType: 0,
     nodeId: 0,
     name: "",
@@ -4341,8 +4341,8 @@ function createBaseLinker(): Linker {
 
 export const Linker = {
   encode(message: Linker, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
     }
     if (message.linkerType !== 0) {
       writer.uint32(16).int32(message.linkerType);
@@ -4394,11 +4394,11 @@ export const Linker = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.id = longToNumber(reader.uint64() as Long);
+          message.id = reader.string();
           continue;
         case 2:
           if (tag !== 16) {
@@ -4502,7 +4502,7 @@ export const Linker = {
 
   fromJSON(object: any): Linker {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
       linkerType: isSet(object.linkerType) ? linkerTypeFromJSON(object.linkerType) : 0,
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
@@ -4523,8 +4523,8 @@ export const Linker = {
 
   toJSON(message: Linker): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.id !== "") {
+      obj.id = message.id;
     }
     if (message.linkerType !== 0) {
       obj.linkerType = linkerTypeToJSON(message.linkerType);
@@ -4573,7 +4573,7 @@ export const Linker = {
   },
   fromPartial<I extends Exact<DeepPartial<Linker>, I>>(object: I): Linker {
     const message = createBaseLinker();
-    message.id = object.id ?? 0;
+    message.id = object.id ?? "";
     message.linkerType = object.linkerType ?? 0;
     message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
