@@ -308,7 +308,7 @@ export interface CreateAclRequest {
 
 export interface AclResources {
   nodeIds: number[];
-  /** for fleet or group or ink */
+  /** for fleet or group or ink or linker */
   policyId: string;
   nodeType: NodeType;
 }
