@@ -594,6 +594,7 @@ export interface Policy {
   users: User[];
   inks: Ink[];
   devices: Device[];
+  linkers: Linker[];
 }
 
 export interface Fleet {
@@ -4842,7 +4843,7 @@ export const PatchSubnetLinkerResponse = {
 };
 
 function createBasePolicy(): Policy {
-  return { fleets: [], resources: [], groups: [], users: [], inks: [], devices: [] };
+  return { fleets: [], resources: [], groups: [], users: [], inks: [], devices: [], linkers: [] };
 }
 
 export const Policy = {
@@ -4864,6 +4865,9 @@ export const Policy = {
     }
     for (const v of message.devices) {
       Device.encode(v!, writer.uint32(50).fork()).ldelim();
+    }
+    for (const v of message.linkers) {
+      Linker.encode(v!, writer.uint32(58).fork()).ldelim();
     }
     return writer;
   },
@@ -4917,6 +4921,13 @@ export const Policy = {
 
           message.devices.push(Device.decode(reader, reader.uint32()));
           continue;
+        case 7:
+          if (tag !== 58) {
+            break;
+          }
+
+          message.linkers.push(Linker.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4936,6 +4947,7 @@ export const Policy = {
       users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
       inks: globalThis.Array.isArray(object?.inks) ? object.inks.map((e: any) => Ink.fromJSON(e)) : [],
       devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
+      linkers: globalThis.Array.isArray(object?.linkers) ? object.linkers.map((e: any) => Linker.fromJSON(e)) : [],
     };
   },
 
@@ -4959,6 +4971,9 @@ export const Policy = {
     if (message.devices?.length) {
       obj.devices = message.devices.map((e) => Device.toJSON(e));
     }
+    if (message.linkers?.length) {
+      obj.linkers = message.linkers.map((e) => Linker.toJSON(e));
+    }
     return obj;
   },
 
@@ -4973,6 +4988,7 @@ export const Policy = {
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
     message.inks = object.inks?.map((e) => Ink.fromPartial(e)) || [];
     message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
+    message.linkers = object.linkers?.map((e) => Linker.fromPartial(e)) || [];
     return message;
   },
 };
