@@ -63,7 +63,7 @@ export interface FilterRule {
    */
   srcIps: string[];
   /** dstのpeerのリスト */
-  dstPorts: NetPortRange[];
+  dsts: NetPortRange[];
   /**
    * 使用するプロトコル
    * https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
@@ -539,7 +539,7 @@ export const NetPortRange_portRange = {
 };
 
 function createBaseFilterRule(): FilterRule {
-  return { srcIps: [], dstPorts: [], iPProto: [] };
+  return { srcIps: [], dsts: [], iPProto: [] };
 }
 
 export const FilterRule = {
@@ -547,7 +547,7 @@ export const FilterRule = {
     for (const v of message.srcIps) {
       writer.uint32(10).string(v!);
     }
-    for (const v of message.dstPorts) {
+    for (const v of message.dsts) {
       NetPortRange.encode(v!, writer.uint32(18).fork()).ldelim();
     }
     writer.uint32(26).fork();
@@ -577,7 +577,7 @@ export const FilterRule = {
             break;
           }
 
-          message.dstPorts.push(NetPortRange.decode(reader, reader.uint32()));
+          message.dsts.push(NetPortRange.decode(reader, reader.uint32()));
           continue;
         case 3:
           if (tag === 24) {
@@ -608,9 +608,7 @@ export const FilterRule = {
   fromJSON(object: any): FilterRule {
     return {
       srcIps: globalThis.Array.isArray(object?.srcIps) ? object.srcIps.map((e: any) => globalThis.String(e)) : [],
-      dstPorts: globalThis.Array.isArray(object?.dstPorts)
-        ? object.dstPorts.map((e: any) => NetPortRange.fromJSON(e))
-        : [],
+      dsts: globalThis.Array.isArray(object?.dsts) ? object.dsts.map((e: any) => NetPortRange.fromJSON(e)) : [],
       iPProto: globalThis.Array.isArray(object?.iPProto) ? object.iPProto.map((e: any) => globalThis.Number(e)) : [],
     };
   },
@@ -620,8 +618,8 @@ export const FilterRule = {
     if (message.srcIps?.length) {
       obj.srcIps = message.srcIps;
     }
-    if (message.dstPorts?.length) {
-      obj.dstPorts = message.dstPorts.map((e) => NetPortRange.toJSON(e));
+    if (message.dsts?.length) {
+      obj.dsts = message.dsts.map((e) => NetPortRange.toJSON(e));
     }
     if (message.iPProto?.length) {
       obj.iPProto = message.iPProto.map((e) => Math.round(e));
@@ -635,7 +633,7 @@ export const FilterRule = {
   fromPartial<I extends Exact<DeepPartial<FilterRule>, I>>(object: I): FilterRule {
     const message = createBaseFilterRule();
     message.srcIps = object.srcIps?.map((e) => e) || [];
-    message.dstPorts = object.dstPorts?.map((e) => NetPortRange.fromPartial(e)) || [];
+    message.dsts = object.dsts?.map((e) => NetPortRange.fromPartial(e)) || [];
     message.iPProto = object.iPProto?.map((e) => e) || [];
     return message;
   },
