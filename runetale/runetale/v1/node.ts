@@ -58,7 +58,6 @@ export interface NetPortRange_portRange {
 export interface FilterRule {
   /**
    * source ips,
-   * - "*" は全て許可
    * - "192.168.0.0/16" cidrが含まれたipの範囲
    */
   srcIps: string[];
