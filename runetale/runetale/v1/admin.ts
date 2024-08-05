@@ -532,7 +532,7 @@ export interface InviteUserResponse {
 }
 
 export interface CreateSubnetLinkerRequest {
-  nodeIds: number;
+  nodeId: number;
   name: string;
   desc: string;
   /** 192.168.0.0/24, 192.154.0.0/24 */
@@ -4059,13 +4059,13 @@ export const InviteUserResponse = {
 };
 
 function createBaseCreateSubnetLinkerRequest(): CreateSubnetLinkerRequest {
-  return { nodeIds: 0, name: "", desc: "", advertiseRoute: [] };
+  return { nodeId: 0, name: "", desc: "", advertiseRoute: [] };
 }
 
 export const CreateSubnetLinkerRequest = {
   encode(message: CreateSubnetLinkerRequest, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
-    if (message.nodeIds !== 0) {
-      writer.uint32(8).uint64(message.nodeIds);
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
     }
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
@@ -4091,7 +4091,7 @@ export const CreateSubnetLinkerRequest = {
             break;
           }
 
-          message.nodeIds = longToNumber(reader.uint64() as Long);
+          message.nodeId = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
           if (tag !== 18) {
@@ -4125,7 +4125,7 @@ export const CreateSubnetLinkerRequest = {
 
   fromJSON(object: any): CreateSubnetLinkerRequest {
     return {
-      nodeIds: isSet(object.nodeIds) ? globalThis.Number(object.nodeIds) : 0,
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       advertiseRoute: globalThis.Array.isArray(object?.advertiseRoute)
@@ -4136,8 +4136,8 @@ export const CreateSubnetLinkerRequest = {
 
   toJSON(message: CreateSubnetLinkerRequest): unknown {
     const obj: any = {};
-    if (message.nodeIds !== 0) {
-      obj.nodeIds = Math.round(message.nodeIds);
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -4156,7 +4156,7 @@ export const CreateSubnetLinkerRequest = {
   },
   fromPartial<I extends Exact<DeepPartial<CreateSubnetLinkerRequest>, I>>(object: I): CreateSubnetLinkerRequest {
     const message = createBaseCreateSubnetLinkerRequest();
-    message.nodeIds = object.nodeIds ?? 0;
+    message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.advertiseRoute = object.advertiseRoute?.map((e) => e) || [];
