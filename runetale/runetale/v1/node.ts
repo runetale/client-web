@@ -49,6 +49,7 @@ export interface NetPortRange {
    * - "80" などの単一のportの場合はlastにも同じポート番号が入る
    */
   ports: NetPortRange_portRange | undefined;
+  advertiseRoute: string[];
 }
 
 export interface NetPortRange_portRange {
@@ -389,7 +390,7 @@ export const ComposeNodeResponse = {
 };
 
 function createBaseNetPortRange(): NetPortRange {
-  return { ip: "", ports: undefined };
+  return { ip: "", ports: undefined, advertiseRoute: [] };
 }
 
 export const NetPortRange = {
@@ -399,6 +400,9 @@ export const NetPortRange = {
     }
     if (message.ports !== undefined) {
       NetPortRange_portRange.encode(message.ports, writer.uint32(18).fork()).ldelim();
+    }
+    for (const v of message.advertiseRoute) {
+      writer.uint32(26).string(v!);
     }
     return writer;
   },
@@ -424,6 +428,13 @@ export const NetPortRange = {
 
           message.ports = NetPortRange_portRange.decode(reader, reader.uint32());
           continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.advertiseRoute.push(reader.string());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -437,6 +448,9 @@ export const NetPortRange = {
     return {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       ports: isSet(object.ports) ? NetPortRange_portRange.fromJSON(object.ports) : undefined,
+      advertiseRoute: globalThis.Array.isArray(object?.advertiseRoute)
+        ? object.advertiseRoute.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -447,6 +461,9 @@ export const NetPortRange = {
     }
     if (message.ports !== undefined) {
       obj.ports = NetPortRange_portRange.toJSON(message.ports);
+    }
+    if (message.advertiseRoute?.length) {
+      obj.advertiseRoute = message.advertiseRoute;
     }
     return obj;
   },
@@ -460,6 +477,7 @@ export const NetPortRange = {
     message.ports = (object.ports !== undefined && object.ports !== null)
       ? NetPortRange_portRange.fromPartial(object.ports)
       : undefined;
+    message.advertiseRoute = object.advertiseRoute?.map((e) => e) || [];
     return message;
   },
 };
