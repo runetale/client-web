@@ -568,6 +568,7 @@ export interface Linker {
   platform: Platform;
   createdBy: string;
   createdAt: string;
+  status: boolean;
 }
 
 export interface CreateSubnetLinkerResponse {
@@ -4346,6 +4347,7 @@ function createBaseLinker(): Linker {
     platform: 0,
     createdBy: "",
     createdAt: "",
+    status: false,
   };
 }
 
@@ -4392,6 +4394,9 @@ export const Linker = {
     }
     if (message.createdAt !== "") {
       writer.uint32(114).string(message.createdAt);
+    }
+    if (message.status !== false) {
+      writer.uint32(120).bool(message.status);
     }
     return writer;
   },
@@ -4501,6 +4506,13 @@ export const Linker = {
 
           message.createdAt = reader.string();
           continue;
+        case 15:
+          if (tag !== 120) {
+            break;
+          }
+
+          message.status = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4528,6 +4540,7 @@ export const Linker = {
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
       createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
+      status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
     };
   },
 
@@ -4575,6 +4588,9 @@ export const Linker = {
     if (message.createdAt !== "") {
       obj.createdAt = message.createdAt;
     }
+    if (message.status !== false) {
+      obj.status = message.status;
+    }
     return obj;
   },
 
@@ -4597,6 +4613,7 @@ export const Linker = {
     message.platform = object.platform ?? 0;
     message.createdBy = object.createdBy ?? "";
     message.createdAt = object.createdAt ?? "";
+    message.status = object.status ?? false;
     return message;
   },
 };
