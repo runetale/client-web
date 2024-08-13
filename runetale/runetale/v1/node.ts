@@ -23,6 +23,7 @@ export interface SyncNodesResponse {
 }
 
 export interface Node {
+  nodeId: number;
   remoteNodeKey: string;
   remoteWgPubKey: string;
   allowedIPs: string[];
@@ -195,25 +196,28 @@ export const SyncNodesResponse = {
 };
 
 function createBaseNode(): Node {
-  return { remoteNodeKey: "", remoteWgPubKey: "", allowedIPs: [], ip: "", cidr: "" };
+  return { nodeId: 0, remoteNodeKey: "", remoteWgPubKey: "", allowedIPs: [], ip: "", cidr: "" };
 }
 
 export const Node = {
   encode(message: Node, writer: _m0.Writer = _m0.Writer.create()): _m0.Writer {
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
+    }
     if (message.remoteNodeKey !== "") {
-      writer.uint32(10).string(message.remoteNodeKey);
+      writer.uint32(18).string(message.remoteNodeKey);
     }
     if (message.remoteWgPubKey !== "") {
-      writer.uint32(18).string(message.remoteWgPubKey);
+      writer.uint32(26).string(message.remoteWgPubKey);
     }
     for (const v of message.allowedIPs) {
-      writer.uint32(26).string(v!);
+      writer.uint32(34).string(v!);
     }
     if (message.ip !== "") {
-      writer.uint32(34).string(message.ip);
+      writer.uint32(42).string(message.ip);
     }
     if (message.cidr !== "") {
-      writer.uint32(42).string(message.cidr);
+      writer.uint32(50).string(message.cidr);
     }
     return writer;
   },
@@ -226,35 +230,42 @@ export const Node = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.remoteNodeKey = reader.string();
+          message.nodeId = longToNumber(reader.uint64() as Long);
           continue;
         case 2:
           if (tag !== 18) {
             break;
           }
 
-          message.remoteWgPubKey = reader.string();
+          message.remoteNodeKey = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.allowedIPs.push(reader.string());
+          message.remoteWgPubKey = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.ip = reader.string();
+          message.allowedIPs.push(reader.string());
           continue;
         case 5:
           if (tag !== 42) {
+            break;
+          }
+
+          message.ip = reader.string();
+          continue;
+        case 6:
+          if (tag !== 50) {
             break;
           }
 
@@ -271,6 +282,7 @@ export const Node = {
 
   fromJSON(object: any): Node {
     return {
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       remoteNodeKey: isSet(object.remoteNodeKey) ? globalThis.String(object.remoteNodeKey) : "",
       remoteWgPubKey: isSet(object.remoteWgPubKey) ? globalThis.String(object.remoteWgPubKey) : "",
       allowedIPs: globalThis.Array.isArray(object?.allowedIPs)
@@ -283,6 +295,9 @@ export const Node = {
 
   toJSON(message: Node): unknown {
     const obj: any = {};
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
     if (message.remoteNodeKey !== "") {
       obj.remoteNodeKey = message.remoteNodeKey;
     }
@@ -306,6 +321,7 @@ export const Node = {
   },
   fromPartial<I extends Exact<DeepPartial<Node>, I>>(object: I): Node {
     const message = createBaseNode();
+    message.nodeId = object.nodeId ?? 0;
     message.remoteNodeKey = object.remoteNodeKey ?? "";
     message.remoteWgPubKey = object.remoteWgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
