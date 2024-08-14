@@ -13,6 +13,57 @@ import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
+export enum IPProto {
+  ALL = 0,
+  TCP = 6,
+  UDP = 17,
+  ICMPv4 = 1,
+  ICMPv6 = 58,
+  UNRECOGNIZED = -1,
+}
+
+export function iPProtoFromJSON(object: any): IPProto {
+  switch (object) {
+    case 0:
+    case "ALL":
+      return IPProto.ALL;
+    case 6:
+    case "TCP":
+      return IPProto.TCP;
+    case 17:
+    case "UDP":
+      return IPProto.UDP;
+    case 1:
+    case "ICMPv4":
+      return IPProto.ICMPv4;
+    case 58:
+    case "ICMPv6":
+      return IPProto.ICMPv6;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return IPProto.UNRECOGNIZED;
+  }
+}
+
+export function iPProtoToJSON(object: IPProto): string {
+  switch (object) {
+    case IPProto.ALL:
+      return "ALL";
+    case IPProto.TCP:
+      return "TCP";
+    case IPProto.UDP:
+      return "UDP";
+    case IPProto.ICMPv4:
+      return "ICMPv4";
+    case IPProto.ICMPv6:
+      return "ICMPv6";
+    case IPProto.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export enum NodeType {
   /** FLEET - servers */
   FLEET = 0,
@@ -302,7 +353,7 @@ export interface CreateAclRequest {
    * https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
    * 0の場合はTCP, UDP, ICMPv4,ICMPv6が有効になる
    */
-  proto: number[];
+  ipProto: IPProto[];
   ports: string;
   action: Action;
 }
@@ -324,7 +375,7 @@ export interface PatchAclRequest {
    * ianaのプロトコル番号を使用する
    * 0の場合はTCP, UDP, ICMPv4,ICMPv6が有効になる
    */
-  proto: number[];
+  ipProto: IPProto[];
   ports: string;
   action: Action;
 }
@@ -347,7 +398,7 @@ export interface AclResponse {
   desc: string;
   src: Policy | undefined;
   dst: Policy | undefined;
-  proto: number[];
+  ipProto: IPProto[];
   ports: string;
   age: string;
   nodeType: string;
@@ -604,7 +655,7 @@ export interface Fleet {
   name: string;
   desc: string;
   resources: Resource[];
-  proto: number[];
+  ipProto: IPProto[];
   ports: string;
   age: string;
   platform: Platform;
@@ -618,7 +669,7 @@ export interface Resource {
   email: string;
   ip: string;
   ports: string;
-  proto: number[];
+  ipProto: IPProto[];
   os: string;
   age: string;
   platform: Platform;
@@ -670,7 +721,7 @@ export interface Device {
 }
 
 function createBaseCreateAclRequest(): CreateAclRequest {
-  return { name: "", desc: "", src: [], dst: [], proto: [], ports: "", action: 0 };
+  return { name: "", desc: "", src: [], dst: [], ipProto: [], ports: "", action: 0 };
 }
 
 export const CreateAclRequest = {
@@ -688,8 +739,8 @@ export const CreateAclRequest = {
       AclResources.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     writer.uint32(42).fork();
-    for (const v of message.proto) {
-      writer.uint32(v);
+    for (const v of message.ipProto) {
+      writer.int32(v);
     }
     writer.ldelim();
     if (message.ports !== "") {
@@ -738,7 +789,7 @@ export const CreateAclRequest = {
           continue;
         case 5:
           if (tag === 40) {
-            message.proto.push(reader.uint32());
+            message.ipProto.push(reader.int32() as any);
 
             continue;
           }
@@ -746,7 +797,7 @@ export const CreateAclRequest = {
           if (tag === 42) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.proto.push(reader.uint32());
+              message.ipProto.push(reader.int32() as any);
             }
 
             continue;
@@ -782,7 +833,7 @@ export const CreateAclRequest = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
-      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
+      ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
@@ -802,8 +853,8 @@ export const CreateAclRequest = {
     if (message.dst?.length) {
       obj.dst = message.dst.map((e) => AclResources.toJSON(e));
     }
-    if (message.proto?.length) {
-      obj.proto = message.proto.map((e) => Math.round(e));
+    if (message.ipProto?.length) {
+      obj.ipProto = message.ipProto.map((e) => iPProtoToJSON(e));
     }
     if (message.ports !== "") {
       obj.ports = message.ports;
@@ -823,7 +874,7 @@ export const CreateAclRequest = {
     message.desc = object.desc ?? "";
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
-    message.proto = object.proto?.map((e) => e) || [];
+    message.ipProto = object.ipProto?.map((e) => e) || [];
     message.ports = object.ports ?? "";
     message.action = object.action ?? 0;
     return message;
@@ -932,7 +983,7 @@ export const AclResources = {
 };
 
 function createBasePatchAclRequest(): PatchAclRequest {
-  return { id: "", name: "", desc: "", src: [], dst: [], proto: [], ports: "", action: 0 };
+  return { id: "", name: "", desc: "", src: [], dst: [], ipProto: [], ports: "", action: 0 };
 }
 
 export const PatchAclRequest = {
@@ -953,8 +1004,8 @@ export const PatchAclRequest = {
       AclResources.encode(v!, writer.uint32(42).fork()).ldelim();
     }
     writer.uint32(50).fork();
-    for (const v of message.proto) {
-      writer.uint32(v);
+    for (const v of message.ipProto) {
+      writer.int32(v);
     }
     writer.ldelim();
     if (message.ports !== "") {
@@ -1010,7 +1061,7 @@ export const PatchAclRequest = {
           continue;
         case 6:
           if (tag === 48) {
-            message.proto.push(reader.uint32());
+            message.ipProto.push(reader.int32() as any);
 
             continue;
           }
@@ -1018,7 +1069,7 @@ export const PatchAclRequest = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.proto.push(reader.uint32());
+              message.ipProto.push(reader.int32() as any);
             }
 
             continue;
@@ -1055,7 +1106,7 @@ export const PatchAclRequest = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
-      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
+      ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
@@ -1078,8 +1129,8 @@ export const PatchAclRequest = {
     if (message.dst?.length) {
       obj.dst = message.dst.map((e) => AclResources.toJSON(e));
     }
-    if (message.proto?.length) {
-      obj.proto = message.proto.map((e) => Math.round(e));
+    if (message.ipProto?.length) {
+      obj.ipProto = message.ipProto.map((e) => iPProtoToJSON(e));
     }
     if (message.ports !== "") {
       obj.ports = message.ports;
@@ -1100,7 +1151,7 @@ export const PatchAclRequest = {
     message.desc = object.desc ?? "";
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
-    message.proto = object.proto?.map((e) => e) || [];
+    message.ipProto = object.ipProto?.map((e) => e) || [];
     message.ports = object.ports ?? "";
     message.action = object.action ?? 0;
     return message;
@@ -1279,7 +1330,7 @@ export const GetAclsJsonResponse = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: "", name: "", desc: "", src: undefined, dst: undefined, proto: [], ports: "", age: "", nodeType: "" };
+  return { id: "", name: "", desc: "", src: undefined, dst: undefined, ipProto: [], ports: "", age: "", nodeType: "" };
 }
 
 export const AclResponse = {
@@ -1300,8 +1351,8 @@ export const AclResponse = {
       Policy.encode(message.dst, writer.uint32(42).fork()).ldelim();
     }
     writer.uint32(50).fork();
-    for (const v of message.proto) {
-      writer.uint32(v);
+    for (const v of message.ipProto) {
+      writer.int32(v);
     }
     writer.ldelim();
     if (message.ports !== "") {
@@ -1360,7 +1411,7 @@ export const AclResponse = {
           continue;
         case 6:
           if (tag === 48) {
-            message.proto.push(reader.uint32());
+            message.ipProto.push(reader.int32() as any);
 
             continue;
           }
@@ -1368,7 +1419,7 @@ export const AclResponse = {
           if (tag === 50) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.proto.push(reader.uint32());
+              message.ipProto.push(reader.int32() as any);
             }
 
             continue;
@@ -1412,7 +1463,7 @@ export const AclResponse = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       src: isSet(object.src) ? Policy.fromJSON(object.src) : undefined,
       dst: isSet(object.dst) ? Policy.fromJSON(object.dst) : undefined,
-      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
+      ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       nodeType: isSet(object.nodeType) ? globalThis.String(object.nodeType) : "",
@@ -1436,8 +1487,8 @@ export const AclResponse = {
     if (message.dst !== undefined) {
       obj.dst = Policy.toJSON(message.dst);
     }
-    if (message.proto?.length) {
-      obj.proto = message.proto.map((e) => Math.round(e));
+    if (message.ipProto?.length) {
+      obj.ipProto = message.ipProto.map((e) => iPProtoToJSON(e));
     }
     if (message.ports !== "") {
       obj.ports = message.ports;
@@ -1461,7 +1512,7 @@ export const AclResponse = {
     message.desc = object.desc ?? "";
     message.src = (object.src !== undefined && object.src !== null) ? Policy.fromPartial(object.src) : undefined;
     message.dst = (object.dst !== undefined && object.dst !== null) ? Policy.fromPartial(object.dst) : undefined;
-    message.proto = object.proto?.map((e) => e) || [];
+    message.ipProto = object.ipProto?.map((e) => e) || [];
     message.ports = object.ports ?? "";
     message.age = object.age ?? "";
     message.nodeType = object.nodeType ?? "";
@@ -5012,7 +5063,7 @@ export const Policy = {
 };
 
 function createBaseFleet(): Fleet {
-  return { id: "", name: "", desc: "", resources: [], proto: [], ports: "", age: "", platform: 0, createdBy: "" };
+  return { id: "", name: "", desc: "", resources: [], ipProto: [], ports: "", age: "", platform: 0, createdBy: "" };
 }
 
 export const Fleet = {
@@ -5030,8 +5081,8 @@ export const Fleet = {
       Resource.encode(v!, writer.uint32(34).fork()).ldelim();
     }
     writer.uint32(42).fork();
-    for (const v of message.proto) {
-      writer.uint32(v);
+    for (const v of message.ipProto) {
+      writer.int32(v);
     }
     writer.ldelim();
     if (message.ports !== "") {
@@ -5086,7 +5137,7 @@ export const Fleet = {
           continue;
         case 5:
           if (tag === 40) {
-            message.proto.push(reader.uint32());
+            message.ipProto.push(reader.int32() as any);
 
             continue;
           }
@@ -5094,7 +5145,7 @@ export const Fleet = {
           if (tag === 42) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.proto.push(reader.uint32());
+              message.ipProto.push(reader.int32() as any);
             }
 
             continue;
@@ -5146,7 +5197,7 @@ export const Fleet = {
       resources: globalThis.Array.isArray(object?.resources)
         ? object.resources.map((e: any) => Resource.fromJSON(e))
         : [],
-      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
+      ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
@@ -5168,8 +5219,8 @@ export const Fleet = {
     if (message.resources?.length) {
       obj.resources = message.resources.map((e) => Resource.toJSON(e));
     }
-    if (message.proto?.length) {
-      obj.proto = message.proto.map((e) => Math.round(e));
+    if (message.ipProto?.length) {
+      obj.ipProto = message.ipProto.map((e) => iPProtoToJSON(e));
     }
     if (message.ports !== "") {
       obj.ports = message.ports;
@@ -5195,7 +5246,7 @@ export const Fleet = {
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
-    message.proto = object.proto?.map((e) => e) || [];
+    message.ipProto = object.ipProto?.map((e) => e) || [];
     message.ports = object.ports ?? "";
     message.age = object.age ?? "";
     message.platform = object.platform ?? 0;
@@ -5212,7 +5263,7 @@ function createBaseResource(): Resource {
     email: "",
     ip: "",
     ports: "",
-    proto: [],
+    ipProto: [],
     os: "",
     age: "",
     platform: 0,
@@ -5242,8 +5293,8 @@ export const Resource = {
       writer.uint32(50).string(message.ports);
     }
     writer.uint32(58).fork();
-    for (const v of message.proto) {
-      writer.uint32(v);
+    for (const v of message.ipProto) {
+      writer.int32(v);
     }
     writer.ldelim();
     if (message.os !== "") {
@@ -5315,7 +5366,7 @@ export const Resource = {
           continue;
         case 7:
           if (tag === 56) {
-            message.proto.push(reader.uint32());
+            message.ipProto.push(reader.int32() as any);
 
             continue;
           }
@@ -5323,7 +5374,7 @@ export const Resource = {
           if (tag === 58) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.proto.push(reader.uint32());
+              message.ipProto.push(reader.int32() as any);
             }
 
             continue;
@@ -5382,7 +5433,7 @@ export const Resource = {
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
-      proto: globalThis.Array.isArray(object?.proto) ? object.proto.map((e: any) => globalThis.Number(e)) : [],
+      ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
@@ -5411,8 +5462,8 @@ export const Resource = {
     if (message.ports !== "") {
       obj.ports = message.ports;
     }
-    if (message.proto?.length) {
-      obj.proto = message.proto.map((e) => Math.round(e));
+    if (message.ipProto?.length) {
+      obj.ipProto = message.ipProto.map((e) => iPProtoToJSON(e));
     }
     if (message.os !== "") {
       obj.os = message.os;
@@ -5443,7 +5494,7 @@ export const Resource = {
     message.email = object.email ?? "";
     message.ip = object.ip ?? "";
     message.ports = object.ports ?? "";
-    message.proto = object.proto?.map((e) => e) || [];
+    message.ipProto = object.ipProto?.map((e) => e) || [];
     message.os = object.os ?? "";
     message.age = object.age ?? "";
     message.platform = object.platform ?? 0;

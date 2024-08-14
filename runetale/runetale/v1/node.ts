@@ -69,6 +69,11 @@ export interface FilterRule {
   /**
    * 使用するプロトコル
    * https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+   * 16進数で返ってくる
+   * ICMPv4  = 0x01
+   * ICMPv6  = 0x3a
+   * TCP     = 0x06
+   * UDP     = 0x11
    */
   iPProto: number[];
 }
