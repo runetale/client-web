@@ -537,7 +537,7 @@ export interface CreateSubnetLinkerRequest {
   name: string;
   desc: string;
   /** 192.168.0.0/24, 192.154.0.0/24 */
-  advertisedRoute: string[];
+  advertisedRoutes: string[];
 }
 
 export interface PatchSubnetLinkerRequest {
@@ -545,7 +545,7 @@ export interface PatchSubnetLinkerRequest {
   name: string;
   desc: string;
   /** 192.168.0.0/24, 192.154.0.0/24 */
-  advertisedRoute: string[];
+  advertisedRoutes: string[];
 }
 
 export interface GetSubnetLinkersReponse {
@@ -561,7 +561,7 @@ export interface Linker {
   domain: string;
   ip: string;
   /** 192.168.0.0/24, 192.154.0.0/24 */
-  advertisedRoute: string[];
+  advertisedRoutes: string[];
   host: string;
   os: string;
   nodeKey: string;
@@ -577,7 +577,7 @@ export interface CreateSubnetLinkerResponse {
   name: string;
   desc: string;
   /** 192.168.0.0/24, 192.154.0.0/24 */
-  advertisedRoute: string[];
+  advertisedRoutes: string[];
 }
 
 export interface PatchSubnetLinkerResponse {
@@ -586,7 +586,7 @@ export interface PatchSubnetLinkerResponse {
   name: string;
   desc: string;
   /** 192.168.0.0/24, 192.154.0.0/24 */
-  advertisedRoute: string[];
+  advertisedRoutes: string[];
 }
 
 export interface Policy {
@@ -4061,7 +4061,7 @@ export const InviteUserResponse = {
 };
 
 function createBaseCreateSubnetLinkerRequest(): CreateSubnetLinkerRequest {
-  return { nodeId: 0, name: "", desc: "", advertisedRoute: [] };
+  return { nodeId: 0, name: "", desc: "", advertisedRoutes: [] };
 }
 
 export const CreateSubnetLinkerRequest = {
@@ -4075,7 +4075,7 @@ export const CreateSubnetLinkerRequest = {
     if (message.desc !== "") {
       writer.uint32(26).string(message.desc);
     }
-    for (const v of message.advertisedRoute) {
+    for (const v of message.advertisedRoutes) {
       writer.uint32(34).string(v!);
     }
     return writer;
@@ -4114,7 +4114,7 @@ export const CreateSubnetLinkerRequest = {
             break;
           }
 
-          message.advertisedRoute.push(reader.string());
+          message.advertisedRoutes.push(reader.string());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4130,8 +4130,8 @@ export const CreateSubnetLinkerRequest = {
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      advertisedRoute: globalThis.Array.isArray(object?.advertisedRoute)
-        ? object.advertisedRoute.map((e: any) => globalThis.String(e))
+      advertisedRoutes: globalThis.Array.isArray(object?.advertisedRoutes)
+        ? object.advertisedRoutes.map((e: any) => globalThis.String(e))
         : [],
     };
   },
@@ -4147,8 +4147,8 @@ export const CreateSubnetLinkerRequest = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.advertisedRoute?.length) {
-      obj.advertisedRoute = message.advertisedRoute;
+    if (message.advertisedRoutes?.length) {
+      obj.advertisedRoutes = message.advertisedRoutes;
     }
     return obj;
   },
@@ -4161,13 +4161,13 @@ export const CreateSubnetLinkerRequest = {
     message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.advertisedRoute = object.advertisedRoute?.map((e) => e) || [];
+    message.advertisedRoutes = object.advertisedRoutes?.map((e) => e) || [];
     return message;
   },
 };
 
 function createBasePatchSubnetLinkerRequest(): PatchSubnetLinkerRequest {
-  return { id: "", name: "", desc: "", advertisedRoute: [] };
+  return { id: "", name: "", desc: "", advertisedRoutes: [] };
 }
 
 export const PatchSubnetLinkerRequest = {
@@ -4181,7 +4181,7 @@ export const PatchSubnetLinkerRequest = {
     if (message.desc !== "") {
       writer.uint32(26).string(message.desc);
     }
-    for (const v of message.advertisedRoute) {
+    for (const v of message.advertisedRoutes) {
       writer.uint32(34).string(v!);
     }
     return writer;
@@ -4220,7 +4220,7 @@ export const PatchSubnetLinkerRequest = {
             break;
           }
 
-          message.advertisedRoute.push(reader.string());
+          message.advertisedRoutes.push(reader.string());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4236,8 +4236,8 @@ export const PatchSubnetLinkerRequest = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      advertisedRoute: globalThis.Array.isArray(object?.advertisedRoute)
-        ? object.advertisedRoute.map((e: any) => globalThis.String(e))
+      advertisedRoutes: globalThis.Array.isArray(object?.advertisedRoutes)
+        ? object.advertisedRoutes.map((e: any) => globalThis.String(e))
         : [],
     };
   },
@@ -4253,8 +4253,8 @@ export const PatchSubnetLinkerRequest = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.advertisedRoute?.length) {
-      obj.advertisedRoute = message.advertisedRoute;
+    if (message.advertisedRoutes?.length) {
+      obj.advertisedRoutes = message.advertisedRoutes;
     }
     return obj;
   },
@@ -4267,7 +4267,7 @@ export const PatchSubnetLinkerRequest = {
     message.id = object.id ?? "";
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.advertisedRoute = object.advertisedRoute?.map((e) => e) || [];
+    message.advertisedRoutes = object.advertisedRoutes?.map((e) => e) || [];
     return message;
   },
 };
@@ -4340,7 +4340,7 @@ function createBaseLinker(): Linker {
     email: "",
     domain: "",
     ip: "",
-    advertisedRoute: [],
+    advertisedRoutes: [],
     host: "",
     os: "",
     nodeKey: "",
@@ -4374,7 +4374,7 @@ export const Linker = {
     if (message.ip !== "") {
       writer.uint32(58).string(message.ip);
     }
-    for (const v of message.advertisedRoute) {
+    for (const v of message.advertisedRoutes) {
       writer.uint32(66).string(v!);
     }
     if (message.host !== "") {
@@ -4462,7 +4462,7 @@ export const Linker = {
             break;
           }
 
-          message.advertisedRoute.push(reader.string());
+          message.advertisedRoutes.push(reader.string());
           continue;
         case 9:
           if (tag !== 74) {
@@ -4531,8 +4531,8 @@ export const Linker = {
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      advertisedRoute: globalThis.Array.isArray(object?.advertisedRoute)
-        ? object.advertisedRoute.map((e: any) => globalThis.String(e))
+      advertisedRoutes: globalThis.Array.isArray(object?.advertisedRoutes)
+        ? object.advertisedRoutes.map((e: any) => globalThis.String(e))
         : [],
       host: isSet(object.host) ? globalThis.String(object.host) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
@@ -4567,8 +4567,8 @@ export const Linker = {
     if (message.ip !== "") {
       obj.ip = message.ip;
     }
-    if (message.advertisedRoute?.length) {
-      obj.advertisedRoute = message.advertisedRoute;
+    if (message.advertisedRoutes?.length) {
+      obj.advertisedRoutes = message.advertisedRoutes;
     }
     if (message.host !== "") {
       obj.host = message.host;
@@ -4606,7 +4606,7 @@ export const Linker = {
     message.email = object.email ?? "";
     message.domain = object.domain ?? "";
     message.ip = object.ip ?? "";
-    message.advertisedRoute = object.advertisedRoute?.map((e) => e) || [];
+    message.advertisedRoutes = object.advertisedRoutes?.map((e) => e) || [];
     message.host = object.host ?? "";
     message.os = object.os ?? "";
     message.nodeKey = object.nodeKey ?? "";
@@ -4619,7 +4619,7 @@ export const Linker = {
 };
 
 function createBaseCreateSubnetLinkerResponse(): CreateSubnetLinkerResponse {
-  return { id: "", nodeId: 0, name: "", desc: "", advertisedRoute: [] };
+  return { id: "", nodeId: 0, name: "", desc: "", advertisedRoutes: [] };
 }
 
 export const CreateSubnetLinkerResponse = {
@@ -4636,7 +4636,7 @@ export const CreateSubnetLinkerResponse = {
     if (message.desc !== "") {
       writer.uint32(34).string(message.desc);
     }
-    for (const v of message.advertisedRoute) {
+    for (const v of message.advertisedRoutes) {
       writer.uint32(42).string(v!);
     }
     return writer;
@@ -4682,7 +4682,7 @@ export const CreateSubnetLinkerResponse = {
             break;
           }
 
-          message.advertisedRoute.push(reader.string());
+          message.advertisedRoutes.push(reader.string());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4699,8 +4699,8 @@ export const CreateSubnetLinkerResponse = {
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      advertisedRoute: globalThis.Array.isArray(object?.advertisedRoute)
-        ? object.advertisedRoute.map((e: any) => globalThis.String(e))
+      advertisedRoutes: globalThis.Array.isArray(object?.advertisedRoutes)
+        ? object.advertisedRoutes.map((e: any) => globalThis.String(e))
         : [],
     };
   },
@@ -4719,8 +4719,8 @@ export const CreateSubnetLinkerResponse = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.advertisedRoute?.length) {
-      obj.advertisedRoute = message.advertisedRoute;
+    if (message.advertisedRoutes?.length) {
+      obj.advertisedRoutes = message.advertisedRoutes;
     }
     return obj;
   },
@@ -4734,13 +4734,13 @@ export const CreateSubnetLinkerResponse = {
     message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.advertisedRoute = object.advertisedRoute?.map((e) => e) || [];
+    message.advertisedRoutes = object.advertisedRoutes?.map((e) => e) || [];
     return message;
   },
 };
 
 function createBasePatchSubnetLinkerResponse(): PatchSubnetLinkerResponse {
-  return { id: "", nodeIds: 0, name: "", desc: "", advertisedRoute: [] };
+  return { id: "", nodeIds: 0, name: "", desc: "", advertisedRoutes: [] };
 }
 
 export const PatchSubnetLinkerResponse = {
@@ -4757,7 +4757,7 @@ export const PatchSubnetLinkerResponse = {
     if (message.desc !== "") {
       writer.uint32(34).string(message.desc);
     }
-    for (const v of message.advertisedRoute) {
+    for (const v of message.advertisedRoutes) {
       writer.uint32(42).string(v!);
     }
     return writer;
@@ -4803,7 +4803,7 @@ export const PatchSubnetLinkerResponse = {
             break;
           }
 
-          message.advertisedRoute.push(reader.string());
+          message.advertisedRoutes.push(reader.string());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4820,8 +4820,8 @@ export const PatchSubnetLinkerResponse = {
       nodeIds: isSet(object.nodeIds) ? globalThis.Number(object.nodeIds) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
-      advertisedRoute: globalThis.Array.isArray(object?.advertisedRoute)
-        ? object.advertisedRoute.map((e: any) => globalThis.String(e))
+      advertisedRoutes: globalThis.Array.isArray(object?.advertisedRoutes)
+        ? object.advertisedRoutes.map((e: any) => globalThis.String(e))
         : [],
     };
   },
@@ -4840,8 +4840,8 @@ export const PatchSubnetLinkerResponse = {
     if (message.desc !== "") {
       obj.desc = message.desc;
     }
-    if (message.advertisedRoute?.length) {
-      obj.advertisedRoute = message.advertisedRoute;
+    if (message.advertisedRoutes?.length) {
+      obj.advertisedRoutes = message.advertisedRoutes;
     }
     return obj;
   },
@@ -4855,7 +4855,7 @@ export const PatchSubnetLinkerResponse = {
     message.nodeIds = object.nodeIds ?? 0;
     message.name = object.name ?? "";
     message.desc = object.desc ?? "";
-    message.advertisedRoute = object.advertisedRoute?.map((e) => e) || [];
+    message.advertisedRoutes = object.advertisedRoutes?.map((e) => e) || [];
     return message;
   },
 };
