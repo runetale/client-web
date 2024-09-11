@@ -87,8 +87,8 @@ export interface NetworkMapResponse {
    * serverで差分更新される
    */
   peersChanged: Node[];
-  /** 消された場合のPeers */
-  peersRemoved: Node[];
+  /** 消された場合のPeersのNodeID */
+  peersRemoved: number[];
   /** Firewall Rules */
   packetFilter: FilterRule[];
   /**
@@ -723,9 +723,11 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     for (const v of message.peersChanged) {
       Node.encode(v!, writer.uint32(34).fork()).join();
     }
+    writer.uint32(42).fork();
     for (const v of message.peersRemoved) {
-      Node.encode(v!, writer.uint32(42).fork()).join();
+      writer.uint64(v);
     }
+    writer.join();
     for (const v of message.packetFilter) {
       FilterRule.encode(v!, writer.uint32(50).fork()).join();
     }
@@ -771,12 +773,22 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
           message.peersChanged.push(Node.decode(reader, reader.uint32()));
           continue;
         case 5:
-          if (tag !== 42) {
-            break;
+          if (tag === 40) {
+            message.peersRemoved.push(longToNumber(reader.uint64()));
+
+            continue;
           }
 
-          message.peersRemoved.push(Node.decode(reader, reader.uint32()));
-          continue;
+          if (tag === 42) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.peersRemoved.push(longToNumber(reader.uint64()));
+            }
+
+            continue;
+          }
+
+          break;
         case 6:
           if (tag !== 50) {
             break;
@@ -809,7 +821,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
         ? object.peersChanged.map((e: any) => Node.fromJSON(e))
         : [],
       peersRemoved: globalThis.Array.isArray(object?.peersRemoved)
-        ? object.peersRemoved.map((e: any) => Node.fromJSON(e))
+        ? object.peersRemoved.map((e: any) => globalThis.Number(e))
         : [],
       packetFilter: globalThis.Array.isArray(object?.packetFilter)
         ? object.packetFilter.map((e: any) => FilterRule.fromJSON(e))
@@ -835,7 +847,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
       obj.peersChanged = message.peersChanged.map((e) => Node.toJSON(e));
     }
     if (message.peersRemoved?.length) {
-      obj.peersRemoved = message.peersRemoved.map((e) => Node.toJSON(e));
+      obj.peersRemoved = message.peersRemoved.map((e) => Math.round(e));
     }
     if (message.packetFilter?.length) {
       obj.packetFilter = message.packetFilter.map((e) => FilterRule.toJSON(e));
@@ -855,7 +867,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.node = (object.node !== undefined && object.node !== null) ? Node.fromPartial(object.node) : undefined;
     message.peers = object.peers?.map((e) => Node.fromPartial(e)) || [];
     message.peersChanged = object.peersChanged?.map((e) => Node.fromPartial(e)) || [];
-    message.peersRemoved = object.peersRemoved?.map((e) => Node.fromPartial(e)) || [];
+    message.peersRemoved = object.peersRemoved?.map((e) => e) || [];
     message.packetFilter = object.packetFilter?.map((e) => FilterRule.fromPartial(e)) || [];
     message.advertisedRoute = object.advertisedRoute?.map((e) => e) || [];
     return message;
