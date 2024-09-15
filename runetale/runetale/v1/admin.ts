@@ -529,6 +529,7 @@ export interface CreateFleetRequest {
   nodeIds: number[];
   platform: Platform;
   ports: string;
+  ipProto: IPProto[];
 }
 
 export interface GetFleetRequest {
@@ -3663,7 +3664,7 @@ export const Resources: MessageFns<Resources> = {
 };
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", nodeIds: [], platform: 0, ports: "" };
+  return { name: "", desc: "", nodeIds: [], platform: 0, ports: "", ipProto: [] };
 }
 
 export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
@@ -3685,6 +3686,11 @@ export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
     if (message.ports !== "") {
       writer.uint32(50).string(message.ports);
     }
+    writer.uint32(58).fork();
+    for (const v of message.ipProto) {
+      writer.int32(v);
+    }
+    writer.join();
     return writer;
   },
 
@@ -3740,6 +3746,23 @@ export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
 
           message.ports = reader.string();
           continue;
+        case 7:
+          if (tag === 56) {
+            message.ipProto.push(reader.int32() as any);
+
+            continue;
+          }
+
+          if (tag === 58) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.ipProto.push(reader.int32() as any);
+            }
+
+            continue;
+          }
+
+          break;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3756,6 +3779,7 @@ export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
+      ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
     };
   },
 
@@ -3776,6 +3800,9 @@ export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
     if (message.ports !== "") {
       obj.ports = message.ports;
     }
+    if (message.ipProto?.length) {
+      obj.ipProto = message.ipProto.map((e) => iPProtoToJSON(e));
+    }
     return obj;
   },
 
@@ -3789,6 +3816,7 @@ export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
     message.platform = object.platform ?? 0;
     message.ports = object.ports ?? "";
+    message.ipProto = object.ipProto?.map((e) => e) || [];
     return message;
   },
 };
