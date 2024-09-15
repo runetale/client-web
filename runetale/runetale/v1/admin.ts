@@ -214,39 +214,6 @@ export function expirelyTimeToJSON(object: ExpirelyTime): string {
   }
 }
 
-export enum Action {
-  Accept = 0,
-  Denied = 1,
-  UNRECOGNIZED = -1,
-}
-
-export function actionFromJSON(object: any): Action {
-  switch (object) {
-    case 0:
-    case "Accept":
-      return Action.Accept;
-    case 1:
-    case "Denied":
-      return Action.Denied;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return Action.UNRECOGNIZED;
-  }
-}
-
-export function actionToJSON(object: Action): string {
-  switch (object) {
-    case Action.Accept:
-      return "Accept";
-    case Action.Denied:
-      return "Denied";
-    case Action.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
 export enum Platform {
   DOCKER = 0,
   CLI = 1,
@@ -354,7 +321,6 @@ export interface CreateAclRequest {
    */
   ipProto: IPProto[];
   ports: string;
-  action: Action;
 }
 
 export interface AclResources {
@@ -366,8 +332,8 @@ export interface AclResources {
 
 export interface PatchAclRequest {
   id: string;
-  name: string;
-  desc: string;
+  name?: string | undefined;
+  desc?: string | undefined;
   src: AclResources[];
   dst: AclResources[];
   /**
@@ -375,8 +341,7 @@ export interface PatchAclRequest {
    * 0の場合はTCP, UDP, ICMPv4,ICMPv6が有効になる
    */
   ipProto: IPProto[];
-  ports: string;
-  action: Action;
+  ports?: string | undefined;
 }
 
 export interface GetAclRequest {
@@ -411,7 +376,7 @@ export interface GetMeResponse {
 }
 
 export interface GetUserRequest {
-  id: number;
+  nodeId: number;
 }
 
 export interface Users {
@@ -443,15 +408,17 @@ export interface UserWithPicture {
 
 export interface PatchGroupRequest {
   id: string;
-  name: string;
-  desc: string;
+  name?: string | undefined;
+  desc?:
+    | string
+    | undefined;
   /** device id or user id (common node ids) */
   nodeIds: number[];
 }
 
-export interface GetDevicesRequest {
-  /** user id */
-  id: number;
+export interface GetDeviceRequest {
+  /** node id */
+  nodeId: number;
 }
 
 export interface Devices {
@@ -471,8 +438,10 @@ export interface GetInkRequest {
 
 export interface PatchInkRequest {
   id: string;
-  name: string;
-  desc: string;
+  name?: string | undefined;
+  desc?:
+    | string
+    | undefined;
   /** device id or user id (common node ids) */
   nodeIds: number[];
 }
@@ -559,13 +528,14 @@ export interface Fleets {
 
 export interface PatchFleetRequest {
   id: string;
-  name: string;
-  desc: string;
+  name?: string | undefined;
+  desc?:
+    | string
+    | undefined;
   /** resource ids */
   nodeIds: number[];
-  platform: Platform;
-  action: Action;
-  ports: string;
+  platform?: Platform | undefined;
+  ports?: string | undefined;
 }
 
 export interface Overview {
@@ -592,8 +562,10 @@ export interface CreateSubnetLinkerRequest {
 
 export interface PatchSubnetLinkerRequest {
   id: string;
-  name: string;
-  desc: string;
+  name?: string | undefined;
+  desc?:
+    | string
+    | undefined;
   /** 192.168.0.0/24, 192.154.0.0/24 */
   advertisedRoutes: string[];
 }
@@ -684,7 +656,6 @@ export interface Group {
 }
 
 export interface User {
-  id: number;
   nodeId: number;
   name: string;
   picture: string;
@@ -702,7 +673,6 @@ export interface User {
 }
 
 export interface Device {
-  id: number;
   nodeId: number;
   name: string;
   email: string;
@@ -720,7 +690,7 @@ export interface Device {
 }
 
 function createBaseCreateAclRequest(): CreateAclRequest {
-  return { name: "", desc: "", src: [], dst: [], ipProto: [], ports: "", action: 0 };
+  return { name: "", desc: "", src: [], dst: [], ipProto: [], ports: "" };
 }
 
 export const CreateAclRequest: MessageFns<CreateAclRequest> = {
@@ -744,9 +714,6 @@ export const CreateAclRequest: MessageFns<CreateAclRequest> = {
     writer.join();
     if (message.ports !== "") {
       writer.uint32(50).string(message.ports);
-    }
-    if (message.action !== 0) {
-      writer.uint32(56).int32(message.action);
     }
     return writer;
   },
@@ -810,13 +777,6 @@ export const CreateAclRequest: MessageFns<CreateAclRequest> = {
 
           message.ports = reader.string();
           continue;
-        case 7:
-          if (tag !== 56) {
-            break;
-          }
-
-          message.action = reader.int32() as any;
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -834,7 +794,6 @@ export const CreateAclRequest: MessageFns<CreateAclRequest> = {
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
-      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
     };
   },
 
@@ -858,9 +817,6 @@ export const CreateAclRequest: MessageFns<CreateAclRequest> = {
     if (message.ports !== "") {
       obj.ports = message.ports;
     }
-    if (message.action !== 0) {
-      obj.action = actionToJSON(message.action);
-    }
     return obj;
   },
 
@@ -875,7 +831,6 @@ export const CreateAclRequest: MessageFns<CreateAclRequest> = {
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.ipProto = object.ipProto?.map((e) => e) || [];
     message.ports = object.ports ?? "";
-    message.action = object.action ?? 0;
     return message;
   },
 };
@@ -982,7 +937,7 @@ export const AclResources: MessageFns<AclResources> = {
 };
 
 function createBasePatchAclRequest(): PatchAclRequest {
-  return { id: "", name: "", desc: "", src: [], dst: [], ipProto: [], ports: "", action: 0 };
+  return { id: "", name: undefined, desc: undefined, src: [], dst: [], ipProto: [], ports: undefined };
 }
 
 export const PatchAclRequest: MessageFns<PatchAclRequest> = {
@@ -990,10 +945,10 @@ export const PatchAclRequest: MessageFns<PatchAclRequest> = {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
-    if (message.name !== "") {
+    if (message.name !== undefined) {
       writer.uint32(18).string(message.name);
     }
-    if (message.desc !== "") {
+    if (message.desc !== undefined) {
       writer.uint32(26).string(message.desc);
     }
     for (const v of message.src) {
@@ -1007,11 +962,8 @@ export const PatchAclRequest: MessageFns<PatchAclRequest> = {
       writer.int32(v);
     }
     writer.join();
-    if (message.ports !== "") {
+    if (message.ports !== undefined) {
       writer.uint32(58).string(message.ports);
-    }
-    if (message.action !== 0) {
-      writer.uint32(64).int32(message.action);
     }
     return writer;
   },
@@ -1082,13 +1034,6 @@ export const PatchAclRequest: MessageFns<PatchAclRequest> = {
 
           message.ports = reader.string();
           continue;
-        case 8:
-          if (tag !== 64) {
-            break;
-          }
-
-          message.action = reader.int32() as any;
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1101,13 +1046,12 @@ export const PatchAclRequest: MessageFns<PatchAclRequest> = {
   fromJSON(object: any): PatchAclRequest {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : undefined,
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : undefined,
       src: globalThis.Array.isArray(object?.src) ? object.src.map((e: any) => AclResources.fromJSON(e)) : [],
       dst: globalThis.Array.isArray(object?.dst) ? object.dst.map((e: any) => AclResources.fromJSON(e)) : [],
       ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
-      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
-      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : undefined,
     };
   },
 
@@ -1116,10 +1060,10 @@ export const PatchAclRequest: MessageFns<PatchAclRequest> = {
     if (message.id !== "") {
       obj.id = message.id;
     }
-    if (message.name !== "") {
+    if (message.name !== undefined) {
       obj.name = message.name;
     }
-    if (message.desc !== "") {
+    if (message.desc !== undefined) {
       obj.desc = message.desc;
     }
     if (message.src?.length) {
@@ -1131,11 +1075,8 @@ export const PatchAclRequest: MessageFns<PatchAclRequest> = {
     if (message.ipProto?.length) {
       obj.ipProto = message.ipProto.map((e) => iPProtoToJSON(e));
     }
-    if (message.ports !== "") {
+    if (message.ports !== undefined) {
       obj.ports = message.ports;
-    }
-    if (message.action !== 0) {
-      obj.action = actionToJSON(message.action);
     }
     return obj;
   },
@@ -1146,13 +1087,12 @@ export const PatchAclRequest: MessageFns<PatchAclRequest> = {
   fromPartial<I extends Exact<DeepPartial<PatchAclRequest>, I>>(object: I): PatchAclRequest {
     const message = createBasePatchAclRequest();
     message.id = object.id ?? "";
-    message.name = object.name ?? "";
-    message.desc = object.desc ?? "";
+    message.name = object.name ?? undefined;
+    message.desc = object.desc ?? undefined;
     message.src = object.src?.map((e) => AclResources.fromPartial(e)) || [];
     message.dst = object.dst?.map((e) => AclResources.fromPartial(e)) || [];
     message.ipProto = object.ipProto?.map((e) => e) || [];
-    message.ports = object.ports ?? "";
-    message.action = object.action ?? 0;
+    message.ports = object.ports ?? undefined;
     return message;
   },
 };
@@ -1624,13 +1564,13 @@ export const GetMeResponse: MessageFns<GetMeResponse> = {
 };
 
 function createBaseGetUserRequest(): GetUserRequest {
-  return { id: 0 };
+  return { nodeId: 0 };
 }
 
 export const GetUserRequest: MessageFns<GetUserRequest> = {
   encode(message: GetUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
     }
     return writer;
   },
@@ -1647,7 +1587,7 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
             break;
           }
 
-          message.id = longToNumber(reader.uint64());
+          message.nodeId = longToNumber(reader.uint64());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1659,13 +1599,13 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
   },
 
   fromJSON(object: any): GetUserRequest {
-    return { id: isSet(object.id) ? globalThis.Number(object.id) : 0 };
+    return { nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0 };
   },
 
   toJSON(message: GetUserRequest): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
     }
     return obj;
   },
@@ -1675,7 +1615,7 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetUserRequest>, I>>(object: I): GetUserRequest {
     const message = createBaseGetUserRequest();
-    message.id = object.id ?? 0;
+    message.nodeId = object.nodeId ?? 0;
     return message;
   },
 };
@@ -2042,7 +1982,7 @@ export const UserWithPicture: MessageFns<UserWithPicture> = {
 };
 
 function createBasePatchGroupRequest(): PatchGroupRequest {
-  return { id: "", name: "", desc: "", nodeIds: [] };
+  return { id: "", name: undefined, desc: undefined, nodeIds: [] };
 }
 
 export const PatchGroupRequest: MessageFns<PatchGroupRequest> = {
@@ -2050,10 +1990,10 @@ export const PatchGroupRequest: MessageFns<PatchGroupRequest> = {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
-    if (message.name !== "") {
+    if (message.name !== undefined) {
       writer.uint32(18).string(message.name);
     }
-    if (message.desc !== "") {
+    if (message.desc !== undefined) {
       writer.uint32(26).string(message.desc);
     }
     writer.uint32(34).fork();
@@ -2121,8 +2061,8 @@ export const PatchGroupRequest: MessageFns<PatchGroupRequest> = {
   fromJSON(object: any): PatchGroupRequest {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : undefined,
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : undefined,
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
     };
   },
@@ -2132,10 +2072,10 @@ export const PatchGroupRequest: MessageFns<PatchGroupRequest> = {
     if (message.id !== "") {
       obj.id = message.id;
     }
-    if (message.name !== "") {
+    if (message.name !== undefined) {
       obj.name = message.name;
     }
-    if (message.desc !== "") {
+    if (message.desc !== undefined) {
       obj.desc = message.desc;
     }
     if (message.nodeIds?.length) {
@@ -2150,29 +2090,29 @@ export const PatchGroupRequest: MessageFns<PatchGroupRequest> = {
   fromPartial<I extends Exact<DeepPartial<PatchGroupRequest>, I>>(object: I): PatchGroupRequest {
     const message = createBasePatchGroupRequest();
     message.id = object.id ?? "";
-    message.name = object.name ?? "";
-    message.desc = object.desc ?? "";
+    message.name = object.name ?? undefined;
+    message.desc = object.desc ?? undefined;
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
     return message;
   },
 };
 
-function createBaseGetDevicesRequest(): GetDevicesRequest {
-  return { id: 0 };
+function createBaseGetDeviceRequest(): GetDeviceRequest {
+  return { nodeId: 0 };
 }
 
-export const GetDevicesRequest: MessageFns<GetDevicesRequest> = {
-  encode(message: GetDevicesRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
+export const GetDeviceRequest: MessageFns<GetDeviceRequest> = {
+  encode(message: GetDeviceRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GetDevicesRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): GetDeviceRequest {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetDevicesRequest();
+    const message = createBaseGetDeviceRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -2181,7 +2121,7 @@ export const GetDevicesRequest: MessageFns<GetDevicesRequest> = {
             break;
           }
 
-          message.id = longToNumber(reader.uint64());
+          message.nodeId = longToNumber(reader.uint64());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -2192,24 +2132,24 @@ export const GetDevicesRequest: MessageFns<GetDevicesRequest> = {
     return message;
   },
 
-  fromJSON(object: any): GetDevicesRequest {
-    return { id: isSet(object.id) ? globalThis.Number(object.id) : 0 };
+  fromJSON(object: any): GetDeviceRequest {
+    return { nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0 };
   },
 
-  toJSON(message: GetDevicesRequest): unknown {
+  toJSON(message: GetDeviceRequest): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<GetDevicesRequest>, I>>(base?: I): GetDevicesRequest {
-    return GetDevicesRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<GetDeviceRequest>, I>>(base?: I): GetDeviceRequest {
+    return GetDeviceRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<GetDevicesRequest>, I>>(object: I): GetDevicesRequest {
-    const message = createBaseGetDevicesRequest();
-    message.id = object.id ?? 0;
+  fromPartial<I extends Exact<DeepPartial<GetDeviceRequest>, I>>(object: I): GetDeviceRequest {
+    const message = createBaseGetDeviceRequest();
+    message.nodeId = object.nodeId ?? 0;
     return message;
   },
 };
@@ -2432,7 +2372,7 @@ export const GetInkRequest: MessageFns<GetInkRequest> = {
 };
 
 function createBasePatchInkRequest(): PatchInkRequest {
-  return { id: "", name: "", desc: "", nodeIds: [] };
+  return { id: "", name: undefined, desc: undefined, nodeIds: [] };
 }
 
 export const PatchInkRequest: MessageFns<PatchInkRequest> = {
@@ -2440,10 +2380,10 @@ export const PatchInkRequest: MessageFns<PatchInkRequest> = {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
-    if (message.name !== "") {
+    if (message.name !== undefined) {
       writer.uint32(18).string(message.name);
     }
-    if (message.desc !== "") {
+    if (message.desc !== undefined) {
       writer.uint32(26).string(message.desc);
     }
     writer.uint32(34).fork();
@@ -2511,8 +2451,8 @@ export const PatchInkRequest: MessageFns<PatchInkRequest> = {
   fromJSON(object: any): PatchInkRequest {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : undefined,
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : undefined,
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
     };
   },
@@ -2522,10 +2462,10 @@ export const PatchInkRequest: MessageFns<PatchInkRequest> = {
     if (message.id !== "") {
       obj.id = message.id;
     }
-    if (message.name !== "") {
+    if (message.name !== undefined) {
       obj.name = message.name;
     }
-    if (message.desc !== "") {
+    if (message.desc !== undefined) {
       obj.desc = message.desc;
     }
     if (message.nodeIds?.length) {
@@ -2540,8 +2480,8 @@ export const PatchInkRequest: MessageFns<PatchInkRequest> = {
   fromPartial<I extends Exact<DeepPartial<PatchInkRequest>, I>>(object: I): PatchInkRequest {
     const message = createBasePatchInkRequest();
     message.id = object.id ?? "";
-    message.name = object.name ?? "";
-    message.desc = object.desc ?? "";
+    message.name = object.name ?? undefined;
+    message.desc = object.desc ?? undefined;
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
     return message;
   },
@@ -3759,7 +3699,7 @@ export const Fleets: MessageFns<Fleets> = {
 };
 
 function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { id: "", name: "", desc: "", nodeIds: [], platform: 0, action: 0, ports: "" };
+  return { id: "", name: undefined, desc: undefined, nodeIds: [], platform: undefined, ports: undefined };
 }
 
 export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
@@ -3767,10 +3707,10 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
-    if (message.name !== "") {
+    if (message.name !== undefined) {
       writer.uint32(18).string(message.name);
     }
-    if (message.desc !== "") {
+    if (message.desc !== undefined) {
       writer.uint32(26).string(message.desc);
     }
     writer.uint32(34).fork();
@@ -3778,14 +3718,11 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
       writer.uint64(v);
     }
     writer.join();
-    if (message.platform !== 0) {
+    if (message.platform !== undefined) {
       writer.uint32(40).int32(message.platform);
     }
-    if (message.action !== 0) {
-      writer.uint32(48).int32(message.action);
-    }
-    if (message.ports !== "") {
-      writer.uint32(58).string(message.ports);
+    if (message.ports !== undefined) {
+      writer.uint32(50).string(message.ports);
     }
     return writer;
   },
@@ -3843,14 +3780,7 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
           message.platform = reader.int32() as any;
           continue;
         case 6:
-          if (tag !== 48) {
-            break;
-          }
-
-          message.action = reader.int32() as any;
-          continue;
-        case 7:
-          if (tag !== 58) {
+          if (tag !== 50) {
             break;
           }
 
@@ -3868,12 +3798,11 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
   fromJSON(object: any): PatchFleetRequest {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : undefined,
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : undefined,
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
-      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
-      action: isSet(object.action) ? actionFromJSON(object.action) : 0,
-      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : undefined,
+      ports: isSet(object.ports) ? globalThis.String(object.ports) : undefined,
     };
   },
 
@@ -3882,22 +3811,19 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
     if (message.id !== "") {
       obj.id = message.id;
     }
-    if (message.name !== "") {
+    if (message.name !== undefined) {
       obj.name = message.name;
     }
-    if (message.desc !== "") {
+    if (message.desc !== undefined) {
       obj.desc = message.desc;
     }
     if (message.nodeIds?.length) {
       obj.nodeIds = message.nodeIds.map((e) => Math.round(e));
     }
-    if (message.platform !== 0) {
+    if (message.platform !== undefined) {
       obj.platform = platformToJSON(message.platform);
     }
-    if (message.action !== 0) {
-      obj.action = actionToJSON(message.action);
-    }
-    if (message.ports !== "") {
+    if (message.ports !== undefined) {
       obj.ports = message.ports;
     }
     return obj;
@@ -3909,12 +3835,11 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
   fromPartial<I extends Exact<DeepPartial<PatchFleetRequest>, I>>(object: I): PatchFleetRequest {
     const message = createBasePatchFleetRequest();
     message.id = object.id ?? "";
-    message.name = object.name ?? "";
-    message.desc = object.desc ?? "";
+    message.name = object.name ?? undefined;
+    message.desc = object.desc ?? undefined;
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
-    message.platform = object.platform ?? 0;
-    message.action = object.action ?? 0;
-    message.ports = object.ports ?? "";
+    message.platform = object.platform ?? undefined;
+    message.ports = object.ports ?? undefined;
     return message;
   },
 };
@@ -4217,7 +4142,7 @@ export const CreateSubnetLinkerRequest: MessageFns<CreateSubnetLinkerRequest> = 
 };
 
 function createBasePatchSubnetLinkerRequest(): PatchSubnetLinkerRequest {
-  return { id: "", name: "", desc: "", advertisedRoutes: [] };
+  return { id: "", name: undefined, desc: undefined, advertisedRoutes: [] };
 }
 
 export const PatchSubnetLinkerRequest: MessageFns<PatchSubnetLinkerRequest> = {
@@ -4225,10 +4150,10 @@ export const PatchSubnetLinkerRequest: MessageFns<PatchSubnetLinkerRequest> = {
     if (message.id !== "") {
       writer.uint32(10).string(message.id);
     }
-    if (message.name !== "") {
+    if (message.name !== undefined) {
       writer.uint32(18).string(message.name);
     }
-    if (message.desc !== "") {
+    if (message.desc !== undefined) {
       writer.uint32(26).string(message.desc);
     }
     for (const v of message.advertisedRoutes) {
@@ -4284,8 +4209,8 @@ export const PatchSubnetLinkerRequest: MessageFns<PatchSubnetLinkerRequest> = {
   fromJSON(object: any): PatchSubnetLinkerRequest {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
-      name: isSet(object.name) ? globalThis.String(object.name) : "",
-      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : undefined,
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : undefined,
       advertisedRoutes: globalThis.Array.isArray(object?.advertisedRoutes)
         ? object.advertisedRoutes.map((e: any) => globalThis.String(e))
         : [],
@@ -4297,10 +4222,10 @@ export const PatchSubnetLinkerRequest: MessageFns<PatchSubnetLinkerRequest> = {
     if (message.id !== "") {
       obj.id = message.id;
     }
-    if (message.name !== "") {
+    if (message.name !== undefined) {
       obj.name = message.name;
     }
-    if (message.desc !== "") {
+    if (message.desc !== undefined) {
       obj.desc = message.desc;
     }
     if (message.advertisedRoutes?.length) {
@@ -4315,8 +4240,8 @@ export const PatchSubnetLinkerRequest: MessageFns<PatchSubnetLinkerRequest> = {
   fromPartial<I extends Exact<DeepPartial<PatchSubnetLinkerRequest>, I>>(object: I): PatchSubnetLinkerRequest {
     const message = createBasePatchSubnetLinkerRequest();
     message.id = object.id ?? "";
-    message.name = object.name ?? "";
-    message.desc = object.desc ?? "";
+    message.name = object.name ?? undefined;
+    message.desc = object.desc ?? undefined;
     message.advertisedRoutes = object.advertisedRoutes?.map((e) => e) || [];
     return message;
   },
@@ -5609,7 +5534,6 @@ export const Group: MessageFns<Group> = {
 
 function createBaseUser(): User {
   return {
-    id: 0,
     nodeId: 0,
     name: "",
     picture: "",
@@ -5628,47 +5552,44 @@ function createBaseUser(): User {
 
 export const User: MessageFns<User> = {
   encode(message: User, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
-    }
     if (message.nodeId !== 0) {
-      writer.uint32(16).uint64(message.nodeId);
+      writer.uint32(8).uint64(message.nodeId);
     }
     if (message.name !== "") {
-      writer.uint32(26).string(message.name);
+      writer.uint32(18).string(message.name);
     }
     if (message.picture !== "") {
-      writer.uint32(34).string(message.picture);
+      writer.uint32(26).string(message.picture);
     }
     if (message.email !== "") {
-      writer.uint32(42).string(message.email);
+      writer.uint32(34).string(message.email);
     }
     if (message.role !== "") {
-      writer.uint32(50).string(message.role);
+      writer.uint32(42).string(message.role);
     }
     if (message.joined !== "") {
-      writer.uint32(58).string(message.joined);
+      writer.uint32(50).string(message.joined);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(66).string(message.lastSeen);
+      writer.uint32(58).string(message.lastSeen);
     }
     if (message.status !== false) {
-      writer.uint32(72).bool(message.status);
+      writer.uint32(64).bool(message.status);
     }
     for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(82).fork()).join();
+      Group.encode(v!, writer.uint32(74).fork()).join();
     }
     for (const v of message.devices) {
-      Device.encode(v!, writer.uint32(90).fork()).join();
+      Device.encode(v!, writer.uint32(82).fork()).join();
     }
     for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(98).fork()).join();
+      Resource.encode(v!, writer.uint32(90).fork()).join();
     }
     for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(106).fork()).join();
+      Fleet.encode(v!, writer.uint32(98).fork()).join();
     }
     for (const v of message.inks) {
-      Ink.encode(v!, writer.uint32(114).fork()).join();
+      Ink.encode(v!, writer.uint32(106).fork()).join();
     }
     return writer;
   },
@@ -5685,94 +5606,87 @@ export const User: MessageFns<User> = {
             break;
           }
 
-          message.id = longToNumber(reader.uint64());
+          message.nodeId = longToNumber(reader.uint64());
           continue;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.nodeId = longToNumber(reader.uint64());
+          message.name = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.name = reader.string();
+          message.picture = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.picture = reader.string();
+          message.email = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.email = reader.string();
+          message.role = reader.string();
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.role = reader.string();
+          message.joined = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.joined = reader.string();
-          continue;
-        case 8:
-          if (tag !== 66) {
-            break;
-          }
-
           message.lastSeen = reader.string();
           continue;
-        case 9:
-          if (tag !== 72) {
+        case 8:
+          if (tag !== 64) {
             break;
           }
 
           message.status = reader.bool();
+          continue;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.groups.push(Group.decode(reader, reader.uint32()));
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.groups.push(Group.decode(reader, reader.uint32()));
+          message.devices.push(Device.decode(reader, reader.uint32()));
           continue;
         case 11:
           if (tag !== 90) {
             break;
           }
 
-          message.devices.push(Device.decode(reader, reader.uint32()));
+          message.resources.push(Resource.decode(reader, reader.uint32()));
           continue;
         case 12:
           if (tag !== 98) {
             break;
           }
 
-          message.resources.push(Resource.decode(reader, reader.uint32()));
+          message.fleets.push(Fleet.decode(reader, reader.uint32()));
           continue;
         case 13:
           if (tag !== 106) {
-            break;
-          }
-
-          message.fleets.push(Fleet.decode(reader, reader.uint32()));
-          continue;
-        case 14:
-          if (tag !== 114) {
             break;
           }
 
@@ -5789,7 +5703,6 @@ export const User: MessageFns<User> = {
 
   fromJSON(object: any): User {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
@@ -5810,9 +5723,6 @@ export const User: MessageFns<User> = {
 
   toJSON(message: User): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
-    }
     if (message.nodeId !== 0) {
       obj.nodeId = Math.round(message.nodeId);
     }
@@ -5860,7 +5770,6 @@ export const User: MessageFns<User> = {
   },
   fromPartial<I extends Exact<DeepPartial<User>, I>>(object: I): User {
     const message = createBaseUser();
-    message.id = object.id ?? 0;
     message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.picture = object.picture ?? "";
@@ -5880,7 +5789,6 @@ export const User: MessageFns<User> = {
 
 function createBaseDevice(): Device {
   return {
-    id: 0,
     nodeId: 0,
     name: "",
     email: "",
@@ -5899,47 +5807,44 @@ function createBaseDevice(): Device {
 
 export const Device: MessageFns<Device> = {
   encode(message: Device, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
-    }
     if (message.nodeId !== 0) {
-      writer.uint32(16).uint64(message.nodeId);
+      writer.uint32(8).uint64(message.nodeId);
     }
     if (message.name !== "") {
-      writer.uint32(26).string(message.name);
+      writer.uint32(18).string(message.name);
     }
     if (message.email !== "") {
-      writer.uint32(34).string(message.email);
+      writer.uint32(26).string(message.email);
     }
     if (message.ip !== "") {
-      writer.uint32(42).string(message.ip);
+      writer.uint32(34).string(message.ip);
     }
     if (message.ports !== "") {
-      writer.uint32(50).string(message.ports);
+      writer.uint32(42).string(message.ports);
     }
     if (message.os !== "") {
-      writer.uint32(58).string(message.os);
+      writer.uint32(50).string(message.os);
     }
     if (message.status !== false) {
-      writer.uint32(64).bool(message.status);
+      writer.uint32(56).bool(message.status);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(74).string(message.lastSeen);
+      writer.uint32(66).string(message.lastSeen);
     }
     if (message.createdBy !== "") {
-      writer.uint32(82).string(message.createdBy);
+      writer.uint32(74).string(message.createdBy);
     }
     if (message.version !== "") {
-      writer.uint32(90).string(message.version);
+      writer.uint32(82).string(message.version);
     }
     if (message.nodeKey !== "") {
-      writer.uint32(98).string(message.nodeKey);
+      writer.uint32(90).string(message.nodeKey);
     }
     if (message.createdAt !== "") {
-      writer.uint32(106).string(message.createdAt);
+      writer.uint32(98).string(message.createdAt);
     }
     if (message.keyExpiry !== "") {
-      writer.uint32(114).string(message.keyExpiry);
+      writer.uint32(106).string(message.keyExpiry);
     }
     return writer;
   },
@@ -5956,94 +5861,87 @@ export const Device: MessageFns<Device> = {
             break;
           }
 
-          message.id = longToNumber(reader.uint64());
+          message.nodeId = longToNumber(reader.uint64());
           continue;
         case 2:
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.nodeId = longToNumber(reader.uint64());
+          message.name = reader.string();
           continue;
         case 3:
           if (tag !== 26) {
             break;
           }
 
-          message.name = reader.string();
+          message.email = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
             break;
           }
 
-          message.email = reader.string();
+          message.ip = reader.string();
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.ip = reader.string();
+          message.ports = reader.string();
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.ports = reader.string();
-          continue;
-        case 7:
-          if (tag !== 58) {
-            break;
-          }
-
           message.os = reader.string();
           continue;
-        case 8:
-          if (tag !== 64) {
+        case 7:
+          if (tag !== 56) {
             break;
           }
 
           message.status = reader.bool();
+          continue;
+        case 8:
+          if (tag !== 66) {
+            break;
+          }
+
+          message.lastSeen = reader.string();
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.lastSeen = reader.string();
+          message.createdBy = reader.string();
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.createdBy = reader.string();
+          message.version = reader.string();
           continue;
         case 11:
           if (tag !== 90) {
             break;
           }
 
-          message.version = reader.string();
+          message.nodeKey = reader.string();
           continue;
         case 12:
           if (tag !== 98) {
             break;
           }
 
-          message.nodeKey = reader.string();
+          message.createdAt = reader.string();
           continue;
         case 13:
           if (tag !== 106) {
-            break;
-          }
-
-          message.createdAt = reader.string();
-          continue;
-        case 14:
-          if (tag !== 114) {
             break;
           }
 
@@ -6060,7 +5958,6 @@ export const Device: MessageFns<Device> = {
 
   fromJSON(object: any): Device {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
@@ -6079,9 +5976,6 @@ export const Device: MessageFns<Device> = {
 
   toJSON(message: Device): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
-    }
     if (message.nodeId !== 0) {
       obj.nodeId = Math.round(message.nodeId);
     }
@@ -6129,7 +6023,6 @@ export const Device: MessageFns<Device> = {
   },
   fromPartial<I extends Exact<DeepPartial<Device>, I>>(object: I): Device {
     const message = createBaseDevice();
-    message.id = object.id ?? 0;
     message.nodeId = object.nodeId ?? 0;
     message.name = object.name ?? "";
     message.email = object.email ?? "";
@@ -6163,7 +6056,7 @@ export interface AdminService {
   GetGroups(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Groups>;
   PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<Group>;
   /** devices */
-  GetDevice(request: DeepPartial<GetDevicesRequest>, metadata?: grpc.Metadata): Promise<Device>;
+  GetDevice(request: DeepPartial<GetDeviceRequest>, metadata?: grpc.Metadata): Promise<Device>;
   GetDevices(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Devices>;
   /** resources */
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
@@ -6291,8 +6184,8 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServicePatchGroupDesc, PatchGroupRequest.fromPartial(request), metadata);
   }
 
-  GetDevice(request: DeepPartial<GetDevicesRequest>, metadata?: grpc.Metadata): Promise<Device> {
-    return this.rpc.unary(AdminServiceGetDeviceDesc, GetDevicesRequest.fromPartial(request), metadata);
+  GetDevice(request: DeepPartial<GetDeviceRequest>, metadata?: grpc.Metadata): Promise<Device> {
+    return this.rpc.unary(AdminServiceGetDeviceDesc, GetDeviceRequest.fromPartial(request), metadata);
   }
 
   GetDevices(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Devices> {
@@ -6673,7 +6566,7 @@ export const AdminServiceGetDeviceDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return GetDevicesRequest.encode(this).finish();
+      return GetDeviceRequest.encode(this).finish();
     },
   } as any,
   responseType: {
