@@ -365,7 +365,7 @@ export interface AclResponse {
   ipProto: IPProto[];
   ports: string;
   age: string;
-  nodeType: string;
+  aclType: string;
 }
 
 export interface GetMeResponse {
@@ -578,6 +578,8 @@ export interface Linker {
   id: string;
   linkerType: LinkerType;
   nodeId: number;
+  /** minor change 0.0.1 currently device or resource */
+  nodeType: NodeType;
   name: string;
   email: string;
   domain: string;
@@ -1269,7 +1271,7 @@ export const GetAclsJsonResponse: MessageFns<GetAclsJsonResponse> = {
 };
 
 function createBaseAclResponse(): AclResponse {
-  return { id: "", name: "", desc: "", src: undefined, dst: undefined, ipProto: [], ports: "", age: "", nodeType: "" };
+  return { id: "", name: "", desc: "", src: undefined, dst: undefined, ipProto: [], ports: "", age: "", aclType: "" };
 }
 
 export const AclResponse: MessageFns<AclResponse> = {
@@ -1300,8 +1302,8 @@ export const AclResponse: MessageFns<AclResponse> = {
     if (message.age !== "") {
       writer.uint32(66).string(message.age);
     }
-    if (message.nodeType !== "") {
-      writer.uint32(74).string(message.nodeType);
+    if (message.aclType !== "") {
+      writer.uint32(74).string(message.aclType);
     }
     return writer;
   },
@@ -1384,7 +1386,7 @@ export const AclResponse: MessageFns<AclResponse> = {
             break;
           }
 
-          message.nodeType = reader.string();
+          message.aclType = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -1405,7 +1407,7 @@ export const AclResponse: MessageFns<AclResponse> = {
       ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
       ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
       age: isSet(object.age) ? globalThis.String(object.age) : "",
-      nodeType: isSet(object.nodeType) ? globalThis.String(object.nodeType) : "",
+      aclType: isSet(object.aclType) ? globalThis.String(object.aclType) : "",
     };
   },
 
@@ -1435,8 +1437,8 @@ export const AclResponse: MessageFns<AclResponse> = {
     if (message.age !== "") {
       obj.age = message.age;
     }
-    if (message.nodeType !== "") {
-      obj.nodeType = message.nodeType;
+    if (message.aclType !== "") {
+      obj.aclType = message.aclType;
     }
     return obj;
   },
@@ -1454,7 +1456,7 @@ export const AclResponse: MessageFns<AclResponse> = {
     message.ipProto = object.ipProto?.map((e) => e) || [];
     message.ports = object.ports ?? "";
     message.age = object.age ?? "";
-    message.nodeType = object.nodeType ?? "";
+    message.aclType = object.aclType ?? "";
     return message;
   },
 };
@@ -4311,6 +4313,7 @@ function createBaseLinker(): Linker {
     id: "",
     linkerType: 0,
     nodeId: 0,
+    nodeType: 0,
     name: "",
     email: "",
     domain: "",
@@ -4337,41 +4340,44 @@ export const Linker: MessageFns<Linker> = {
     if (message.nodeId !== 0) {
       writer.uint32(24).uint64(message.nodeId);
     }
+    if (message.nodeType !== 0) {
+      writer.uint32(32).int32(message.nodeType);
+    }
     if (message.name !== "") {
-      writer.uint32(34).string(message.name);
+      writer.uint32(42).string(message.name);
     }
     if (message.email !== "") {
-      writer.uint32(42).string(message.email);
+      writer.uint32(50).string(message.email);
     }
     if (message.domain !== "") {
-      writer.uint32(50).string(message.domain);
+      writer.uint32(58).string(message.domain);
     }
     if (message.ip !== "") {
-      writer.uint32(58).string(message.ip);
+      writer.uint32(66).string(message.ip);
     }
     for (const v of message.advertisedRoutes) {
-      writer.uint32(66).string(v!);
+      writer.uint32(74).string(v!);
     }
     if (message.host !== "") {
-      writer.uint32(74).string(message.host);
+      writer.uint32(82).string(message.host);
     }
     if (message.os !== "") {
-      writer.uint32(82).string(message.os);
+      writer.uint32(90).string(message.os);
     }
     if (message.nodeKey !== "") {
-      writer.uint32(90).string(message.nodeKey);
+      writer.uint32(98).string(message.nodeKey);
     }
     if (message.platform !== 0) {
-      writer.uint32(96).int32(message.platform);
+      writer.uint32(104).int32(message.platform);
     }
     if (message.createdBy !== "") {
-      writer.uint32(106).string(message.createdBy);
+      writer.uint32(114).string(message.createdBy);
     }
     if (message.createdAt !== "") {
-      writer.uint32(114).string(message.createdAt);
+      writer.uint32(122).string(message.createdAt);
     }
     if (message.status !== false) {
-      writer.uint32(120).bool(message.status);
+      writer.uint32(128).bool(message.status);
     }
     return writer;
   },
@@ -4405,84 +4411,91 @@ export const Linker: MessageFns<Linker> = {
           message.nodeId = longToNumber(reader.uint64());
           continue;
         case 4:
-          if (tag !== 34) {
+          if (tag !== 32) {
             break;
           }
 
-          message.name = reader.string();
+          message.nodeType = reader.int32() as any;
           continue;
         case 5:
           if (tag !== 42) {
             break;
           }
 
-          message.email = reader.string();
+          message.name = reader.string();
           continue;
         case 6:
           if (tag !== 50) {
             break;
           }
 
-          message.domain = reader.string();
+          message.email = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.ip = reader.string();
+          message.domain = reader.string();
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.advertisedRoutes.push(reader.string());
+          message.ip = reader.string();
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.host = reader.string();
+          message.advertisedRoutes.push(reader.string());
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.os = reader.string();
+          message.host = reader.string();
           continue;
         case 11:
           if (tag !== 90) {
             break;
           }
 
-          message.nodeKey = reader.string();
+          message.os = reader.string();
           continue;
         case 12:
-          if (tag !== 96) {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.nodeKey = reader.string();
+          continue;
+        case 13:
+          if (tag !== 104) {
             break;
           }
 
           message.platform = reader.int32() as any;
-          continue;
-        case 13:
-          if (tag !== 106) {
-            break;
-          }
-
-          message.createdBy = reader.string();
           continue;
         case 14:
           if (tag !== 114) {
             break;
           }
 
-          message.createdAt = reader.string();
+          message.createdBy = reader.string();
           continue;
         case 15:
-          if (tag !== 120) {
+          if (tag !== 122) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        case 16:
+          if (tag !== 128) {
             break;
           }
 
@@ -4502,6 +4515,7 @@ export const Linker: MessageFns<Linker> = {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       linkerType: isSet(object.linkerType) ? linkerTypeFromJSON(object.linkerType) : 0,
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
+      nodeType: isSet(object.nodeType) ? nodeTypeFromJSON(object.nodeType) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
@@ -4529,6 +4543,9 @@ export const Linker: MessageFns<Linker> = {
     }
     if (message.nodeId !== 0) {
       obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.nodeType !== 0) {
+      obj.nodeType = nodeTypeToJSON(message.nodeType);
     }
     if (message.name !== "") {
       obj.name = message.name;
@@ -4577,6 +4594,7 @@ export const Linker: MessageFns<Linker> = {
     message.id = object.id ?? "";
     message.linkerType = object.linkerType ?? 0;
     message.nodeId = object.nodeId ?? 0;
+    message.nodeType = object.nodeType ?? 0;
     message.name = object.name ?? "";
     message.email = object.email ?? "";
     message.domain = object.domain ?? "";
