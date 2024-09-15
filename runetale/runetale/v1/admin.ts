@@ -379,6 +379,10 @@ export interface GetUserRequest {
   nodeId: number;
 }
 
+export interface GetUsersRequest {
+  groupId?: string | undefined;
+}
+
 export interface Users {
   users: User[];
 }
@@ -419,6 +423,11 @@ export interface PatchGroupRequest {
 export interface GetDeviceRequest {
   /** node id */
   nodeId: number;
+}
+
+export interface GetDevicesRequest {
+  /** このパラメータがある場合は、レスポンスから、そのidをひく */
+  inkId?: string | undefined;
 }
 
 export interface Devices {
@@ -504,6 +513,10 @@ export interface GetComposeNodeStatusResponse {
 
 export interface GetResourceRequest {
   id: string;
+}
+
+export interface GetResourcesRequest {
+  fleetId?: string | undefined;
 }
 
 export interface Resources {
@@ -649,7 +662,11 @@ export interface Resource {
   status: boolean;
   createdBy: string;
   isLinker: boolean;
-  linker?: Linker | undefined;
+  linker?:
+    | Linker
+    | undefined;
+  /** 属しているfleetが変える */
+  fleets: Fleet[];
 }
 
 export interface Group {
@@ -692,7 +709,11 @@ export interface Device {
   createdAt: string;
   keyExpiry: string;
   isLinker: boolean;
-  linker?: Linker | undefined;
+  linker?:
+    | Linker
+    | undefined;
+  /** deviceが属しているinks */
+  inks: Ink[];
 }
 
 function createBaseCreateAclRequest(): CreateAclRequest {
@@ -1626,6 +1647,63 @@ export const GetUserRequest: MessageFns<GetUserRequest> = {
   },
 };
 
+function createBaseGetUsersRequest(): GetUsersRequest {
+  return { groupId: undefined };
+}
+
+export const GetUsersRequest: MessageFns<GetUsersRequest> = {
+  encode(message: GetUsersRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.groupId !== undefined) {
+      writer.uint32(10).string(message.groupId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetUsersRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetUsersRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.groupId = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetUsersRequest {
+    return { groupId: isSet(object.groupId) ? globalThis.String(object.groupId) : undefined };
+  },
+
+  toJSON(message: GetUsersRequest): unknown {
+    const obj: any = {};
+    if (message.groupId !== undefined) {
+      obj.groupId = message.groupId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetUsersRequest>, I>>(base?: I): GetUsersRequest {
+    return GetUsersRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetUsersRequest>, I>>(object: I): GetUsersRequest {
+    const message = createBaseGetUsersRequest();
+    message.groupId = object.groupId ?? undefined;
+    return message;
+  },
+};
+
 function createBaseUsers(): Users {
   return { users: [] };
 }
@@ -2156,6 +2234,63 @@ export const GetDeviceRequest: MessageFns<GetDeviceRequest> = {
   fromPartial<I extends Exact<DeepPartial<GetDeviceRequest>, I>>(object: I): GetDeviceRequest {
     const message = createBaseGetDeviceRequest();
     message.nodeId = object.nodeId ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetDevicesRequest(): GetDevicesRequest {
+  return { inkId: undefined };
+}
+
+export const GetDevicesRequest: MessageFns<GetDevicesRequest> = {
+  encode(message: GetDevicesRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.inkId !== undefined) {
+      writer.uint32(10).string(message.inkId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetDevicesRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetDevicesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.inkId = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetDevicesRequest {
+    return { inkId: isSet(object.inkId) ? globalThis.String(object.inkId) : undefined };
+  },
+
+  toJSON(message: GetDevicesRequest): unknown {
+    const obj: any = {};
+    if (message.inkId !== undefined) {
+      obj.inkId = message.inkId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetDevicesRequest>, I>>(base?: I): GetDevicesRequest {
+    return GetDevicesRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetDevicesRequest>, I>>(object: I): GetDevicesRequest {
+    const message = createBaseGetDevicesRequest();
+    message.inkId = object.inkId ?? undefined;
     return message;
   },
 };
@@ -3394,6 +3529,63 @@ export const GetResourceRequest: MessageFns<GetResourceRequest> = {
   fromPartial<I extends Exact<DeepPartial<GetResourceRequest>, I>>(object: I): GetResourceRequest {
     const message = createBaseGetResourceRequest();
     message.id = object.id ?? "";
+    return message;
+  },
+};
+
+function createBaseGetResourcesRequest(): GetResourcesRequest {
+  return { fleetId: undefined };
+}
+
+export const GetResourcesRequest: MessageFns<GetResourcesRequest> = {
+  encode(message: GetResourcesRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.fleetId !== undefined) {
+      writer.uint32(10).string(message.fleetId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetResourcesRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetResourcesRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.fleetId = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetResourcesRequest {
+    return { fleetId: isSet(object.fleetId) ? globalThis.String(object.fleetId) : undefined };
+  },
+
+  toJSON(message: GetResourcesRequest): unknown {
+    const obj: any = {};
+    if (message.fleetId !== undefined) {
+      obj.fleetId = message.fleetId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetResourcesRequest>, I>>(base?: I): GetResourcesRequest {
+    return GetResourcesRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetResourcesRequest>, I>>(object: I): GetResourcesRequest {
+    const message = createBaseGetResourcesRequest();
+    message.fleetId = object.fleetId ?? undefined;
     return message;
   },
 };
@@ -5217,6 +5409,7 @@ function createBaseResource(): Resource {
     createdBy: "",
     isLinker: false,
     linker: undefined,
+    fleets: [],
   };
 }
 
@@ -5265,6 +5458,9 @@ export const Resource: MessageFns<Resource> = {
     }
     if (message.linker !== undefined) {
       Linker.encode(message.linker, writer.uint32(114).fork()).join();
+    }
+    for (const v of message.fleets) {
+      Fleet.encode(v!, writer.uint32(122).fork()).join();
     }
     return writer;
   },
@@ -5384,6 +5580,13 @@ export const Resource: MessageFns<Resource> = {
 
           message.linker = Linker.decode(reader, reader.uint32());
           continue;
+        case 15:
+          if (tag !== 122) {
+            break;
+          }
+
+          message.fleets.push(Fleet.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -5409,6 +5612,7 @@ export const Resource: MessageFns<Resource> = {
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
       isLinker: isSet(object.isLinker) ? globalThis.Boolean(object.isLinker) : false,
       linker: isSet(object.linker) ? Linker.fromJSON(object.linker) : undefined,
+      fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
     };
   },
 
@@ -5456,6 +5660,9 @@ export const Resource: MessageFns<Resource> = {
     if (message.linker !== undefined) {
       obj.linker = Linker.toJSON(message.linker);
     }
+    if (message.fleets?.length) {
+      obj.fleets = message.fleets.map((e) => Fleet.toJSON(e));
+    }
     return obj;
   },
 
@@ -5480,6 +5687,7 @@ export const Resource: MessageFns<Resource> = {
     message.linker = (object.linker !== undefined && object.linker !== null)
       ? Linker.fromPartial(object.linker)
       : undefined;
+    message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
     return message;
   },
 };
@@ -5860,6 +6068,7 @@ function createBaseDevice(): Device {
     keyExpiry: "",
     isLinker: false,
     linker: undefined,
+    inks: [],
   };
 }
 
@@ -5909,6 +6118,9 @@ export const Device: MessageFns<Device> = {
     }
     if (message.linker !== undefined) {
       Linker.encode(message.linker, writer.uint32(122).fork()).join();
+    }
+    for (const v of message.inks) {
+      Ink.encode(v!, writer.uint32(130).fork()).join();
     }
     return writer;
   },
@@ -6025,6 +6237,13 @@ export const Device: MessageFns<Device> = {
 
           message.linker = Linker.decode(reader, reader.uint32());
           continue;
+        case 16:
+          if (tag !== 130) {
+            break;
+          }
+
+          message.inks.push(Ink.decode(reader, reader.uint32()));
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -6051,6 +6270,7 @@ export const Device: MessageFns<Device> = {
       keyExpiry: isSet(object.keyExpiry) ? globalThis.String(object.keyExpiry) : "",
       isLinker: isSet(object.isLinker) ? globalThis.Boolean(object.isLinker) : false,
       linker: isSet(object.linker) ? Linker.fromJSON(object.linker) : undefined,
+      inks: globalThis.Array.isArray(object?.inks) ? object.inks.map((e: any) => Ink.fromJSON(e)) : [],
     };
   },
 
@@ -6101,6 +6321,9 @@ export const Device: MessageFns<Device> = {
     if (message.linker !== undefined) {
       obj.linker = Linker.toJSON(message.linker);
     }
+    if (message.inks?.length) {
+      obj.inks = message.inks.map((e) => Ink.toJSON(e));
+    }
     return obj;
   },
 
@@ -6126,6 +6349,7 @@ export const Device: MessageFns<Device> = {
     message.linker = (object.linker !== undefined && object.linker !== null)
       ? Linker.fromPartial(object.linker)
       : undefined;
+    message.inks = object.inks?.map((e) => Ink.fromPartial(e)) || [];
     return message;
   },
 };
@@ -6133,7 +6357,7 @@ export const Device: MessageFns<Device> = {
 export interface AdminService {
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse>;
   GetUser(request: DeepPartial<GetUserRequest>, metadata?: grpc.Metadata): Promise<User>;
-  GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Users>;
+  GetUsers(request: DeepPartial<GetUsersRequest>, metadata?: grpc.Metadata): Promise<Users>;
   /** acls */
   CreateAcl(request: DeepPartial<CreateAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
   GetAcl(request: DeepPartial<GetAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
@@ -6147,10 +6371,10 @@ export interface AdminService {
   PatchGroup(request: DeepPartial<PatchGroupRequest>, metadata?: grpc.Metadata): Promise<Group>;
   /** devices */
   GetDevice(request: DeepPartial<GetDeviceRequest>, metadata?: grpc.Metadata): Promise<Device>;
-  GetDevices(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Devices>;
+  GetDevices(request: DeepPartial<GetDevicesRequest>, metadata?: grpc.Metadata): Promise<Devices>;
   /** resources */
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource>;
-  GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources>;
+  GetResources(request: DeepPartial<GetResourcesRequest>, metadata?: grpc.Metadata): Promise<Resources>;
   /** compose keys */
   GenerateComposeKey(
     request: DeepPartial<GenerateComposeKeyRequest>,
@@ -6234,8 +6458,8 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGetUserDesc, GetUserRequest.fromPartial(request), metadata);
   }
 
-  GetUsers(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Users> {
-    return this.rpc.unary(AdminServiceGetUsersDesc, Empty.fromPartial(request), metadata);
+  GetUsers(request: DeepPartial<GetUsersRequest>, metadata?: grpc.Metadata): Promise<Users> {
+    return this.rpc.unary(AdminServiceGetUsersDesc, GetUsersRequest.fromPartial(request), metadata);
   }
 
   CreateAcl(request: DeepPartial<CreateAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse> {
@@ -6278,16 +6502,16 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceGetDeviceDesc, GetDeviceRequest.fromPartial(request), metadata);
   }
 
-  GetDevices(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Devices> {
-    return this.rpc.unary(AdminServiceGetDevicesDesc, Empty.fromPartial(request), metadata);
+  GetDevices(request: DeepPartial<GetDevicesRequest>, metadata?: grpc.Metadata): Promise<Devices> {
+    return this.rpc.unary(AdminServiceGetDevicesDesc, GetDevicesRequest.fromPartial(request), metadata);
   }
 
   GetResource(request: DeepPartial<GetResourceRequest>, metadata?: grpc.Metadata): Promise<Resource> {
     return this.rpc.unary(AdminServiceGetResourceDesc, GetResourceRequest.fromPartial(request), metadata);
   }
 
-  GetResources(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Resources> {
-    return this.rpc.unary(AdminServiceGetResourcesDesc, Empty.fromPartial(request), metadata);
+  GetResources(request: DeepPartial<GetResourcesRequest>, metadata?: grpc.Metadata): Promise<Resources> {
+    return this.rpc.unary(AdminServiceGetResourcesDesc, GetResourcesRequest.fromPartial(request), metadata);
   }
 
   GenerateComposeKey(
@@ -6426,7 +6650,7 @@ export const AdminServiceGetUsersDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return Empty.encode(this).finish();
+      return GetUsersRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -6679,7 +6903,7 @@ export const AdminServiceGetDevicesDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return Empty.encode(this).finish();
+      return GetDevicesRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -6725,7 +6949,7 @@ export const AdminServiceGetResourcesDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return Empty.encode(this).finish();
+      return GetResourcesRequest.encode(this).finish();
     },
   } as any,
   responseType: {
