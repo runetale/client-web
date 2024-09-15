@@ -172,6 +172,45 @@ export function linkerTypeToJSON(object: LinkerType): string {
   }
 }
 
+export enum UserRole {
+  OWNER = 0,
+  ADMIN = 1,
+  MEMBER = 2,
+  UNRECOGNIZED = -1,
+}
+
+export function userRoleFromJSON(object: any): UserRole {
+  switch (object) {
+    case 0:
+    case "OWNER":
+      return UserRole.OWNER;
+    case 1:
+    case "ADMIN":
+      return UserRole.ADMIN;
+    case 2:
+    case "MEMBER":
+      return UserRole.MEMBER;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return UserRole.UNRECOGNIZED;
+  }
+}
+
+export function userRoleToJSON(object: UserRole): string {
+  switch (object) {
+    case UserRole.OWNER:
+      return "OWNER";
+    case UserRole.ADMIN:
+      return "ADMIN";
+    case UserRole.MEMBER:
+      return "MEMBER";
+    case UserRole.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export enum ExpirelyTime {
   /** ONEMONTH - 30days */
   ONEMONTH = 0,
@@ -383,6 +422,11 @@ export interface GetUsersRequest {
   groupId?: string | undefined;
 }
 
+export interface PatchUserRequest {
+  id: string;
+  role: UserRole;
+}
+
 export interface Users {
   users: User[];
 }
@@ -572,6 +616,11 @@ export interface CreateSubnetLinkerRequest {
   desc: string;
   /** 192.168.0.0/24, 192.154.0.0/24 */
   advertisedRoutes: string[];
+}
+
+export interface GetSubnetLinkerConvertibleNodesResponse {
+  resources: Resource[];
+  devices: Device[];
 }
 
 export interface PatchSubnetLinkerRequest {
@@ -1714,6 +1763,80 @@ export const GetUsersRequest: MessageFns<GetUsersRequest> = {
   fromPartial<I extends Exact<DeepPartial<GetUsersRequest>, I>>(object: I): GetUsersRequest {
     const message = createBaseGetUsersRequest();
     message.groupId = object.groupId ?? undefined;
+    return message;
+  },
+};
+
+function createBasePatchUserRequest(): PatchUserRequest {
+  return { id: "", role: 0 };
+}
+
+export const PatchUserRequest: MessageFns<PatchUserRequest> = {
+  encode(message: PatchUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.role !== 0) {
+      writer.uint32(16).int32(message.role);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PatchUserRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePatchUserRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.role = reader.int32() as any;
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PatchUserRequest {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      role: isSet(object.role) ? userRoleFromJSON(object.role) : 0,
+    };
+  },
+
+  toJSON(message: PatchUserRequest): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.role !== 0) {
+      obj.role = userRoleToJSON(message.role);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PatchUserRequest>, I>>(base?: I): PatchUserRequest {
+    return PatchUserRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PatchUserRequest>, I>>(object: I): PatchUserRequest {
+    const message = createBasePatchUserRequest();
+    message.id = object.id ?? "";
+    message.role = object.role ?? 0;
     return message;
   },
 };
@@ -4380,6 +4503,86 @@ export const CreateSubnetLinkerRequest: MessageFns<CreateSubnetLinkerRequest> = 
   },
 };
 
+function createBaseGetSubnetLinkerConvertibleNodesResponse(): GetSubnetLinkerConvertibleNodesResponse {
+  return { resources: [], devices: [] };
+}
+
+export const GetSubnetLinkerConvertibleNodesResponse: MessageFns<GetSubnetLinkerConvertibleNodesResponse> = {
+  encode(message: GetSubnetLinkerConvertibleNodesResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.resources) {
+      Resource.encode(v!, writer.uint32(10).fork()).join();
+    }
+    for (const v of message.devices) {
+      Device.encode(v!, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetSubnetLinkerConvertibleNodesResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetSubnetLinkerConvertibleNodesResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.resources.push(Resource.decode(reader, reader.uint32()));
+          continue;
+        case 2:
+          if (tag !== 18) {
+            break;
+          }
+
+          message.devices.push(Device.decode(reader, reader.uint32()));
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetSubnetLinkerConvertibleNodesResponse {
+    return {
+      resources: globalThis.Array.isArray(object?.resources)
+        ? object.resources.map((e: any) => Resource.fromJSON(e))
+        : [],
+      devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: GetSubnetLinkerConvertibleNodesResponse): unknown {
+    const obj: any = {};
+    if (message.resources?.length) {
+      obj.resources = message.resources.map((e) => Resource.toJSON(e));
+    }
+    if (message.devices?.length) {
+      obj.devices = message.devices.map((e) => Device.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetSubnetLinkerConvertibleNodesResponse>, I>>(
+    base?: I,
+  ): GetSubnetLinkerConvertibleNodesResponse {
+    return GetSubnetLinkerConvertibleNodesResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetSubnetLinkerConvertibleNodesResponse>, I>>(
+    object: I,
+  ): GetSubnetLinkerConvertibleNodesResponse {
+    const message = createBaseGetSubnetLinkerConvertibleNodesResponse();
+    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
+    message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
+    return message;
+  },
+};
+
 function createBasePatchSubnetLinkerRequest(): PatchSubnetLinkerRequest {
   return { id: "", name: undefined, desc: undefined, advertisedRoutes: [] };
 }
@@ -6456,6 +6659,7 @@ export interface AdminService {
   GetMe(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<GetMeResponse>;
   GetUser(request: DeepPartial<GetUserRequest>, metadata?: grpc.Metadata): Promise<User>;
   GetUsers(request: DeepPartial<GetUsersRequest>, metadata?: grpc.Metadata): Promise<Users>;
+  PatchUser(request: DeepPartial<PatchUserRequest>, metadata?: grpc.Metadata): Promise<User>;
   /** acls */
   CreateAcl(request: DeepPartial<CreateAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
   GetAcl(request: DeepPartial<GetAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse>;
@@ -6503,6 +6707,10 @@ export interface AdminService {
     request: DeepPartial<CreateSubnetLinkerRequest>,
     metadata?: grpc.Metadata,
   ): Promise<CreateSubnetLinkerResponse>;
+  GetSubnetLinkerConvertibleNodes(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetSubnetLinkerConvertibleNodesResponse>;
   PatchSubnetLinker(
     request: DeepPartial<PatchSubnetLinkerRequest>,
     metadata?: grpc.Metadata,
@@ -6517,6 +6725,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.GetMe = this.GetMe.bind(this);
     this.GetUser = this.GetUser.bind(this);
     this.GetUsers = this.GetUsers.bind(this);
+    this.PatchUser = this.PatchUser.bind(this);
     this.CreateAcl = this.CreateAcl.bind(this);
     this.GetAcl = this.GetAcl.bind(this);
     this.GetAcls = this.GetAcls.bind(this);
@@ -6545,6 +6754,7 @@ export class AdminServiceClientImpl implements AdminService {
     this.CreateInviteUser = this.CreateInviteUser.bind(this);
     this.GetSubnetLinkers = this.GetSubnetLinkers.bind(this);
     this.CreateSubnetLinker = this.CreateSubnetLinker.bind(this);
+    this.GetSubnetLinkerConvertibleNodes = this.GetSubnetLinkerConvertibleNodes.bind(this);
     this.PatchSubnetLinker = this.PatchSubnetLinker.bind(this);
   }
 
@@ -6558,6 +6768,10 @@ export class AdminServiceClientImpl implements AdminService {
 
   GetUsers(request: DeepPartial<GetUsersRequest>, metadata?: grpc.Metadata): Promise<Users> {
     return this.rpc.unary(AdminServiceGetUsersDesc, GetUsersRequest.fromPartial(request), metadata);
+  }
+
+  PatchUser(request: DeepPartial<PatchUserRequest>, metadata?: grpc.Metadata): Promise<User> {
+    return this.rpc.unary(AdminServicePatchUserDesc, PatchUserRequest.fromPartial(request), metadata);
   }
 
   CreateAcl(request: DeepPartial<CreateAclRequest>, metadata?: grpc.Metadata): Promise<AclResponse> {
@@ -6685,6 +6899,13 @@ export class AdminServiceClientImpl implements AdminService {
     return this.rpc.unary(AdminServiceCreateSubnetLinkerDesc, CreateSubnetLinkerRequest.fromPartial(request), metadata);
   }
 
+  GetSubnetLinkerConvertibleNodes(
+    request: DeepPartial<Empty>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetSubnetLinkerConvertibleNodesResponse> {
+    return this.rpc.unary(AdminServiceGetSubnetLinkerConvertibleNodesDesc, Empty.fromPartial(request), metadata);
+  }
+
   PatchSubnetLinker(
     request: DeepPartial<PatchSubnetLinkerRequest>,
     metadata?: grpc.Metadata,
@@ -6754,6 +6975,29 @@ export const AdminServiceGetUsersDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = Users.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServicePatchUserDesc: UnaryMethodDefinitionish = {
+  methodName: "PatchUser",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return PatchUserRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = User.decode(data);
       return {
         ...value,
         toObject() {
@@ -7398,6 +7642,29 @@ export const AdminServiceCreateSubnetLinkerDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = CreateSubnetLinkerResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const AdminServiceGetSubnetLinkerConvertibleNodesDesc: UnaryMethodDefinitionish = {
+  methodName: "GetSubnetLinkerConvertibleNodes",
+  service: AdminServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetSubnetLinkerConvertibleNodesResponse.decode(data);
       return {
         ...value,
         toObject() {
