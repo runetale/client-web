@@ -661,6 +661,7 @@ export interface Resource {
   platform: Platform;
   status: boolean;
   createdBy: string;
+  lastSeen: string;
   isLinker: boolean;
   linker?:
     | Linker
@@ -5407,6 +5408,7 @@ function createBaseResource(): Resource {
     platform: 0,
     status: false,
     createdBy: "",
+    lastSeen: "",
     isLinker: false,
     linker: undefined,
     fleets: [],
@@ -5453,14 +5455,17 @@ export const Resource: MessageFns<Resource> = {
     if (message.createdBy !== "") {
       writer.uint32(98).string(message.createdBy);
     }
+    if (message.lastSeen !== "") {
+      writer.uint32(106).string(message.lastSeen);
+    }
     if (message.isLinker !== false) {
-      writer.uint32(104).bool(message.isLinker);
+      writer.uint32(112).bool(message.isLinker);
     }
     if (message.linker !== undefined) {
-      Linker.encode(message.linker, writer.uint32(114).fork()).join();
+      Linker.encode(message.linker, writer.uint32(130).fork()).join();
     }
     for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(122).fork()).join();
+      Fleet.encode(v!, writer.uint32(138).fork()).join();
     }
     return writer;
   },
@@ -5567,21 +5572,28 @@ export const Resource: MessageFns<Resource> = {
           message.createdBy = reader.string();
           continue;
         case 13:
-          if (tag !== 104) {
+          if (tag !== 106) {
+            break;
+          }
+
+          message.lastSeen = reader.string();
+          continue;
+        case 14:
+          if (tag !== 112) {
             break;
           }
 
           message.isLinker = reader.bool();
           continue;
-        case 14:
-          if (tag !== 114) {
+        case 16:
+          if (tag !== 130) {
             break;
           }
 
           message.linker = Linker.decode(reader, reader.uint32());
           continue;
-        case 15:
-          if (tag !== 122) {
+        case 17:
+          if (tag !== 138) {
             break;
           }
 
@@ -5610,6 +5622,7 @@ export const Resource: MessageFns<Resource> = {
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
+      lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
       isLinker: isSet(object.isLinker) ? globalThis.Boolean(object.isLinker) : false,
       linker: isSet(object.linker) ? Linker.fromJSON(object.linker) : undefined,
       fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
@@ -5654,6 +5667,9 @@ export const Resource: MessageFns<Resource> = {
     if (message.createdBy !== "") {
       obj.createdBy = message.createdBy;
     }
+    if (message.lastSeen !== "") {
+      obj.lastSeen = message.lastSeen;
+    }
     if (message.isLinker !== false) {
       obj.isLinker = message.isLinker;
     }
@@ -5683,6 +5699,7 @@ export const Resource: MessageFns<Resource> = {
     message.platform = object.platform ?? 0;
     message.status = object.status ?? false;
     message.createdBy = object.createdBy ?? "";
+    message.lastSeen = object.lastSeen ?? "";
     message.isLinker = object.isLinker ?? false;
     message.linker = (object.linker !== undefined && object.linker !== null)
       ? Linker.fromPartial(object.linker)
