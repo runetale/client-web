@@ -595,6 +595,7 @@ export interface Linker {
   /** minor change 0.0.1 currently device or resource */
   nodeType: NodeType;
   name: string;
+  desc: string;
   email: string;
   domain: string;
   ip: string;
@@ -674,6 +675,7 @@ export interface Resource {
 export interface Group {
   id: string;
   name: string;
+  desc: string;
   users: User[];
   updatedAt: string;
 }
@@ -4550,6 +4552,7 @@ function createBaseLinker(): Linker {
     nodeId: 0,
     nodeType: 0,
     name: "",
+    desc: "",
     email: "",
     domain: "",
     ip: "",
@@ -4582,41 +4585,44 @@ export const Linker: MessageFns<Linker> = {
     if (message.name !== "") {
       writer.uint32(42).string(message.name);
     }
+    if (message.desc !== "") {
+      writer.uint32(50).string(message.desc);
+    }
     if (message.email !== "") {
-      writer.uint32(50).string(message.email);
+      writer.uint32(58).string(message.email);
     }
     if (message.domain !== "") {
-      writer.uint32(58).string(message.domain);
+      writer.uint32(66).string(message.domain);
     }
     if (message.ip !== "") {
-      writer.uint32(66).string(message.ip);
+      writer.uint32(74).string(message.ip);
     }
     for (const v of message.advertisedRoutes) {
-      writer.uint32(74).string(v!);
+      writer.uint32(82).string(v!);
     }
     if (message.host !== "") {
-      writer.uint32(82).string(message.host);
+      writer.uint32(90).string(message.host);
     }
     if (message.os !== "") {
-      writer.uint32(90).string(message.os);
+      writer.uint32(98).string(message.os);
     }
     if (message.nodeKey !== "") {
-      writer.uint32(98).string(message.nodeKey);
+      writer.uint32(106).string(message.nodeKey);
     }
     if (message.platform !== 0) {
-      writer.uint32(104).int32(message.platform);
+      writer.uint32(112).int32(message.platform);
     }
     if (message.createdBy !== "") {
-      writer.uint32(114).string(message.createdBy);
+      writer.uint32(122).string(message.createdBy);
     }
     if (message.createdAt !== "") {
-      writer.uint32(122).string(message.createdAt);
+      writer.uint32(130).string(message.createdAt);
     }
     if (message.status !== false) {
-      writer.uint32(128).bool(message.status);
+      writer.uint32(136).bool(message.status);
     }
     if (message.lastSeen !== "") {
-      writer.uint32(138).string(message.lastSeen);
+      writer.uint32(146).string(message.lastSeen);
     }
     return writer;
   },
@@ -4668,80 +4674,87 @@ export const Linker: MessageFns<Linker> = {
             break;
           }
 
-          message.email = reader.string();
+          message.desc = reader.string();
           continue;
         case 7:
           if (tag !== 58) {
             break;
           }
 
-          message.domain = reader.string();
+          message.email = reader.string();
           continue;
         case 8:
           if (tag !== 66) {
             break;
           }
 
-          message.ip = reader.string();
+          message.domain = reader.string();
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.advertisedRoutes.push(reader.string());
+          message.ip = reader.string();
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.host = reader.string();
+          message.advertisedRoutes.push(reader.string());
           continue;
         case 11:
           if (tag !== 90) {
             break;
           }
 
-          message.os = reader.string();
+          message.host = reader.string();
           continue;
         case 12:
           if (tag !== 98) {
             break;
           }
 
-          message.nodeKey = reader.string();
+          message.os = reader.string();
           continue;
         case 13:
-          if (tag !== 104) {
+          if (tag !== 106) {
+            break;
+          }
+
+          message.nodeKey = reader.string();
+          continue;
+        case 14:
+          if (tag !== 112) {
             break;
           }
 
           message.platform = reader.int32() as any;
-          continue;
-        case 14:
-          if (tag !== 114) {
-            break;
-          }
-
-          message.createdBy = reader.string();
           continue;
         case 15:
           if (tag !== 122) {
             break;
           }
 
-          message.createdAt = reader.string();
+          message.createdBy = reader.string();
           continue;
         case 16:
-          if (tag !== 128) {
+          if (tag !== 130) {
+            break;
+          }
+
+          message.createdAt = reader.string();
+          continue;
+        case 17:
+          if (tag !== 136) {
             break;
           }
 
           message.status = reader.bool();
           continue;
-        case 17:
-          if (tag !== 138) {
+        case 18:
+          if (tag !== 146) {
             break;
           }
 
@@ -4763,6 +4776,7 @@ export const Linker: MessageFns<Linker> = {
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       nodeType: isSet(object.nodeType) ? nodeTypeFromJSON(object.nodeType) : 0,
       name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       domain: isSet(object.domain) ? globalThis.String(object.domain) : "",
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
@@ -4796,6 +4810,9 @@ export const Linker: MessageFns<Linker> = {
     }
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
     }
     if (message.email !== "") {
       obj.email = message.email;
@@ -4846,6 +4863,7 @@ export const Linker: MessageFns<Linker> = {
     message.nodeId = object.nodeId ?? 0;
     message.nodeType = object.nodeType ?? 0;
     message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
     message.email = object.email ?? "";
     message.domain = object.domain ?? "";
     message.ip = object.ip ?? "";
@@ -5758,7 +5776,7 @@ export const Resource: MessageFns<Resource> = {
 };
 
 function createBaseGroup(): Group {
-  return { id: "", name: "", users: [], updatedAt: "" };
+  return { id: "", name: "", desc: "", users: [], updatedAt: "" };
 }
 
 export const Group: MessageFns<Group> = {
@@ -5769,11 +5787,14 @@ export const Group: MessageFns<Group> = {
     if (message.name !== "") {
       writer.uint32(18).string(message.name);
     }
+    if (message.desc !== "") {
+      writer.uint32(26).string(message.desc);
+    }
     for (const v of message.users) {
-      User.encode(v!, writer.uint32(26).fork()).join();
+      User.encode(v!, writer.uint32(34).fork()).join();
     }
     if (message.updatedAt !== "") {
-      writer.uint32(34).string(message.updatedAt);
+      writer.uint32(42).string(message.updatedAt);
     }
     return writer;
   },
@@ -5804,10 +5825,17 @@ export const Group: MessageFns<Group> = {
             break;
           }
 
-          message.users.push(User.decode(reader, reader.uint32()));
+          message.desc = reader.string();
           continue;
         case 4:
           if (tag !== 34) {
+            break;
+          }
+
+          message.users.push(User.decode(reader, reader.uint32()));
+          continue;
+        case 5:
+          if (tag !== 42) {
             break;
           }
 
@@ -5826,6 +5854,7 @@ export const Group: MessageFns<Group> = {
     return {
       id: isSet(object.id) ? globalThis.String(object.id) : "",
       name: isSet(object.name) ? globalThis.String(object.name) : "",
+      desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       users: globalThis.Array.isArray(object?.users) ? object.users.map((e: any) => User.fromJSON(e)) : [],
       updatedAt: isSet(object.updatedAt) ? globalThis.String(object.updatedAt) : "",
     };
@@ -5838,6 +5867,9 @@ export const Group: MessageFns<Group> = {
     }
     if (message.name !== "") {
       obj.name = message.name;
+    }
+    if (message.desc !== "") {
+      obj.desc = message.desc;
     }
     if (message.users?.length) {
       obj.users = message.users.map((e) => User.toJSON(e));
@@ -5855,6 +5887,7 @@ export const Group: MessageFns<Group> = {
     const message = createBaseGroup();
     message.id = object.id ?? "";
     message.name = object.name ?? "";
+    message.desc = object.desc ?? "";
     message.users = object.users?.map((e) => User.fromPartial(e)) || [];
     message.updatedAt = object.updatedAt ?? "";
     return message;
