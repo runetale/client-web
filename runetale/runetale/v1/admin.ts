@@ -648,6 +648,8 @@ export interface Resource {
   platform: Platform;
   status: boolean;
   createdBy: string;
+  isLinker: boolean;
+  linker?: Linker | undefined;
 }
 
 export interface Group {
@@ -689,6 +691,8 @@ export interface Device {
   nodeKey: string;
   createdAt: string;
   keyExpiry: string;
+  isLinker: boolean;
+  linker?: Linker | undefined;
 }
 
 function createBaseCreateAclRequest(): CreateAclRequest {
@@ -5211,6 +5215,8 @@ function createBaseResource(): Resource {
     platform: 0,
     status: false,
     createdBy: "",
+    isLinker: false,
+    linker: undefined,
   };
 }
 
@@ -5253,6 +5259,12 @@ export const Resource: MessageFns<Resource> = {
     }
     if (message.createdBy !== "") {
       writer.uint32(98).string(message.createdBy);
+    }
+    if (message.isLinker !== false) {
+      writer.uint32(104).bool(message.isLinker);
+    }
+    if (message.linker !== undefined) {
+      Linker.encode(message.linker, writer.uint32(114).fork()).join();
     }
     return writer;
   },
@@ -5358,6 +5370,20 @@ export const Resource: MessageFns<Resource> = {
 
           message.createdBy = reader.string();
           continue;
+        case 13:
+          if (tag !== 104) {
+            break;
+          }
+
+          message.isLinker = reader.bool();
+          continue;
+        case 14:
+          if (tag !== 114) {
+            break;
+          }
+
+          message.linker = Linker.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -5381,6 +5407,8 @@ export const Resource: MessageFns<Resource> = {
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
+      isLinker: isSet(object.isLinker) ? globalThis.Boolean(object.isLinker) : false,
+      linker: isSet(object.linker) ? Linker.fromJSON(object.linker) : undefined,
     };
   },
 
@@ -5422,6 +5450,12 @@ export const Resource: MessageFns<Resource> = {
     if (message.createdBy !== "") {
       obj.createdBy = message.createdBy;
     }
+    if (message.isLinker !== false) {
+      obj.isLinker = message.isLinker;
+    }
+    if (message.linker !== undefined) {
+      obj.linker = Linker.toJSON(message.linker);
+    }
     return obj;
   },
 
@@ -5442,6 +5476,10 @@ export const Resource: MessageFns<Resource> = {
     message.platform = object.platform ?? 0;
     message.status = object.status ?? false;
     message.createdBy = object.createdBy ?? "";
+    message.isLinker = object.isLinker ?? false;
+    message.linker = (object.linker !== undefined && object.linker !== null)
+      ? Linker.fromPartial(object.linker)
+      : undefined;
     return message;
   },
 };
@@ -5820,6 +5858,8 @@ function createBaseDevice(): Device {
     nodeKey: "",
     createdAt: "",
     keyExpiry: "",
+    isLinker: false,
+    linker: undefined,
   };
 }
 
@@ -5863,6 +5903,12 @@ export const Device: MessageFns<Device> = {
     }
     if (message.keyExpiry !== "") {
       writer.uint32(106).string(message.keyExpiry);
+    }
+    if (message.isLinker !== false) {
+      writer.uint32(112).bool(message.isLinker);
+    }
+    if (message.linker !== undefined) {
+      Linker.encode(message.linker, writer.uint32(122).fork()).join();
     }
     return writer;
   },
@@ -5965,6 +6011,20 @@ export const Device: MessageFns<Device> = {
 
           message.keyExpiry = reader.string();
           continue;
+        case 14:
+          if (tag !== 112) {
+            break;
+          }
+
+          message.isLinker = reader.bool();
+          continue;
+        case 15:
+          if (tag !== 122) {
+            break;
+          }
+
+          message.linker = Linker.decode(reader, reader.uint32());
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -5989,6 +6049,8 @@ export const Device: MessageFns<Device> = {
       nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
       createdAt: isSet(object.createdAt) ? globalThis.String(object.createdAt) : "",
       keyExpiry: isSet(object.keyExpiry) ? globalThis.String(object.keyExpiry) : "",
+      isLinker: isSet(object.isLinker) ? globalThis.Boolean(object.isLinker) : false,
+      linker: isSet(object.linker) ? Linker.fromJSON(object.linker) : undefined,
     };
   },
 
@@ -6033,6 +6095,12 @@ export const Device: MessageFns<Device> = {
     if (message.keyExpiry !== "") {
       obj.keyExpiry = message.keyExpiry;
     }
+    if (message.isLinker !== false) {
+      obj.isLinker = message.isLinker;
+    }
+    if (message.linker !== undefined) {
+      obj.linker = Linker.toJSON(message.linker);
+    }
     return obj;
   },
 
@@ -6054,6 +6122,10 @@ export const Device: MessageFns<Device> = {
     message.nodeKey = object.nodeKey ?? "";
     message.createdAt = object.createdAt ?? "";
     message.keyExpiry = object.keyExpiry ?? "";
+    message.isLinker = object.isLinker ?? false;
+    message.linker = (object.linker !== undefined && object.linker !== null)
+      ? Linker.fromPartial(object.linker)
+      : undefined;
     return message;
   },
 };
