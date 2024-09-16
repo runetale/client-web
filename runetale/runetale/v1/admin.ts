@@ -717,7 +717,7 @@ export interface Resource {
   linker?:
     | Linker
     | undefined;
-  /** 属しているfleetが変える */
+  /** 属しているfleetが返ってくる */
   fleets: Fleet[];
 }
 
