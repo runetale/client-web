@@ -423,7 +423,7 @@ export interface GetUsersRequest {
 }
 
 export interface PatchUserRequest {
-  id: string;
+  nodeId: number;
   role: UserRole;
 }
 
@@ -1768,13 +1768,13 @@ export const GetUsersRequest: MessageFns<GetUsersRequest> = {
 };
 
 function createBasePatchUserRequest(): PatchUserRequest {
-  return { id: "", role: 0 };
+  return { nodeId: 0, role: 0 };
 }
 
 export const PatchUserRequest: MessageFns<PatchUserRequest> = {
   encode(message: PatchUserRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
     }
     if (message.role !== 0) {
       writer.uint32(16).int32(message.role);
@@ -1790,11 +1790,11 @@ export const PatchUserRequest: MessageFns<PatchUserRequest> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.id = reader.string();
+          message.nodeId = longToNumber(reader.uint64());
           continue;
         case 2:
           if (tag !== 16) {
@@ -1814,15 +1814,15 @@ export const PatchUserRequest: MessageFns<PatchUserRequest> = {
 
   fromJSON(object: any): PatchUserRequest {
     return {
-      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       role: isSet(object.role) ? userRoleFromJSON(object.role) : 0,
     };
   },
 
   toJSON(message: PatchUserRequest): unknown {
     const obj: any = {};
-    if (message.id !== "") {
-      obj.id = message.id;
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
     }
     if (message.role !== 0) {
       obj.role = userRoleToJSON(message.role);
@@ -1835,7 +1835,7 @@ export const PatchUserRequest: MessageFns<PatchUserRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<PatchUserRequest>, I>>(object: I): PatchUserRequest {
     const message = createBasePatchUserRequest();
-    message.id = object.id ?? "";
+    message.nodeId = object.nodeId ?? 0;
     message.role = object.role ?? 0;
     return message;
   },
