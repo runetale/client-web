@@ -556,7 +556,7 @@ export interface GetComposeNodeStatusResponse {
 }
 
 export interface GetResourceRequest {
-  id: string;
+  nodeId: number;
 }
 
 export interface GetResourcesRequest {
@@ -3614,13 +3614,13 @@ export const GetComposeNodeStatusResponse: MessageFns<GetComposeNodeStatusRespon
 };
 
 function createBaseGetResourceRequest(): GetResourceRequest {
-  return { id: "" };
+  return { nodeId: 0 };
 }
 
 export const GetResourceRequest: MessageFns<GetResourceRequest> = {
   encode(message: GetResourceRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== "") {
-      writer.uint32(10).string(message.id);
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
     }
     return writer;
   },
@@ -3633,11 +3633,11 @@ export const GetResourceRequest: MessageFns<GetResourceRequest> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1:
-          if (tag !== 10) {
+          if (tag !== 8) {
             break;
           }
 
-          message.id = reader.string();
+          message.nodeId = longToNumber(reader.uint64());
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -3649,13 +3649,13 @@ export const GetResourceRequest: MessageFns<GetResourceRequest> = {
   },
 
   fromJSON(object: any): GetResourceRequest {
-    return { id: isSet(object.id) ? globalThis.String(object.id) : "" };
+    return { nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0 };
   },
 
   toJSON(message: GetResourceRequest): unknown {
     const obj: any = {};
-    if (message.id !== "") {
-      obj.id = message.id;
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
     }
     return obj;
   },
@@ -3665,7 +3665,7 @@ export const GetResourceRequest: MessageFns<GetResourceRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetResourceRequest>, I>>(object: I): GetResourceRequest {
     const message = createBaseGetResourceRequest();
-    message.id = object.id ?? "";
+    message.nodeId = object.nodeId ?? 0;
     return message;
   },
 };
