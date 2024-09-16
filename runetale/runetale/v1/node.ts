@@ -46,8 +46,11 @@ export interface NetPortRange {
   ip: string;
   /**
    * portのフォーマットは
-   * - UDP or TCP portの番号を"0-65535"で指定する
-   * - "80" などの単一のportの場合はlastにも同じポート番号が入る
+   * - 全て指定の `*` か
+   * - 単一指定の `22` か
+   * - 複数指定の `80, 443` か `2つまで`
+   * - 範囲指定の `100-200``
+   * - 単一のportの場合はlastにも同じポート番号が入る
    */
   ports: NetPortRange_portRange | undefined;
   advertisedRoute: string[];
