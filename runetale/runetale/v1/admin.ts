@@ -618,9 +618,22 @@ export interface CreateSubnetLinkerRequest {
   advertisedRoutes: string[];
 }
 
+export interface SubnetLinkerCovertibleNode {
+  id: string;
+  nodeId: number;
+  name: string;
+  email: string;
+  ip: string;
+  ipProto: IPProto[];
+  os: string;
+  platform: Platform;
+  status: boolean;
+  createdBy: string;
+  lastSeen: string;
+}
+
 export interface GetSubnetLinkerConvertibleNodesResponse {
-  resources: Resource[];
-  devices: Device[];
+  subnetLinkerConvetibleNodes: SubnetLinkerCovertibleNode[];
 }
 
 export interface PatchSubnetLinkerRequest {
@@ -4503,17 +4516,247 @@ export const CreateSubnetLinkerRequest: MessageFns<CreateSubnetLinkerRequest> = 
   },
 };
 
+function createBaseSubnetLinkerCovertibleNode(): SubnetLinkerCovertibleNode {
+  return {
+    id: "",
+    nodeId: 0,
+    name: "",
+    email: "",
+    ip: "",
+    ipProto: [],
+    os: "",
+    platform: 0,
+    status: false,
+    createdBy: "",
+    lastSeen: "",
+  };
+}
+
+export const SubnetLinkerCovertibleNode: MessageFns<SubnetLinkerCovertibleNode> = {
+  encode(message: SubnetLinkerCovertibleNode, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.nodeId !== 0) {
+      writer.uint32(16).uint64(message.nodeId);
+    }
+    if (message.name !== "") {
+      writer.uint32(26).string(message.name);
+    }
+    if (message.email !== "") {
+      writer.uint32(34).string(message.email);
+    }
+    if (message.ip !== "") {
+      writer.uint32(42).string(message.ip);
+    }
+    writer.uint32(66).fork();
+    for (const v of message.ipProto) {
+      writer.int32(v);
+    }
+    writer.join();
+    if (message.os !== "") {
+      writer.uint32(74).string(message.os);
+    }
+    if (message.platform !== 0) {
+      writer.uint32(80).int32(message.platform);
+    }
+    if (message.status !== false) {
+      writer.uint32(88).bool(message.status);
+    }
+    if (message.createdBy !== "") {
+      writer.uint32(98).string(message.createdBy);
+    }
+    if (message.lastSeen !== "") {
+      writer.uint32(106).string(message.lastSeen);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SubnetLinkerCovertibleNode {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSubnetLinkerCovertibleNode();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1:
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        case 2:
+          if (tag !== 16) {
+            break;
+          }
+
+          message.nodeId = longToNumber(reader.uint64());
+          continue;
+        case 3:
+          if (tag !== 26) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        case 4:
+          if (tag !== 34) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        case 5:
+          if (tag !== 42) {
+            break;
+          }
+
+          message.ip = reader.string();
+          continue;
+        case 8:
+          if (tag === 64) {
+            message.ipProto.push(reader.int32() as any);
+
+            continue;
+          }
+
+          if (tag === 66) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.ipProto.push(reader.int32() as any);
+            }
+
+            continue;
+          }
+
+          break;
+        case 9:
+          if (tag !== 74) {
+            break;
+          }
+
+          message.os = reader.string();
+          continue;
+        case 10:
+          if (tag !== 80) {
+            break;
+          }
+
+          message.platform = reader.int32() as any;
+          continue;
+        case 11:
+          if (tag !== 88) {
+            break;
+          }
+
+          message.status = reader.bool();
+          continue;
+        case 12:
+          if (tag !== 98) {
+            break;
+          }
+
+          message.createdBy = reader.string();
+          continue;
+        case 13:
+          if (tag !== 106) {
+            break;
+          }
+
+          message.lastSeen = reader.string();
+          continue;
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SubnetLinkerCovertibleNode {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
+      os: isSet(object.os) ? globalThis.String(object.os) : "",
+      platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
+      status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
+      createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
+      lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
+    };
+  },
+
+  toJSON(message: SubnetLinkerCovertibleNode): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.ipProto?.length) {
+      obj.ipProto = message.ipProto.map((e) => iPProtoToJSON(e));
+    }
+    if (message.os !== "") {
+      obj.os = message.os;
+    }
+    if (message.platform !== 0) {
+      obj.platform = platformToJSON(message.platform);
+    }
+    if (message.status !== false) {
+      obj.status = message.status;
+    }
+    if (message.createdBy !== "") {
+      obj.createdBy = message.createdBy;
+    }
+    if (message.lastSeen !== "") {
+      obj.lastSeen = message.lastSeen;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SubnetLinkerCovertibleNode>, I>>(base?: I): SubnetLinkerCovertibleNode {
+    return SubnetLinkerCovertibleNode.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SubnetLinkerCovertibleNode>, I>>(object: I): SubnetLinkerCovertibleNode {
+    const message = createBaseSubnetLinkerCovertibleNode();
+    message.id = object.id ?? "";
+    message.nodeId = object.nodeId ?? 0;
+    message.name = object.name ?? "";
+    message.email = object.email ?? "";
+    message.ip = object.ip ?? "";
+    message.ipProto = object.ipProto?.map((e) => e) || [];
+    message.os = object.os ?? "";
+    message.platform = object.platform ?? 0;
+    message.status = object.status ?? false;
+    message.createdBy = object.createdBy ?? "";
+    message.lastSeen = object.lastSeen ?? "";
+    return message;
+  },
+};
+
 function createBaseGetSubnetLinkerConvertibleNodesResponse(): GetSubnetLinkerConvertibleNodesResponse {
-  return { resources: [], devices: [] };
+  return { subnetLinkerConvetibleNodes: [] };
 }
 
 export const GetSubnetLinkerConvertibleNodesResponse: MessageFns<GetSubnetLinkerConvertibleNodesResponse> = {
   encode(message: GetSubnetLinkerConvertibleNodesResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(10).fork()).join();
-    }
-    for (const v of message.devices) {
-      Device.encode(v!, writer.uint32(18).fork()).join();
+    for (const v of message.subnetLinkerConvetibleNodes) {
+      SubnetLinkerCovertibleNode.encode(v!, writer.uint32(10).fork()).join();
     }
     return writer;
   },
@@ -4530,14 +4773,7 @@ export const GetSubnetLinkerConvertibleNodesResponse: MessageFns<GetSubnetLinker
             break;
           }
 
-          message.resources.push(Resource.decode(reader, reader.uint32()));
-          continue;
-        case 2:
-          if (tag !== 18) {
-            break;
-          }
-
-          message.devices.push(Device.decode(reader, reader.uint32()));
+          message.subnetLinkerConvetibleNodes.push(SubnetLinkerCovertibleNode.decode(reader, reader.uint32()));
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -4550,20 +4786,18 @@ export const GetSubnetLinkerConvertibleNodesResponse: MessageFns<GetSubnetLinker
 
   fromJSON(object: any): GetSubnetLinkerConvertibleNodesResponse {
     return {
-      resources: globalThis.Array.isArray(object?.resources)
-        ? object.resources.map((e: any) => Resource.fromJSON(e))
+      subnetLinkerConvetibleNodes: globalThis.Array.isArray(object?.subnetLinkerConvetibleNodes)
+        ? object.subnetLinkerConvetibleNodes.map((e: any) => SubnetLinkerCovertibleNode.fromJSON(e))
         : [],
-      devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: GetSubnetLinkerConvertibleNodesResponse): unknown {
     const obj: any = {};
-    if (message.resources?.length) {
-      obj.resources = message.resources.map((e) => Resource.toJSON(e));
-    }
-    if (message.devices?.length) {
-      obj.devices = message.devices.map((e) => Device.toJSON(e));
+    if (message.subnetLinkerConvetibleNodes?.length) {
+      obj.subnetLinkerConvetibleNodes = message.subnetLinkerConvetibleNodes.map((e) =>
+        SubnetLinkerCovertibleNode.toJSON(e)
+      );
     }
     return obj;
   },
@@ -4577,8 +4811,8 @@ export const GetSubnetLinkerConvertibleNodesResponse: MessageFns<GetSubnetLinker
     object: I,
   ): GetSubnetLinkerConvertibleNodesResponse {
     const message = createBaseGetSubnetLinkerConvertibleNodesResponse();
-    message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
-    message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
+    message.subnetLinkerConvetibleNodes =
+      object.subnetLinkerConvetibleNodes?.map((e) => SubnetLinkerCovertibleNode.fromPartial(e)) || [];
     return message;
   },
 };
