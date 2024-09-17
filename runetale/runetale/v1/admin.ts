@@ -749,9 +749,6 @@ export interface User {
   email: string;
   role: string;
   joined: string;
-  /** only when status false */
-  lastSeen: string;
-  status: boolean;
   groups: Group[];
   devices: Device[];
   resources: Resource[];
@@ -6339,8 +6336,6 @@ function createBaseUser(): User {
     email: "",
     role: "",
     joined: "",
-    lastSeen: "",
-    status: false,
     groups: [],
     devices: [],
     resources: [],
@@ -6369,26 +6364,20 @@ export const User: MessageFns<User> = {
     if (message.joined !== "") {
       writer.uint32(50).string(message.joined);
     }
-    if (message.lastSeen !== "") {
-      writer.uint32(58).string(message.lastSeen);
-    }
-    if (message.status !== false) {
-      writer.uint32(64).bool(message.status);
-    }
     for (const v of message.groups) {
-      Group.encode(v!, writer.uint32(74).fork()).join();
+      Group.encode(v!, writer.uint32(58).fork()).join();
     }
     for (const v of message.devices) {
-      Device.encode(v!, writer.uint32(82).fork()).join();
+      Device.encode(v!, writer.uint32(66).fork()).join();
     }
     for (const v of message.resources) {
-      Resource.encode(v!, writer.uint32(90).fork()).join();
+      Resource.encode(v!, writer.uint32(74).fork()).join();
     }
     for (const v of message.fleets) {
-      Fleet.encode(v!, writer.uint32(98).fork()).join();
+      Fleet.encode(v!, writer.uint32(82).fork()).join();
     }
     for (const v of message.inks) {
-      Ink.encode(v!, writer.uint32(106).fork()).join();
+      Ink.encode(v!, writer.uint32(90).fork()).join();
     }
     return writer;
   },
@@ -6447,45 +6436,31 @@ export const User: MessageFns<User> = {
             break;
           }
 
-          message.lastSeen = reader.string();
+          message.groups.push(Group.decode(reader, reader.uint32()));
           continue;
         case 8:
-          if (tag !== 64) {
+          if (tag !== 66) {
             break;
           }
 
-          message.status = reader.bool();
+          message.devices.push(Device.decode(reader, reader.uint32()));
           continue;
         case 9:
           if (tag !== 74) {
             break;
           }
 
-          message.groups.push(Group.decode(reader, reader.uint32()));
+          message.resources.push(Resource.decode(reader, reader.uint32()));
           continue;
         case 10:
           if (tag !== 82) {
             break;
           }
 
-          message.devices.push(Device.decode(reader, reader.uint32()));
+          message.fleets.push(Fleet.decode(reader, reader.uint32()));
           continue;
         case 11:
           if (tag !== 90) {
-            break;
-          }
-
-          message.resources.push(Resource.decode(reader, reader.uint32()));
-          continue;
-        case 12:
-          if (tag !== 98) {
-            break;
-          }
-
-          message.fleets.push(Fleet.decode(reader, reader.uint32()));
-          continue;
-        case 13:
-          if (tag !== 106) {
             break;
           }
 
@@ -6508,8 +6483,6 @@ export const User: MessageFns<User> = {
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       role: isSet(object.role) ? globalThis.String(object.role) : "",
       joined: isSet(object.joined) ? globalThis.String(object.joined) : "",
-      lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
-      status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       groups: globalThis.Array.isArray(object?.groups) ? object.groups.map((e: any) => Group.fromJSON(e)) : [],
       devices: globalThis.Array.isArray(object?.devices) ? object.devices.map((e: any) => Device.fromJSON(e)) : [],
       resources: globalThis.Array.isArray(object?.resources)
@@ -6540,12 +6513,6 @@ export const User: MessageFns<User> = {
     if (message.joined !== "") {
       obj.joined = message.joined;
     }
-    if (message.lastSeen !== "") {
-      obj.lastSeen = message.lastSeen;
-    }
-    if (message.status !== false) {
-      obj.status = message.status;
-    }
     if (message.groups?.length) {
       obj.groups = message.groups.map((e) => Group.toJSON(e));
     }
@@ -6575,8 +6542,6 @@ export const User: MessageFns<User> = {
     message.email = object.email ?? "";
     message.role = object.role ?? "";
     message.joined = object.joined ?? "";
-    message.lastSeen = object.lastSeen ?? "";
-    message.status = object.status ?? false;
     message.groups = object.groups?.map((e) => Group.fromPartial(e)) || [];
     message.devices = object.devices?.map((e) => Device.fromPartial(e)) || [];
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
