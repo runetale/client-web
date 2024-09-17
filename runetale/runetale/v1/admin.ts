@@ -630,6 +630,7 @@ export interface SubnetLinkerCovertibleNode {
   status: boolean;
   createdBy: string;
   lastSeen: string;
+  nodeType: NodeType;
 }
 
 export interface GetSubnetLinkerConvertibleNodesResponse {
@@ -4526,6 +4527,7 @@ function createBaseSubnetLinkerCovertibleNode(): SubnetLinkerCovertibleNode {
     status: false,
     createdBy: "",
     lastSeen: "",
+    nodeType: 0,
   };
 }
 
@@ -4565,6 +4567,9 @@ export const SubnetLinkerCovertibleNode: MessageFns<SubnetLinkerCovertibleNode> 
     }
     if (message.lastSeen !== "") {
       writer.uint32(106).string(message.lastSeen);
+    }
+    if (message.nodeType !== 0) {
+      writer.uint32(112).int32(message.nodeType);
     }
     return writer;
   },
@@ -4663,6 +4668,13 @@ export const SubnetLinkerCovertibleNode: MessageFns<SubnetLinkerCovertibleNode> 
 
           message.lastSeen = reader.string();
           continue;
+        case 14:
+          if (tag !== 112) {
+            break;
+          }
+
+          message.nodeType = reader.int32() as any;
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4685,6 +4697,7 @@ export const SubnetLinkerCovertibleNode: MessageFns<SubnetLinkerCovertibleNode> 
       status: isSet(object.status) ? globalThis.Boolean(object.status) : false,
       createdBy: isSet(object.createdBy) ? globalThis.String(object.createdBy) : "",
       lastSeen: isSet(object.lastSeen) ? globalThis.String(object.lastSeen) : "",
+      nodeType: isSet(object.nodeType) ? nodeTypeFromJSON(object.nodeType) : 0,
     };
   },
 
@@ -4723,6 +4736,9 @@ export const SubnetLinkerCovertibleNode: MessageFns<SubnetLinkerCovertibleNode> 
     if (message.lastSeen !== "") {
       obj.lastSeen = message.lastSeen;
     }
+    if (message.nodeType !== 0) {
+      obj.nodeType = nodeTypeToJSON(message.nodeType);
+    }
     return obj;
   },
 
@@ -4742,6 +4758,7 @@ export const SubnetLinkerCovertibleNode: MessageFns<SubnetLinkerCovertibleNode> 
     message.status = object.status ?? false;
     message.createdBy = object.createdBy ?? "";
     message.lastSeen = object.lastSeen ?? "";
+    message.nodeType = object.nodeType ?? 0;
     return message;
   },
 };
