@@ -878,9 +878,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
 };
 
 export interface NodeService {
+  /** todo:(snt) remove syncRemoteNodesConfig */
   SyncRemoteNodesConfig(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<SyncNodesResponse>;
   ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse>;
-  /** todo:(snt) remove syncRemoteNodesConfig */
   GetNetworkMap(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkMapResponse>;
 }
 

@@ -572,8 +572,6 @@ export interface CreateFleetRequest {
   desc: string;
   nodeIds: number[];
   platform: Platform;
-  ports: string;
-  ipProto: IPProto[];
 }
 
 export interface GetFleetRequest {
@@ -593,7 +591,6 @@ export interface PatchFleetRequest {
   /** resource ids */
   nodeIds: number[];
   platform?: Platform | undefined;
-  ports?: string | undefined;
 }
 
 export interface Overview {
@@ -3800,7 +3797,7 @@ export const Resources: MessageFns<Resources> = {
 };
 
 function createBaseCreateFleetRequest(): CreateFleetRequest {
-  return { name: "", desc: "", nodeIds: [], platform: 0, ports: "", ipProto: [] };
+  return { name: "", desc: "", nodeIds: [], platform: 0 };
 }
 
 export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
@@ -3819,14 +3816,6 @@ export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
     if (message.platform !== 0) {
       writer.uint32(32).int32(message.platform);
     }
-    if (message.ports !== "") {
-      writer.uint32(50).string(message.ports);
-    }
-    writer.uint32(58).fork();
-    for (const v of message.ipProto) {
-      writer.int32(v);
-    }
-    writer.join();
     return writer;
   },
 
@@ -3875,30 +3864,6 @@ export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
 
           message.platform = reader.int32() as any;
           continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.ports = reader.string();
-          continue;
-        case 7:
-          if (tag === 56) {
-            message.ipProto.push(reader.int32() as any);
-
-            continue;
-          }
-
-          if (tag === 58) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.ipProto.push(reader.int32() as any);
-            }
-
-            continue;
-          }
-
-          break;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -3914,8 +3879,6 @@ export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : "",
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : 0,
-      ports: isSet(object.ports) ? globalThis.String(object.ports) : "",
-      ipProto: globalThis.Array.isArray(object?.ipProto) ? object.ipProto.map((e: any) => iPProtoFromJSON(e)) : [],
     };
   },
 
@@ -3933,12 +3896,6 @@ export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
     if (message.platform !== 0) {
       obj.platform = platformToJSON(message.platform);
     }
-    if (message.ports !== "") {
-      obj.ports = message.ports;
-    }
-    if (message.ipProto?.length) {
-      obj.ipProto = message.ipProto.map((e) => iPProtoToJSON(e));
-    }
     return obj;
   },
 
@@ -3951,8 +3908,6 @@ export const CreateFleetRequest: MessageFns<CreateFleetRequest> = {
     message.desc = object.desc ?? "";
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
     message.platform = object.platform ?? 0;
-    message.ports = object.ports ?? "";
-    message.ipProto = object.ipProto?.map((e) => e) || [];
     return message;
   },
 };
@@ -4072,7 +4027,7 @@ export const Fleets: MessageFns<Fleets> = {
 };
 
 function createBasePatchFleetRequest(): PatchFleetRequest {
-  return { id: "", name: undefined, desc: undefined, nodeIds: [], platform: undefined, ports: undefined };
+  return { id: "", name: undefined, desc: undefined, nodeIds: [], platform: undefined };
 }
 
 export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
@@ -4093,9 +4048,6 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
     writer.join();
     if (message.platform !== undefined) {
       writer.uint32(40).int32(message.platform);
-    }
-    if (message.ports !== undefined) {
-      writer.uint32(50).string(message.ports);
     }
     return writer;
   },
@@ -4152,13 +4104,6 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
 
           message.platform = reader.int32() as any;
           continue;
-        case 6:
-          if (tag !== 50) {
-            break;
-          }
-
-          message.ports = reader.string();
-          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4175,7 +4120,6 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
       desc: isSet(object.desc) ? globalThis.String(object.desc) : undefined,
       nodeIds: globalThis.Array.isArray(object?.nodeIds) ? object.nodeIds.map((e: any) => globalThis.Number(e)) : [],
       platform: isSet(object.platform) ? platformFromJSON(object.platform) : undefined,
-      ports: isSet(object.ports) ? globalThis.String(object.ports) : undefined,
     };
   },
 
@@ -4196,9 +4140,6 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
     if (message.platform !== undefined) {
       obj.platform = platformToJSON(message.platform);
     }
-    if (message.ports !== undefined) {
-      obj.ports = message.ports;
-    }
     return obj;
   },
 
@@ -4212,7 +4153,6 @@ export const PatchFleetRequest: MessageFns<PatchFleetRequest> = {
     message.desc = object.desc ?? undefined;
     message.nodeIds = object.nodeIds?.map((e) => e) || [];
     message.platform = object.platform ?? undefined;
-    message.ports = object.ports ?? undefined;
     return message;
   },
 };
