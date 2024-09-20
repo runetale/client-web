@@ -752,6 +752,7 @@ export interface User {
   resources: Resource[];
   fleets: Fleet[];
   inks: Ink[];
+  isSharedDomain: boolean;
 }
 
 export interface Device {
@@ -6298,6 +6299,7 @@ function createBaseUser(): User {
     resources: [],
     fleets: [],
     inks: [],
+    isSharedDomain: false,
   };
 }
 
@@ -6335,6 +6337,9 @@ export const User: MessageFns<User> = {
     }
     for (const v of message.inks) {
       Ink.encode(v!, writer.uint32(90).fork()).join();
+    }
+    if (message.isSharedDomain !== false) {
+      writer.uint32(96).bool(message.isSharedDomain);
     }
     return writer;
   },
@@ -6423,6 +6428,13 @@ export const User: MessageFns<User> = {
 
           message.inks.push(Ink.decode(reader, reader.uint32()));
           continue;
+        case 12:
+          if (tag !== 96) {
+            break;
+          }
+
+          message.isSharedDomain = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -6447,6 +6459,7 @@ export const User: MessageFns<User> = {
         : [],
       fleets: globalThis.Array.isArray(object?.fleets) ? object.fleets.map((e: any) => Fleet.fromJSON(e)) : [],
       inks: globalThis.Array.isArray(object?.inks) ? object.inks.map((e: any) => Ink.fromJSON(e)) : [],
+      isSharedDomain: isSet(object.isSharedDomain) ? globalThis.Boolean(object.isSharedDomain) : false,
     };
   },
 
@@ -6485,6 +6498,9 @@ export const User: MessageFns<User> = {
     if (message.inks?.length) {
       obj.inks = message.inks.map((e) => Ink.toJSON(e));
     }
+    if (message.isSharedDomain !== false) {
+      obj.isSharedDomain = message.isSharedDomain;
+    }
     return obj;
   },
 
@@ -6504,6 +6520,7 @@ export const User: MessageFns<User> = {
     message.resources = object.resources?.map((e) => Resource.fromPartial(e)) || [];
     message.fleets = object.fleets?.map((e) => Fleet.fromPartial(e)) || [];
     message.inks = object.inks?.map((e) => Ink.fromPartial(e)) || [];
+    message.isSharedDomain = object.isSharedDomain ?? false;
     return message;
   },
 };
