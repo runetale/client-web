@@ -97,8 +97,9 @@ export interface NetworkMapResponse {
   /**
    * このnodeがadvertiseするIPアドレス
    * 1.2.3.4/16のIP+Maskの形
+   * "10.0.0.0/8,192.172.0.0/24"のようにcommaで区切る
    */
-  advertisedRoute: string[];
+  advertisedRoute: string;
 }
 
 function createBaseSyncNodesResponse(): SyncNodesResponse {
@@ -708,7 +709,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     peersChanged: [],
     peersRemoved: [],
     packetFilter: [],
-    advertisedRoute: [],
+    advertisedRoute: "",
   };
 }
 
@@ -734,8 +735,8 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     for (const v of message.packetFilter) {
       FilterRule.encode(v!, writer.uint32(50).fork()).join();
     }
-    for (const v of message.advertisedRoute) {
-      writer.uint32(58).string(v!);
+    if (message.advertisedRoute !== "") {
+      writer.uint32(58).string(message.advertisedRoute);
     }
     return writer;
   },
@@ -804,7 +805,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
             break;
           }
 
-          message.advertisedRoute.push(reader.string());
+          message.advertisedRoute = reader.string();
           continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -829,9 +830,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
       packetFilter: globalThis.Array.isArray(object?.packetFilter)
         ? object.packetFilter.map((e: any) => FilterRule.fromJSON(e))
         : [],
-      advertisedRoute: globalThis.Array.isArray(object?.advertisedRoute)
-        ? object.advertisedRoute.map((e: any) => globalThis.String(e))
-        : [],
+      advertisedRoute: isSet(object.advertisedRoute) ? globalThis.String(object.advertisedRoute) : "",
     };
   },
 
@@ -855,7 +854,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.packetFilter?.length) {
       obj.packetFilter = message.packetFilter.map((e) => FilterRule.toJSON(e));
     }
-    if (message.advertisedRoute?.length) {
+    if (message.advertisedRoute !== "") {
       obj.advertisedRoute = message.advertisedRoute;
     }
     return obj;
@@ -872,7 +871,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.peersChanged = object.peersChanged?.map((e) => Node.fromPartial(e)) || [];
     message.peersRemoved = object.peersRemoved?.map((e) => e) || [];
     message.packetFilter = object.packetFilter?.map((e) => FilterRule.fromPartial(e)) || [];
-    message.advertisedRoute = object.advertisedRoute?.map((e) => e) || [];
+    message.advertisedRoute = object.advertisedRoute ?? "";
     return message;
   },
 };
