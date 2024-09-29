@@ -100,6 +100,11 @@ export interface NetworkMapResponse {
    * "10.0.0.0/8,192.172.0.0/24"のようにcommaで区切る
    */
   advertisedRoute: string;
+  /**
+   * jailedがtrueの場合全てのパケットを拒否する
+   * defaultの状態はこの状態である
+   */
+  Jailed: boolean;
 }
 
 function createBaseSyncNodesResponse(): SyncNodesResponse {
@@ -710,6 +715,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     peersRemoved: [],
     packetFilter: [],
     advertisedRoute: "",
+    Jailed: false,
   };
 }
 
@@ -737,6 +743,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     }
     if (message.advertisedRoute !== "") {
       writer.uint32(58).string(message.advertisedRoute);
+    }
+    if (message.Jailed !== false) {
+      writer.uint32(64).bool(message.Jailed);
     }
     return writer;
   },
@@ -807,6 +816,13 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
 
           message.advertisedRoute = reader.string();
           continue;
+        case 8:
+          if (tag !== 64) {
+            break;
+          }
+
+          message.Jailed = reader.bool();
+          continue;
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -831,6 +847,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
         ? object.packetFilter.map((e: any) => FilterRule.fromJSON(e))
         : [],
       advertisedRoute: isSet(object.advertisedRoute) ? globalThis.String(object.advertisedRoute) : "",
+      Jailed: isSet(object.Jailed) ? globalThis.Boolean(object.Jailed) : false,
     };
   },
 
@@ -857,6 +874,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.advertisedRoute !== "") {
       obj.advertisedRoute = message.advertisedRoute;
     }
+    if (message.Jailed !== false) {
+      obj.Jailed = message.Jailed;
+    }
     return obj;
   },
 
@@ -872,6 +892,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.peersRemoved = object.peersRemoved?.map((e) => e) || [];
     message.packetFilter = object.packetFilter?.map((e) => FilterRule.fromPartial(e)) || [];
     message.advertisedRoute = object.advertisedRoute ?? "";
+    message.Jailed = object.Jailed ?? false;
     return message;
   },
 };
