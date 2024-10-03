@@ -930,7 +930,11 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
 
 export interface NodeService {
   ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse>;
-  GetNetworkMap(request: Observable<DeepPartial<Empty>>, metadata?: grpc.Metadata): Observable<NetworkMapResponse>;
+  GetNetworkMap(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkMapResponse>;
+  ConnectNetworkMapTable(
+    request: Observable<DeepPartial<Empty>>,
+    metadata?: grpc.Metadata,
+  ): Observable<NetworkMapResponse>;
 }
 
 export class NodeServiceClientImpl implements NodeService {
@@ -940,13 +944,21 @@ export class NodeServiceClientImpl implements NodeService {
     this.rpc = rpc;
     this.ComposeNode = this.ComposeNode.bind(this);
     this.GetNetworkMap = this.GetNetworkMap.bind(this);
+    this.ConnectNetworkMapTable = this.ConnectNetworkMapTable.bind(this);
   }
 
   ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse> {
     return this.rpc.unary(NodeServiceComposeNodeDesc, Empty.fromPartial(request), metadata);
   }
 
-  GetNetworkMap(request: Observable<DeepPartial<Empty>>, metadata?: grpc.Metadata): Observable<NetworkMapResponse> {
+  GetNetworkMap(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkMapResponse> {
+    return this.rpc.unary(NodeServiceGetNetworkMapDesc, Empty.fromPartial(request), metadata);
+  }
+
+  ConnectNetworkMapTable(
+    request: Observable<DeepPartial<Empty>>,
+    metadata?: grpc.Metadata,
+  ): Observable<NetworkMapResponse> {
     throw new Error("ts-proto does not yet support client streaming!");
   }
 }
@@ -966,6 +978,29 @@ export const NodeServiceComposeNodeDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = ComposeNodeResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceGetNetworkMapDesc: UnaryMethodDefinitionish = {
+  methodName: "GetNetworkMap",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = NetworkMapResponse.decode(data);
       return {
         ...value,
         toObject() {
