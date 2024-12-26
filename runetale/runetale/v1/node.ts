@@ -26,8 +26,8 @@ export interface SyncNodesResponse {
 export interface Node {
   name: string;
   nodeId: number;
-  remoteNodeKey: string;
-  remoteWgPubKey: string;
+  nodeKey: string;
+  wgPubKey: string;
   allowedIPs: string[];
   ip: string;
   cidr: string;
@@ -220,7 +220,7 @@ export const SyncNodesResponse: MessageFns<SyncNodesResponse> = {
 };
 
 function createBaseNode(): Node {
-  return { name: "", nodeId: 0, remoteNodeKey: "", remoteWgPubKey: "", allowedIPs: [], ip: "", cidr: "" };
+  return { name: "", nodeId: 0, nodeKey: "", wgPubKey: "", allowedIPs: [], ip: "", cidr: "" };
 }
 
 export const Node: MessageFns<Node> = {
@@ -231,11 +231,11 @@ export const Node: MessageFns<Node> = {
     if (message.nodeId !== 0) {
       writer.uint32(16).uint64(message.nodeId);
     }
-    if (message.remoteNodeKey !== "") {
-      writer.uint32(26).string(message.remoteNodeKey);
+    if (message.nodeKey !== "") {
+      writer.uint32(26).string(message.nodeKey);
     }
-    if (message.remoteWgPubKey !== "") {
-      writer.uint32(34).string(message.remoteWgPubKey);
+    if (message.wgPubKey !== "") {
+      writer.uint32(34).string(message.wgPubKey);
     }
     for (const v of message.allowedIPs) {
       writer.uint32(42).string(v!);
@@ -277,7 +277,7 @@ export const Node: MessageFns<Node> = {
             break;
           }
 
-          message.remoteNodeKey = reader.string();
+          message.nodeKey = reader.string();
           continue;
         }
         case 4: {
@@ -285,7 +285,7 @@ export const Node: MessageFns<Node> = {
             break;
           }
 
-          message.remoteWgPubKey = reader.string();
+          message.wgPubKey = reader.string();
           continue;
         }
         case 5: {
@@ -325,8 +325,8 @@ export const Node: MessageFns<Node> = {
     return {
       name: isSet(object.name) ? globalThis.String(object.name) : "",
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
-      remoteNodeKey: isSet(object.remoteNodeKey) ? globalThis.String(object.remoteNodeKey) : "",
-      remoteWgPubKey: isSet(object.remoteWgPubKey) ? globalThis.String(object.remoteWgPubKey) : "",
+      nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
+      wgPubKey: isSet(object.wgPubKey) ? globalThis.String(object.wgPubKey) : "",
       allowedIPs: globalThis.Array.isArray(object?.allowedIPs)
         ? object.allowedIPs.map((e: any) => globalThis.String(e))
         : [],
@@ -343,11 +343,11 @@ export const Node: MessageFns<Node> = {
     if (message.nodeId !== 0) {
       obj.nodeId = Math.round(message.nodeId);
     }
-    if (message.remoteNodeKey !== "") {
-      obj.remoteNodeKey = message.remoteNodeKey;
+    if (message.nodeKey !== "") {
+      obj.nodeKey = message.nodeKey;
     }
-    if (message.remoteWgPubKey !== "") {
-      obj.remoteWgPubKey = message.remoteWgPubKey;
+    if (message.wgPubKey !== "") {
+      obj.wgPubKey = message.wgPubKey;
     }
     if (message.allowedIPs?.length) {
       obj.allowedIPs = message.allowedIPs;
@@ -368,8 +368,8 @@ export const Node: MessageFns<Node> = {
     const message = createBaseNode();
     message.name = object.name ?? "";
     message.nodeId = object.nodeId ?? 0;
-    message.remoteNodeKey = object.remoteNodeKey ?? "";
-    message.remoteWgPubKey = object.remoteWgPubKey ?? "";
+    message.nodeKey = object.nodeKey ?? "";
+    message.wgPubKey = object.wgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
