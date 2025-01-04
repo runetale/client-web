@@ -72,10 +72,15 @@ export interface FilterRule {
   /** dstのpeerのリスト */
   dsts: NetPortRange[];
   /**
-   * 使用するプロトコル
    * https://www.iana.org/assignments/protocol-numbers/protocol-numbers.xhtml
+   * protocol numbers
+   * Unknown = 0x00
+   * ICMPv4  = 0x01
+   * ICMPv6  = 0x3a
+   * TCP     = 0x06
+   * UDP     = 0x11
    */
-  iPProto: IpProto | undefined;
+  iPProto: number[];
 }
 
 export interface NetworkMapResponse {
@@ -107,19 +112,6 @@ export interface NetworkMapResponse {
    * defaultの状態はこの状態である
    */
   Jailed: boolean;
-}
-
-/** protocol numbers */
-export interface IpProto {
-  /**
-   * protocol numbers
-   * Unknown = 0x00
-   * ICMPv4  = 0x01
-   * ICMPv6  = 0x3a
-   * TCP     = 0x06
-   * UDP     = 0x11
-   */
-  iana: number[];
 }
 
 function createBaseSyncNodesResponse(): SyncNodesResponse {
@@ -639,7 +631,7 @@ export const NetPortRange_portRange: MessageFns<NetPortRange_portRange> = {
 };
 
 function createBaseFilterRule(): FilterRule {
-  return { srcIps: [], dsts: [], iPProto: undefined };
+  return { srcIps: [], dsts: [], iPProto: [] };
 }
 
 export const FilterRule: MessageFns<FilterRule> = {
@@ -650,9 +642,11 @@ export const FilterRule: MessageFns<FilterRule> = {
     for (const v of message.dsts) {
       NetPortRange.encode(v!, writer.uint32(18).fork()).join();
     }
-    if (message.iPProto !== undefined) {
-      IpProto.encode(message.iPProto, writer.uint32(26).fork()).join();
+    writer.uint32(26).fork();
+    for (const v of message.iPProto) {
+      writer.int32(v);
     }
+    writer.join();
     return writer;
   },
 
@@ -680,12 +674,22 @@ export const FilterRule: MessageFns<FilterRule> = {
           continue;
         }
         case 3: {
-          if (tag !== 26) {
-            break;
+          if (tag === 24) {
+            message.iPProto.push(reader.int32());
+
+            continue;
           }
 
-          message.iPProto = IpProto.decode(reader, reader.uint32());
-          continue;
+          if (tag === 26) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.iPProto.push(reader.int32());
+            }
+
+            continue;
+          }
+
+          break;
         }
       }
       if ((tag & 7) === 4 || tag === 0) {
@@ -700,7 +704,7 @@ export const FilterRule: MessageFns<FilterRule> = {
     return {
       srcIps: globalThis.Array.isArray(object?.srcIps) ? object.srcIps.map((e: any) => globalThis.String(e)) : [],
       dsts: globalThis.Array.isArray(object?.dsts) ? object.dsts.map((e: any) => NetPortRange.fromJSON(e)) : [],
-      iPProto: isSet(object.iPProto) ? IpProto.fromJSON(object.iPProto) : undefined,
+      iPProto: globalThis.Array.isArray(object?.iPProto) ? object.iPProto.map((e: any) => globalThis.Number(e)) : [],
     };
   },
 
@@ -712,8 +716,8 @@ export const FilterRule: MessageFns<FilterRule> = {
     if (message.dsts?.length) {
       obj.dsts = message.dsts.map((e) => NetPortRange.toJSON(e));
     }
-    if (message.iPProto !== undefined) {
-      obj.iPProto = IpProto.toJSON(message.iPProto);
+    if (message.iPProto?.length) {
+      obj.iPProto = message.iPProto.map((e) => Math.round(e));
     }
     return obj;
   },
@@ -725,9 +729,7 @@ export const FilterRule: MessageFns<FilterRule> = {
     const message = createBaseFilterRule();
     message.srcIps = object.srcIps?.map((e) => e) || [];
     message.dsts = object.dsts?.map((e) => NetPortRange.fromPartial(e)) || [];
-    message.iPProto = (object.iPProto !== undefined && object.iPProto !== null)
-      ? IpProto.fromPartial(object.iPProto)
-      : undefined;
+    message.iPProto = object.iPProto?.map((e) => e) || [];
     return message;
   },
 };
@@ -927,76 +929,6 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.packetFilter = object.packetFilter?.map((e) => FilterRule.fromPartial(e)) || [];
     message.advertisedRoute = object.advertisedRoute ?? "";
     message.Jailed = object.Jailed ?? false;
-    return message;
-  },
-};
-
-function createBaseIpProto(): IpProto {
-  return { iana: [] };
-}
-
-export const IpProto: MessageFns<IpProto> = {
-  encode(message: IpProto, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    writer.uint32(10).fork();
-    for (const v of message.iana) {
-      writer.int32(v);
-    }
-    writer.join();
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): IpProto {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseIpProto();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag === 8) {
-            message.iana.push(reader.int32());
-
-            continue;
-          }
-
-          if (tag === 10) {
-            const end2 = reader.uint32() + reader.pos;
-            while (reader.pos < end2) {
-              message.iana.push(reader.int32());
-            }
-
-            continue;
-          }
-
-          break;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): IpProto {
-    return { iana: globalThis.Array.isArray(object?.iana) ? object.iana.map((e: any) => globalThis.Number(e)) : [] };
-  },
-
-  toJSON(message: IpProto): unknown {
-    const obj: any = {};
-    if (message.iana?.length) {
-      obj.iana = message.iana.map((e) => Math.round(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<IpProto>, I>>(base?: I): IpProto {
-    return IpProto.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<IpProto>, I>>(object: I): IpProto {
-    const message = createBaseIpProto();
-    message.iana = object.iana?.map((e) => e) || [];
     return message;
   },
 };
