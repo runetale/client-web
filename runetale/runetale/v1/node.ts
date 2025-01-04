@@ -644,7 +644,7 @@ export const FilterRule: MessageFns<FilterRule> = {
     }
     writer.uint32(26).fork();
     for (const v of message.iPProto) {
-      writer.int32(v);
+      writer.uint32(v);
     }
     writer.join();
     return writer;
@@ -675,7 +675,7 @@ export const FilterRule: MessageFns<FilterRule> = {
         }
         case 3: {
           if (tag === 24) {
-            message.iPProto.push(reader.int32());
+            message.iPProto.push(reader.uint32());
 
             continue;
           }
@@ -683,7 +683,7 @@ export const FilterRule: MessageFns<FilterRule> = {
           if (tag === 26) {
             const end2 = reader.uint32() + reader.pos;
             while (reader.pos < end2) {
-              message.iPProto.push(reader.int32());
+              message.iPProto.push(reader.uint32());
             }
 
             continue;
