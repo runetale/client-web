@@ -63,6 +63,7 @@ export interface NegotiationRequest {
   type: NegotiationType;
   /** remote node key of the Peer you want to connect to */
   dstNodeKey: string;
+  dstWgPubKey: string;
   uFlag: string;
   pwd: string;
   candidate: string;
@@ -72,6 +73,7 @@ export interface NegotiationResponse {
   type: NegotiationType;
   /** node key of the originating peer to be sent to the remote peer */
   dstNodeKey: string;
+  dstWgPubKey: string;
   uFlag: string;
   pwd: string;
   candidate: string;
@@ -95,7 +97,7 @@ export interface CandidateRequest {
 }
 
 function createBaseNegotiationRequest(): NegotiationRequest {
-  return { type: 0, dstNodeKey: "", uFlag: "", pwd: "", candidate: "" };
+  return { type: 0, dstNodeKey: "", dstWgPubKey: "", uFlag: "", pwd: "", candidate: "" };
 }
 
 export const NegotiationRequest: MessageFns<NegotiationRequest> = {
@@ -106,14 +108,17 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     if (message.dstNodeKey !== "") {
       writer.uint32(18).string(message.dstNodeKey);
     }
+    if (message.dstWgPubKey !== "") {
+      writer.uint32(26).string(message.dstWgPubKey);
+    }
     if (message.uFlag !== "") {
-      writer.uint32(26).string(message.uFlag);
+      writer.uint32(34).string(message.uFlag);
     }
     if (message.pwd !== "") {
-      writer.uint32(34).string(message.pwd);
+      writer.uint32(42).string(message.pwd);
     }
     if (message.candidate !== "") {
-      writer.uint32(42).string(message.candidate);
+      writer.uint32(50).string(message.candidate);
     }
     return writer;
   },
@@ -146,7 +151,7 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
             break;
           }
 
-          message.uFlag = reader.string();
+          message.dstWgPubKey = reader.string();
           continue;
         }
         case 4: {
@@ -154,11 +159,19 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
             break;
           }
 
-          message.pwd = reader.string();
+          message.uFlag = reader.string();
           continue;
         }
         case 5: {
           if (tag !== 42) {
+            break;
+          }
+
+          message.pwd = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
             break;
           }
 
@@ -178,6 +191,7 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
       dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
+      dstWgPubKey: isSet(object.dstWgPubKey) ? globalThis.String(object.dstWgPubKey) : "",
       uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
       candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
@@ -191,6 +205,9 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     }
     if (message.dstNodeKey !== "") {
       obj.dstNodeKey = message.dstNodeKey;
+    }
+    if (message.dstWgPubKey !== "") {
+      obj.dstWgPubKey = message.dstWgPubKey;
     }
     if (message.uFlag !== "") {
       obj.uFlag = message.uFlag;
@@ -211,6 +228,7 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     const message = createBaseNegotiationRequest();
     message.type = object.type ?? 0;
     message.dstNodeKey = object.dstNodeKey ?? "";
+    message.dstWgPubKey = object.dstWgPubKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
     message.candidate = object.candidate ?? "";
@@ -219,7 +237,7 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
 };
 
 function createBaseNegotiationResponse(): NegotiationResponse {
-  return { type: 0, dstNodeKey: "", uFlag: "", pwd: "", candidate: "" };
+  return { type: 0, dstNodeKey: "", dstWgPubKey: "", uFlag: "", pwd: "", candidate: "" };
 }
 
 export const NegotiationResponse: MessageFns<NegotiationResponse> = {
@@ -230,14 +248,17 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
     if (message.dstNodeKey !== "") {
       writer.uint32(18).string(message.dstNodeKey);
     }
+    if (message.dstWgPubKey !== "") {
+      writer.uint32(26).string(message.dstWgPubKey);
+    }
     if (message.uFlag !== "") {
-      writer.uint32(26).string(message.uFlag);
+      writer.uint32(34).string(message.uFlag);
     }
     if (message.pwd !== "") {
-      writer.uint32(34).string(message.pwd);
+      writer.uint32(42).string(message.pwd);
     }
     if (message.candidate !== "") {
-      writer.uint32(42).string(message.candidate);
+      writer.uint32(50).string(message.candidate);
     }
     return writer;
   },
@@ -270,7 +291,7 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
             break;
           }
 
-          message.uFlag = reader.string();
+          message.dstWgPubKey = reader.string();
           continue;
         }
         case 4: {
@@ -278,11 +299,19 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
             break;
           }
 
-          message.pwd = reader.string();
+          message.uFlag = reader.string();
           continue;
         }
         case 5: {
           if (tag !== 42) {
+            break;
+          }
+
+          message.pwd = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
             break;
           }
 
@@ -302,6 +331,7 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
       dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
+      dstWgPubKey: isSet(object.dstWgPubKey) ? globalThis.String(object.dstWgPubKey) : "",
       uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
       candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
@@ -315,6 +345,9 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
     }
     if (message.dstNodeKey !== "") {
       obj.dstNodeKey = message.dstNodeKey;
+    }
+    if (message.dstWgPubKey !== "") {
+      obj.dstWgPubKey = message.dstWgPubKey;
     }
     if (message.uFlag !== "") {
       obj.uFlag = message.uFlag;
@@ -335,6 +368,7 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
     const message = createBaseNegotiationResponse();
     message.type = object.type ?? 0;
     message.dstNodeKey = object.dstNodeKey ?? "";
+    message.dstWgPubKey = object.dstWgPubKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
     message.candidate = object.candidate ?? "";
