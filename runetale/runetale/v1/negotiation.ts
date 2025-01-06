@@ -84,6 +84,7 @@ export interface HandshakeRequest {
   dstNodeKey: string;
   /** node key of the originating peer to be sent to the remote peer */
   srcNodeKey: string;
+  wgPubKey: string;
   uFlag: string;
   pwd: string;
 }
@@ -377,7 +378,7 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
 };
 
 function createBaseHandshakeRequest(): HandshakeRequest {
-  return { dstNodeKey: "", srcNodeKey: "", uFlag: "", pwd: "" };
+  return { dstNodeKey: "", srcNodeKey: "", wgPubKey: "", uFlag: "", pwd: "" };
 }
 
 export const HandshakeRequest: MessageFns<HandshakeRequest> = {
@@ -388,11 +389,14 @@ export const HandshakeRequest: MessageFns<HandshakeRequest> = {
     if (message.srcNodeKey !== "") {
       writer.uint32(18).string(message.srcNodeKey);
     }
+    if (message.wgPubKey !== "") {
+      writer.uint32(26).string(message.wgPubKey);
+    }
     if (message.uFlag !== "") {
-      writer.uint32(26).string(message.uFlag);
+      writer.uint32(34).string(message.uFlag);
     }
     if (message.pwd !== "") {
-      writer.uint32(34).string(message.pwd);
+      writer.uint32(42).string(message.pwd);
     }
     return writer;
   },
@@ -425,11 +429,19 @@ export const HandshakeRequest: MessageFns<HandshakeRequest> = {
             break;
           }
 
-          message.uFlag = reader.string();
+          message.wgPubKey = reader.string();
           continue;
         }
         case 4: {
           if (tag !== 34) {
+            break;
+          }
+
+          message.uFlag = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
             break;
           }
 
@@ -449,6 +461,7 @@ export const HandshakeRequest: MessageFns<HandshakeRequest> = {
     return {
       dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
       srcNodeKey: isSet(object.srcNodeKey) ? globalThis.String(object.srcNodeKey) : "",
+      wgPubKey: isSet(object.wgPubKey) ? globalThis.String(object.wgPubKey) : "",
       uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
     };
@@ -461,6 +474,9 @@ export const HandshakeRequest: MessageFns<HandshakeRequest> = {
     }
     if (message.srcNodeKey !== "") {
       obj.srcNodeKey = message.srcNodeKey;
+    }
+    if (message.wgPubKey !== "") {
+      obj.wgPubKey = message.wgPubKey;
     }
     if (message.uFlag !== "") {
       obj.uFlag = message.uFlag;
@@ -478,6 +494,7 @@ export const HandshakeRequest: MessageFns<HandshakeRequest> = {
     const message = createBaseHandshakeRequest();
     message.dstNodeKey = object.dstNodeKey ?? "";
     message.srcNodeKey = object.srcNodeKey ?? "";
+    message.wgPubKey = object.wgPubKey ?? "";
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
     return message;
