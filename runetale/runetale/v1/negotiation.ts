@@ -84,6 +84,7 @@ export interface HandshakeRequest {
   dstNodeKey: string;
   /** node key of the originating peer to be sent to the remote peer */
   srcNodeKey: string;
+  /** wgPubKey from request node */
   wgPubKey: string;
   uFlag: string;
   pwd: string;
@@ -94,6 +95,8 @@ export interface CandidateRequest {
   dstNodeKey: string;
   /** node key of the originating peer to be sent to the remote peer */
   srcNodeKey: string;
+  /** wgPubKey from request node */
+  wgPubKey: string;
   candidate: string;
 }
 
@@ -502,7 +505,7 @@ export const HandshakeRequest: MessageFns<HandshakeRequest> = {
 };
 
 function createBaseCandidateRequest(): CandidateRequest {
-  return { dstNodeKey: "", srcNodeKey: "", candidate: "" };
+  return { dstNodeKey: "", srcNodeKey: "", wgPubKey: "", candidate: "" };
 }
 
 export const CandidateRequest: MessageFns<CandidateRequest> = {
@@ -513,8 +516,11 @@ export const CandidateRequest: MessageFns<CandidateRequest> = {
     if (message.srcNodeKey !== "") {
       writer.uint32(18).string(message.srcNodeKey);
     }
+    if (message.wgPubKey !== "") {
+      writer.uint32(26).string(message.wgPubKey);
+    }
     if (message.candidate !== "") {
-      writer.uint32(26).string(message.candidate);
+      writer.uint32(34).string(message.candidate);
     }
     return writer;
   },
@@ -547,6 +553,14 @@ export const CandidateRequest: MessageFns<CandidateRequest> = {
             break;
           }
 
+          message.wgPubKey = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
           message.candidate = reader.string();
           continue;
         }
@@ -563,6 +577,7 @@ export const CandidateRequest: MessageFns<CandidateRequest> = {
     return {
       dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
       srcNodeKey: isSet(object.srcNodeKey) ? globalThis.String(object.srcNodeKey) : "",
+      wgPubKey: isSet(object.wgPubKey) ? globalThis.String(object.wgPubKey) : "",
       candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
     };
   },
@@ -574,6 +589,9 @@ export const CandidateRequest: MessageFns<CandidateRequest> = {
     }
     if (message.srcNodeKey !== "") {
       obj.srcNodeKey = message.srcNodeKey;
+    }
+    if (message.wgPubKey !== "") {
+      obj.wgPubKey = message.wgPubKey;
     }
     if (message.candidate !== "") {
       obj.candidate = message.candidate;
@@ -588,6 +606,7 @@ export const CandidateRequest: MessageFns<CandidateRequest> = {
     const message = createBaseCandidateRequest();
     message.dstNodeKey = object.dstNodeKey ?? "";
     message.srcNodeKey = object.srcNodeKey ?? "";
+    message.wgPubKey = object.wgPubKey ?? "";
     message.candidate = object.candidate ?? "";
     return message;
   },
