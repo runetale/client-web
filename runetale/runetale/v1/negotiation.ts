@@ -100,6 +100,12 @@ export interface CandidateRequest {
   candidate: string;
 }
 
+export interface JoinRequest {
+  type: NegotiationType;
+  nodeKey: string;
+  wgPubKey: string;
+}
+
 function createBaseNegotiationRequest(): NegotiationRequest {
   return { type: 0, dstNodeKey: "", dstWgPubKey: "", uFlag: "", pwd: "", candidate: "" };
 }
@@ -612,6 +618,98 @@ export const CandidateRequest: MessageFns<CandidateRequest> = {
   },
 };
 
+function createBaseJoinRequest(): JoinRequest {
+  return { type: 0, nodeKey: "", wgPubKey: "" };
+}
+
+export const JoinRequest: MessageFns<JoinRequest> = {
+  encode(message: JoinRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.type !== 0) {
+      writer.uint32(8).int32(message.type);
+    }
+    if (message.nodeKey !== "") {
+      writer.uint32(18).string(message.nodeKey);
+    }
+    if (message.wgPubKey !== "") {
+      writer.uint32(26).string(message.wgPubKey);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): JoinRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseJoinRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.type = reader.int32() as any;
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.nodeKey = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.wgPubKey = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): JoinRequest {
+    return {
+      type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
+      nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
+      wgPubKey: isSet(object.wgPubKey) ? globalThis.String(object.wgPubKey) : "",
+    };
+  },
+
+  toJSON(message: JoinRequest): unknown {
+    const obj: any = {};
+    if (message.type !== 0) {
+      obj.type = negotiationTypeToJSON(message.type);
+    }
+    if (message.nodeKey !== "") {
+      obj.nodeKey = message.nodeKey;
+    }
+    if (message.wgPubKey !== "") {
+      obj.wgPubKey = message.wgPubKey;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<JoinRequest>, I>>(base?: I): JoinRequest {
+    return JoinRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<JoinRequest>, I>>(object: I): JoinRequest {
+    const message = createBaseJoinRequest();
+    message.type = object.type ?? 0;
+    message.nodeKey = object.nodeKey ?? "";
+    message.wgPubKey = object.wgPubKey ?? "";
+    return message;
+  },
+};
+
 export interface NegotiationService {
   Offer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Answer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
@@ -620,6 +718,7 @@ export interface NegotiationService {
     request: Observable<DeepPartial<NegotiationRequest>>,
     metadata?: grpc.Metadata,
   ): Observable<NegotiationRequest>;
+  Join(request: DeepPartial<JoinRequest>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
 export class NegotiationServiceClientImpl implements NegotiationService {
@@ -631,6 +730,7 @@ export class NegotiationServiceClientImpl implements NegotiationService {
     this.Answer = this.Answer.bind(this);
     this.Candidate = this.Candidate.bind(this);
     this.Connect = this.Connect.bind(this);
+    this.Join = this.Join.bind(this);
   }
 
   Offer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty> {
@@ -650,6 +750,10 @@ export class NegotiationServiceClientImpl implements NegotiationService {
     metadata?: grpc.Metadata,
   ): Observable<NegotiationRequest> {
     throw new Error("ts-proto does not yet support client streaming!");
+  }
+
+  Join(request: DeepPartial<JoinRequest>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(NegotiationServiceJoinDesc, JoinRequest.fromPartial(request), metadata);
   }
 }
 
@@ -709,6 +813,29 @@ export const NegotiationServiceCandidateDesc: UnaryMethodDefinitionish = {
   requestType: {
     serializeBinary() {
       return CandidateRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NegotiationServiceJoinDesc: UnaryMethodDefinitionish = {
+  methodName: "Join",
+  service: NegotiationServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return JoinRequest.encode(this).finish();
     },
   } as any,
   responseType: {
