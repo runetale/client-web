@@ -112,6 +112,7 @@ export interface NetworkMapResponse {
    * defaultの状態はこの状態である
    */
   Jailed: boolean;
+  iceTable: Node[];
 }
 
 function createBaseSyncNodesResponse(): SyncNodesResponse {
@@ -744,6 +745,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     packetFilter: [],
     advertisedRoute: "",
     Jailed: false,
+    iceTable: [],
   };
 }
 
@@ -774,6 +776,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     }
     if (message.Jailed !== false) {
       writer.uint32(64).bool(message.Jailed);
+    }
+    for (const v of message.iceTable) {
+      Node.encode(v!, writer.uint32(74).fork()).join();
     }
     return writer;
   },
@@ -859,6 +864,14 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
           message.Jailed = reader.bool();
           continue;
         }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.iceTable.push(Node.decode(reader, reader.uint32()));
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -884,6 +897,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
         : [],
       advertisedRoute: isSet(object.advertisedRoute) ? globalThis.String(object.advertisedRoute) : "",
       Jailed: isSet(object.Jailed) ? globalThis.Boolean(object.Jailed) : false,
+      iceTable: globalThis.Array.isArray(object?.iceTable) ? object.iceTable.map((e: any) => Node.fromJSON(e)) : [],
     };
   },
 
@@ -913,6 +927,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.Jailed !== false) {
       obj.Jailed = message.Jailed;
     }
+    if (message.iceTable?.length) {
+      obj.iceTable = message.iceTable.map((e) => Node.toJSON(e));
+    }
     return obj;
   },
 
@@ -929,6 +946,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.packetFilter = object.packetFilter?.map((e) => FilterRule.fromPartial(e)) || [];
     message.advertisedRoute = object.advertisedRoute ?? "";
     message.Jailed = object.Jailed ?? false;
+    message.iceTable = object.iceTable?.map((e) => Node.fromPartial(e)) || [];
     return message;
   },
 };
