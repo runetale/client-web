@@ -2,7 +2,7 @@
 // versions:
 //   protoc-gen-ts_proto  v2.6.1
 //   protoc               v3.20.3
-// source: runetale/runetale/v1/health.proto
+// source: runetale/runetale/v1/ping.proto
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
@@ -12,26 +12,26 @@ import { Empty } from "../../../google/protobuf/empty";
 
 export const protobufPackage = "protos";
 
-export interface HealthResponse {
+export interface PingResponse {
   message: string;
 }
 
-function createBaseHealthResponse(): HealthResponse {
+function createBasePingResponse(): PingResponse {
   return { message: "" };
 }
 
-export const HealthResponse: MessageFns<HealthResponse> = {
-  encode(message: HealthResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const PingResponse: MessageFns<PingResponse> = {
+  encode(message: PingResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.message !== "") {
       writer.uint32(10).string(message.message);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): HealthResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): PingResponse {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHealthResponse();
+    const message = createBasePingResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -52,11 +52,11 @@ export const HealthResponse: MessageFns<HealthResponse> = {
     return message;
   },
 
-  fromJSON(object: any): HealthResponse {
+  fromJSON(object: any): PingResponse {
     return { message: isSet(object.message) ? globalThis.String(object.message) : "" };
   },
 
-  toJSON(message: HealthResponse): unknown {
+  toJSON(message: PingResponse): unknown {
     const obj: any = {};
     if (message.message !== "") {
       obj.message = message.message;
@@ -64,38 +64,38 @@ export const HealthResponse: MessageFns<HealthResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<HealthResponse>, I>>(base?: I): HealthResponse {
-    return HealthResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<PingResponse>, I>>(base?: I): PingResponse {
+    return PingResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<HealthResponse>, I>>(object: I): HealthResponse {
-    const message = createBaseHealthResponse();
+  fromPartial<I extends Exact<DeepPartial<PingResponse>, I>>(object: I): PingResponse {
+    const message = createBasePingResponse();
     message.message = object.message ?? "";
     return message;
   },
 };
 
-export interface HealthService {
-  Health(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HealthResponse>;
+export interface PingService {
+  Ping(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<PingResponse>;
 }
 
-export class HealthServiceClientImpl implements HealthService {
+export class PingServiceClientImpl implements PingService {
   private readonly rpc: Rpc;
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.Health = this.Health.bind(this);
+    this.Ping = this.Ping.bind(this);
   }
 
-  Health(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HealthResponse> {
-    return this.rpc.unary(HealthServiceHealthDesc, Empty.fromPartial(request), metadata);
+  Ping(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<PingResponse> {
+    return this.rpc.unary(PingServicePingDesc, Empty.fromPartial(request), metadata);
   }
 }
 
-export const HealthServiceDesc = { serviceName: "protos.HealthService" };
+export const PingServiceDesc = { serviceName: "protos.PingService" };
 
-export const HealthServiceHealthDesc: UnaryMethodDefinitionish = {
-  methodName: "Health",
-  service: HealthServiceDesc,
+export const PingServicePingDesc: UnaryMethodDefinitionish = {
+  methodName: "Ping",
+  service: PingServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
@@ -105,7 +105,7 @@ export const HealthServiceHealthDesc: UnaryMethodDefinitionish = {
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = HealthResponse.decode(data);
+      const value = PingResponse.decode(data);
       return {
         ...value,
         toObject() {
