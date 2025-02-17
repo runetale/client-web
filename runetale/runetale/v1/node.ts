@@ -54,8 +54,15 @@ export interface NetPortRange {
    * - 範囲指定の `100-200``
    * - 単一のportの場合はlastにも同じポート番号が入る
    */
-  ports: NetPortRange_portRange | undefined;
-  advertisedRoute: string[];
+  ports:
+    | NetPortRange_portRange
+    | undefined;
+  /**
+   * advertiseすることが許可されたIP範囲
+   * 1.2.3.4/16のIP+Maskの形
+   * "10.0.0.0/8,192.172.0.0/24"のようにcommaで区切る
+   */
+  advertisedRoutes: string;
 }
 
 export interface NetPortRange_portRange {
@@ -460,7 +467,7 @@ export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
 };
 
 function createBaseNetPortRange(): NetPortRange {
-  return { ip: "", ports: undefined, advertisedRoute: [] };
+  return { ip: "", ports: undefined, advertisedRoutes: "" };
 }
 
 export const NetPortRange: MessageFns<NetPortRange> = {
@@ -471,8 +478,8 @@ export const NetPortRange: MessageFns<NetPortRange> = {
     if (message.ports !== undefined) {
       NetPortRange_portRange.encode(message.ports, writer.uint32(18).fork()).join();
     }
-    for (const v of message.advertisedRoute) {
-      writer.uint32(26).string(v!);
+    if (message.advertisedRoutes !== "") {
+      writer.uint32(26).string(message.advertisedRoutes);
     }
     return writer;
   },
@@ -505,7 +512,7 @@ export const NetPortRange: MessageFns<NetPortRange> = {
             break;
           }
 
-          message.advertisedRoute.push(reader.string());
+          message.advertisedRoutes = reader.string();
           continue;
         }
       }
@@ -521,9 +528,7 @@ export const NetPortRange: MessageFns<NetPortRange> = {
     return {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       ports: isSet(object.ports) ? NetPortRange_portRange.fromJSON(object.ports) : undefined,
-      advertisedRoute: globalThis.Array.isArray(object?.advertisedRoute)
-        ? object.advertisedRoute.map((e: any) => globalThis.String(e))
-        : [],
+      advertisedRoutes: isSet(object.advertisedRoutes) ? globalThis.String(object.advertisedRoutes) : "",
     };
   },
 
@@ -535,8 +540,8 @@ export const NetPortRange: MessageFns<NetPortRange> = {
     if (message.ports !== undefined) {
       obj.ports = NetPortRange_portRange.toJSON(message.ports);
     }
-    if (message.advertisedRoute?.length) {
-      obj.advertisedRoute = message.advertisedRoute;
+    if (message.advertisedRoutes !== "") {
+      obj.advertisedRoutes = message.advertisedRoutes;
     }
     return obj;
   },
@@ -550,7 +555,7 @@ export const NetPortRange: MessageFns<NetPortRange> = {
     message.ports = (object.ports !== undefined && object.ports !== null)
       ? NetPortRange_portRange.fromPartial(object.ports)
       : undefined;
-    message.advertisedRoute = object.advertisedRoute?.map((e) => e) || [];
+    message.advertisedRoutes = object.advertisedRoutes ?? "";
     return message;
   },
 };
