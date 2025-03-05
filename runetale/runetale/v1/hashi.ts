@@ -13,7 +13,8 @@ export const protobufPackage = "protos";
 export interface Endpoint {
   /** net.UDPAddrを文字列で表現 (e.g., "192.168.1.1:51820") */
   addr: string;
-  type: number;
+  /** "turn" or "stun" from ice_endpoint.go */
+  type: string;
 }
 
 export interface Status {
@@ -97,7 +98,7 @@ export interface Hashigo {
 }
 
 function createBaseEndpoint(): Endpoint {
-  return { addr: "", type: 0 };
+  return { addr: "", type: "" };
 }
 
 export const Endpoint: MessageFns<Endpoint> = {
@@ -105,8 +106,8 @@ export const Endpoint: MessageFns<Endpoint> = {
     if (message.addr !== "") {
       writer.uint32(10).string(message.addr);
     }
-    if (message.type !== 0) {
-      writer.uint32(16).int64(message.type);
+    if (message.type !== "") {
+      writer.uint32(18).string(message.type);
     }
     return writer;
   },
@@ -127,11 +128,11 @@ export const Endpoint: MessageFns<Endpoint> = {
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.type = longToNumber(reader.int64());
+          message.type = reader.string();
           continue;
         }
       }
@@ -146,7 +147,7 @@ export const Endpoint: MessageFns<Endpoint> = {
   fromJSON(object: any): Endpoint {
     return {
       addr: isSet(object.addr) ? globalThis.String(object.addr) : "",
-      type: isSet(object.type) ? globalThis.Number(object.type) : 0,
+      type: isSet(object.type) ? globalThis.String(object.type) : "",
     };
   },
 
@@ -155,8 +156,8 @@ export const Endpoint: MessageFns<Endpoint> = {
     if (message.addr !== "") {
       obj.addr = message.addr;
     }
-    if (message.type !== 0) {
-      obj.type = Math.round(message.type);
+    if (message.type !== "") {
+      obj.type = message.type;
     }
     return obj;
   },
@@ -167,7 +168,7 @@ export const Endpoint: MessageFns<Endpoint> = {
   fromPartial<I extends Exact<DeepPartial<Endpoint>, I>>(object: I): Endpoint {
     const message = createBaseEndpoint();
     message.addr = object.addr ?? "";
-    message.type = object.type ?? 0;
+    message.type = object.type ?? "";
     return message;
   },
 };
