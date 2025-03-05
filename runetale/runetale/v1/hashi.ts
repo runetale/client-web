@@ -593,72 +593,72 @@ export const PeerStatus: MessageFns<PeerStatus> = {
 
   fromJSON(object: any): PeerStatus {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      publicKey: isSet(object.publicKey) ? globalThis.String(object.publicKey) : "",
-      os: isSet(object.os) ? globalThis.String(object.os) : "",
-      hostName: isSet(object.hostName) ? globalThis.String(object.hostName) : "",
+      id: isSet(object.ID) ? globalThis.Number(object.ID) : 0,
+      publicKey: isSet(object.PublicKey) ? globalThis.String(object.PublicKey) : "",
+      os: isSet(object.OS) ? globalThis.String(object.OS) : "",
+      hostName: isSet(object.HostName) ? globalThis.String(object.HostName) : "",
       runetaleIps: globalThis.Array.isArray(object?.RunetaleIPs)
         ? object.RunetaleIPs.map((e: any) => globalThis.String(e))
         : [],
-      peerApiUrl: globalThis.Array.isArray(object?.peerApiUrl)
-        ? object.peerApiUrl.map((e: any) => globalThis.String(e))
+      peerApiUrl: globalThis.Array.isArray(object?.PeerAPIURL)
+        ? object.PeerAPIURL.map((e: any) => globalThis.String(e))
         : [],
-      allowedIps: globalThis.Array.isArray(object?.allowedIps)
-        ? object.allowedIps.map((e: any) => globalThis.String(e))
+      allowedIps: globalThis.Array.isArray(object?.AllowedIPs)
+        ? object.AllowedIPs.map((e: any) => globalThis.String(e))
         : [],
-      rxBytes: isSet(object.rxBytes) ? globalThis.Number(object.rxBytes) : 0,
-      txBytes: isSet(object.txBytes) ? globalThis.Number(object.txBytes) : 0,
-      lastHandshake: isSet(object.lastHandshake) ? fromJsonTimestamp(object.lastHandshake) : undefined,
-      lastWrite: isSet(object.lastWrite) ? fromJsonTimestamp(object.lastWrite) : undefined,
-      addrs: globalThis.Array.isArray(object?.addrs) ? object.addrs.map((e: any) => globalThis.String(e)) : [],
-      curAddr: isSet(object.curAddr) ? globalThis.String(object.curAddr) : undefined,
-      iceAddr: isSet(object.iceAddr) ? globalThis.String(object.iceAddr) : undefined,
+      rxBytes: isSet(object.RxBytes) ? globalThis.Number(object.RxBytes) : 0,
+      txBytes: isSet(object.TxBytes) ? globalThis.Number(object.TxBytes) : 0,
+      lastHandshake: isSet(object.LastHandshake) ? fromJsonTimestamp(object.LastHandshake) : undefined,
+      lastWrite: isSet(object.LastWrite) ? fromJsonTimestamp(object.LastWrite) : undefined,
+      addrs: globalThis.Array.isArray(object?.Addr) ? object.Addr.map((e: any) => globalThis.String(e)) : [],
+      curAddr: isSet(object.CurrentAddr) ? globalThis.String(object.CurrentAddr) : undefined,
+      iceAddr: isSet(object.IceAddr) ? globalThis.String(object.IceAddr) : undefined,
     };
   },
 
   toJSON(message: PeerStatus): unknown {
     const obj: any = {};
     if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+      obj.ID = Math.round(message.id);
     }
     if (message.publicKey !== "") {
-      obj.publicKey = message.publicKey;
+      obj.PublicKey = message.publicKey;
     }
     if (message.os !== "") {
-      obj.os = message.os;
+      obj.OS = message.os;
     }
     if (message.hostName !== "") {
-      obj.hostName = message.hostName;
+      obj.HostName = message.hostName;
     }
     if (message.runetaleIps?.length) {
       obj.RunetaleIPs = message.runetaleIps;
     }
     if (message.peerApiUrl?.length) {
-      obj.peerApiUrl = message.peerApiUrl;
+      obj.PeerAPIURL = message.peerApiUrl;
     }
     if (message.allowedIps?.length) {
-      obj.allowedIps = message.allowedIps;
+      obj.AllowedIPs = message.allowedIps;
     }
     if (message.rxBytes !== 0) {
-      obj.rxBytes = Math.round(message.rxBytes);
+      obj.RxBytes = Math.round(message.rxBytes);
     }
     if (message.txBytes !== 0) {
-      obj.txBytes = Math.round(message.txBytes);
+      obj.TxBytes = Math.round(message.txBytes);
     }
     if (message.lastHandshake !== undefined) {
-      obj.lastHandshake = message.lastHandshake.toISOString();
+      obj.LastHandshake = message.lastHandshake.toISOString();
     }
     if (message.lastWrite !== undefined) {
-      obj.lastWrite = message.lastWrite.toISOString();
+      obj.LastWrite = message.lastWrite.toISOString();
     }
     if (message.addrs?.length) {
-      obj.addrs = message.addrs;
+      obj.Addr = message.addrs;
     }
     if (message.curAddr !== undefined) {
-      obj.curAddr = message.curAddr;
+      obj.CurrentAddr = message.curAddr;
     }
     if (message.iceAddr !== undefined) {
-      obj.iceAddr = message.iceAddr;
+      obj.IceAddr = message.iceAddr;
     }
     return obj;
   },
