@@ -22,7 +22,10 @@ export interface HashiStatus {
   /** netip.Addr を文字列として扱う */
   runetaleIps: string[];
   interactiveLoginUrl?: string | undefined;
-  self?: PeerStatus | undefined;
+  self?:
+    | PeerStatus
+    | undefined;
+  /** map[key.NodePublic]*PeerStatus */
   peer: { [key: string]: PeerStatus };
 }
 
@@ -255,16 +258,16 @@ export const HashiStatus: MessageFns<HashiStatus> = {
 
   fromJSON(object: any): HashiStatus {
     return {
-      backendState: isSet(object.BackendState) ? globalThis.String(object.BackendState) : "",
-      runetaleIps: globalThis.Array.isArray(object?.RunetaleIPs)
-        ? object.RunetaleIPs.map((e: any) => globalThis.String(e))
+      backendState: isSet(object.backendState) ? globalThis.String(object.backendState) : "",
+      runetaleIps: globalThis.Array.isArray(object?.runetaleIps)
+        ? object.runetaleIps.map((e: any) => globalThis.String(e))
         : [],
-      interactiveLoginUrl: isSet(object.InteractiveLoginURL)
-        ? globalThis.String(object.InteractiveLoginURL)
+      interactiveLoginUrl: isSet(object.interactiveLoginUrl)
+        ? globalThis.String(object.interactiveLoginUrl)
         : undefined,
-      self: isSet(object.Self) ? PeerStatus.fromJSON(object.Self) : undefined,
-      peer: isObject(object.Peer)
-        ? Object.entries(object.Peer).reduce<{ [key: string]: PeerStatus }>((acc, [key, value]) => {
+      self: isSet(object.self) ? PeerStatus.fromJSON(object.self) : undefined,
+      peer: isObject(object.peer)
+        ? Object.entries(object.peer).reduce<{ [key: string]: PeerStatus }>((acc, [key, value]) => {
           acc[key] = PeerStatus.fromJSON(value);
           return acc;
         }, {})
@@ -275,23 +278,23 @@ export const HashiStatus: MessageFns<HashiStatus> = {
   toJSON(message: HashiStatus): unknown {
     const obj: any = {};
     if (message.backendState !== "") {
-      obj.BackendState = message.backendState;
+      obj.backendState = message.backendState;
     }
     if (message.runetaleIps?.length) {
-      obj.RunetaleIPs = message.runetaleIps;
+      obj.runetaleIps = message.runetaleIps;
     }
     if (message.interactiveLoginUrl !== undefined) {
-      obj.InteractiveLoginURL = message.interactiveLoginUrl;
+      obj.interactiveLoginUrl = message.interactiveLoginUrl;
     }
     if (message.self !== undefined) {
-      obj.Self = PeerStatus.toJSON(message.self);
+      obj.self = PeerStatus.toJSON(message.self);
     }
     if (message.peer) {
       const entries = Object.entries(message.peer);
       if (entries.length > 0) {
-        obj.Peer = {};
+        obj.peer = {};
         entries.forEach(([k, v]) => {
-          obj.Peer[k] = PeerStatus.toJSON(v);
+          obj.peer[k] = PeerStatus.toJSON(v);
         });
       }
     }
@@ -593,72 +596,72 @@ export const PeerStatus: MessageFns<PeerStatus> = {
 
   fromJSON(object: any): PeerStatus {
     return {
-      id: isSet(object.ID) ? globalThis.Number(object.ID) : 0,
-      publicKey: isSet(object.PublicKey) ? globalThis.String(object.PublicKey) : "",
-      os: isSet(object.OS) ? globalThis.String(object.OS) : "",
-      hostName: isSet(object.HostName) ? globalThis.String(object.HostName) : "",
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      publicKey: isSet(object.publicKey) ? globalThis.String(object.publicKey) : "",
+      os: isSet(object.os) ? globalThis.String(object.os) : "",
+      hostName: isSet(object.hostName) ? globalThis.String(object.hostName) : "",
       runetaleIps: globalThis.Array.isArray(object?.RunetaleIPs)
         ? object.RunetaleIPs.map((e: any) => globalThis.String(e))
         : [],
-      peerApiUrl: globalThis.Array.isArray(object?.PeerAPIURL)
-        ? object.PeerAPIURL.map((e: any) => globalThis.String(e))
+      peerApiUrl: globalThis.Array.isArray(object?.peerApiUrl)
+        ? object.peerApiUrl.map((e: any) => globalThis.String(e))
         : [],
-      allowedIps: globalThis.Array.isArray(object?.AllowedIPs)
-        ? object.AllowedIPs.map((e: any) => globalThis.String(e))
+      allowedIps: globalThis.Array.isArray(object?.allowedIps)
+        ? object.allowedIps.map((e: any) => globalThis.String(e))
         : [],
-      rxBytes: isSet(object.RxBytes) ? globalThis.Number(object.RxBytes) : 0,
-      txBytes: isSet(object.TxBytes) ? globalThis.Number(object.TxBytes) : 0,
-      lastHandshake: isSet(object.LastHandshake) ? fromJsonTimestamp(object.LastHandshake) : undefined,
-      lastWrite: isSet(object.LastWrite) ? fromJsonTimestamp(object.LastWrite) : undefined,
-      addrs: globalThis.Array.isArray(object?.Addr) ? object.Addr.map((e: any) => globalThis.String(e)) : [],
-      curAddr: isSet(object.CurrentAddr) ? globalThis.String(object.CurrentAddr) : undefined,
-      iceAddr: isSet(object.IceAddr) ? globalThis.String(object.IceAddr) : undefined,
+      rxBytes: isSet(object.rxBytes) ? globalThis.Number(object.rxBytes) : 0,
+      txBytes: isSet(object.txBytes) ? globalThis.Number(object.txBytes) : 0,
+      lastHandshake: isSet(object.lastHandshake) ? fromJsonTimestamp(object.lastHandshake) : undefined,
+      lastWrite: isSet(object.lastWrite) ? fromJsonTimestamp(object.lastWrite) : undefined,
+      addrs: globalThis.Array.isArray(object?.addrs) ? object.addrs.map((e: any) => globalThis.String(e)) : [],
+      curAddr: isSet(object.curAddr) ? globalThis.String(object.curAddr) : undefined,
+      iceAddr: isSet(object.iceAddr) ? globalThis.String(object.iceAddr) : undefined,
     };
   },
 
   toJSON(message: PeerStatus): unknown {
     const obj: any = {};
     if (message.id !== 0) {
-      obj.ID = Math.round(message.id);
+      obj.id = Math.round(message.id);
     }
     if (message.publicKey !== "") {
-      obj.PublicKey = message.publicKey;
+      obj.publicKey = message.publicKey;
     }
     if (message.os !== "") {
-      obj.OS = message.os;
+      obj.os = message.os;
     }
     if (message.hostName !== "") {
-      obj.HostName = message.hostName;
+      obj.hostName = message.hostName;
     }
     if (message.runetaleIps?.length) {
       obj.RunetaleIPs = message.runetaleIps;
     }
     if (message.peerApiUrl?.length) {
-      obj.PeerAPIURL = message.peerApiUrl;
+      obj.peerApiUrl = message.peerApiUrl;
     }
     if (message.allowedIps?.length) {
-      obj.AllowedIPs = message.allowedIps;
+      obj.allowedIps = message.allowedIps;
     }
     if (message.rxBytes !== 0) {
-      obj.RxBytes = Math.round(message.rxBytes);
+      obj.rxBytes = Math.round(message.rxBytes);
     }
     if (message.txBytes !== 0) {
-      obj.TxBytes = Math.round(message.txBytes);
+      obj.txBytes = Math.round(message.txBytes);
     }
     if (message.lastHandshake !== undefined) {
-      obj.LastHandshake = message.lastHandshake.toISOString();
+      obj.lastHandshake = message.lastHandshake.toISOString();
     }
     if (message.lastWrite !== undefined) {
-      obj.LastWrite = message.lastWrite.toISOString();
+      obj.lastWrite = message.lastWrite.toISOString();
     }
     if (message.addrs?.length) {
-      obj.Addr = message.addrs;
+      obj.addrs = message.addrs;
     }
     if (message.curAddr !== undefined) {
-      obj.CurrentAddr = message.curAddr;
+      obj.curAddr = message.curAddr;
     }
     if (message.iceAddr !== undefined) {
-      obj.IceAddr = message.iceAddr;
+      obj.iceAddr = message.iceAddr;
     }
     return obj;
   },
