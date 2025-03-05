@@ -10,11 +10,6 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
 
 export const protobufPackage = "protos";
 
-export interface NodePublic {
-  /** 32バイト固定長 */
-  k: Uint8Array;
-}
-
 export interface Endpoint {
   /** net.UDPAddrを文字列で表現 (e.g., "192.168.1.1:51820") */
   addr: string;
@@ -39,15 +34,14 @@ export interface Status_PeerEntry {
 }
 
 export interface PeerStatus {
-  /** runecfg.NodeID を string で表現 */
   id: number;
-  publicKey: NodePublic | undefined;
+  publicKey: string;
   os: string;
   hostName: string;
   /** netip.Addr を文字列として扱う */
   runetaleIps: string[];
   peerApiUrl: string[];
-  /** readonly.Slice[netip.Prefix] を文字列のリストで表現 */
+  /** [netip.Prefix] を文字列のリストで表現 */
   allowedIps: string[];
   rxBytes: number;
   txBytes: number;
@@ -66,69 +60,11 @@ export interface UserspacePeerEngineStatus {
 }
 
 export interface CompactPeerStatus {
-  nodeKey: NodePublic | undefined;
+  nodeKey: string;
   txBytes: number;
   rxBytes: number;
   lastHandshake: Date | undefined;
 }
-
-function createBaseNodePublic(): NodePublic {
-  return { k: new Uint8Array(0) };
-}
-
-export const NodePublic: MessageFns<NodePublic> = {
-  encode(message: NodePublic, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.k.length !== 0) {
-      writer.uint32(10).bytes(message.k);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): NodePublic {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseNodePublic();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.k = reader.bytes();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): NodePublic {
-    return { k: isSet(object.k) ? bytesFromBase64(object.k) : new Uint8Array(0) };
-  },
-
-  toJSON(message: NodePublic): unknown {
-    const obj: any = {};
-    if (message.k.length !== 0) {
-      obj.k = base64FromBytes(message.k);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<NodePublic>, I>>(base?: I): NodePublic {
-    return NodePublic.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<NodePublic>, I>>(object: I): NodePublic {
-    const message = createBaseNodePublic();
-    message.k = object.k ?? new Uint8Array(0);
-    return message;
-  },
-};
 
 function createBaseEndpoint(): Endpoint {
   return { addr: "", type: 0 };
@@ -436,7 +372,7 @@ export const Status_PeerEntry: MessageFns<Status_PeerEntry> = {
 function createBasePeerStatus(): PeerStatus {
   return {
     id: 0,
-    publicKey: undefined,
+    publicKey: "",
     os: "",
     hostName: "",
     runetaleIps: [],
@@ -457,8 +393,8 @@ export const PeerStatus: MessageFns<PeerStatus> = {
     if (message.id !== 0) {
       writer.uint32(8).int64(message.id);
     }
-    if (message.publicKey !== undefined) {
-      NodePublic.encode(message.publicKey, writer.uint32(18).fork()).join();
+    if (message.publicKey !== "") {
+      writer.uint32(18).string(message.publicKey);
     }
     if (message.os !== "") {
       writer.uint32(26).string(message.os);
@@ -519,7 +455,7 @@ export const PeerStatus: MessageFns<PeerStatus> = {
             break;
           }
 
-          message.publicKey = NodePublic.decode(reader, reader.uint32());
+          message.publicKey = reader.string();
           continue;
         }
         case 3: {
@@ -630,7 +566,7 @@ export const PeerStatus: MessageFns<PeerStatus> = {
   fromJSON(object: any): PeerStatus {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      publicKey: isSet(object.publicKey) ? NodePublic.fromJSON(object.publicKey) : undefined,
+      publicKey: isSet(object.publicKey) ? globalThis.String(object.publicKey) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       hostName: isSet(object.hostName) ? globalThis.String(object.hostName) : "",
       runetaleIps: globalThis.Array.isArray(object?.runetaleIps)
@@ -657,8 +593,8 @@ export const PeerStatus: MessageFns<PeerStatus> = {
     if (message.id !== 0) {
       obj.id = Math.round(message.id);
     }
-    if (message.publicKey !== undefined) {
-      obj.publicKey = NodePublic.toJSON(message.publicKey);
+    if (message.publicKey !== "") {
+      obj.publicKey = message.publicKey;
     }
     if (message.os !== "") {
       obj.os = message.os;
@@ -705,9 +641,7 @@ export const PeerStatus: MessageFns<PeerStatus> = {
   fromPartial<I extends Exact<DeepPartial<PeerStatus>, I>>(object: I): PeerStatus {
     const message = createBasePeerStatus();
     message.id = object.id ?? 0;
-    message.publicKey = (object.publicKey !== undefined && object.publicKey !== null)
-      ? NodePublic.fromPartial(object.publicKey)
-      : undefined;
+    message.publicKey = object.publicKey ?? "";
     message.os = object.os ?? "";
     message.hostName = object.hostName ?? "";
     message.runetaleIps = object.runetaleIps?.map((e) => e) || [];
@@ -819,13 +753,13 @@ export const UserspacePeerEngineStatus: MessageFns<UserspacePeerEngineStatus> = 
 };
 
 function createBaseCompactPeerStatus(): CompactPeerStatus {
-  return { nodeKey: undefined, txBytes: 0, rxBytes: 0, lastHandshake: undefined };
+  return { nodeKey: "", txBytes: 0, rxBytes: 0, lastHandshake: undefined };
 }
 
 export const CompactPeerStatus: MessageFns<CompactPeerStatus> = {
   encode(message: CompactPeerStatus, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.nodeKey !== undefined) {
-      NodePublic.encode(message.nodeKey, writer.uint32(10).fork()).join();
+    if (message.nodeKey !== "") {
+      writer.uint32(10).string(message.nodeKey);
     }
     if (message.txBytes !== 0) {
       writer.uint32(16).int64(message.txBytes);
@@ -851,7 +785,7 @@ export const CompactPeerStatus: MessageFns<CompactPeerStatus> = {
             break;
           }
 
-          message.nodeKey = NodePublic.decode(reader, reader.uint32());
+          message.nodeKey = reader.string();
           continue;
         }
         case 2: {
@@ -889,7 +823,7 @@ export const CompactPeerStatus: MessageFns<CompactPeerStatus> = {
 
   fromJSON(object: any): CompactPeerStatus {
     return {
-      nodeKey: isSet(object.nodeKey) ? NodePublic.fromJSON(object.nodeKey) : undefined,
+      nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
       txBytes: isSet(object.txBytes) ? globalThis.Number(object.txBytes) : 0,
       rxBytes: isSet(object.rxBytes) ? globalThis.Number(object.rxBytes) : 0,
       lastHandshake: isSet(object.lastHandshake) ? fromJsonTimestamp(object.lastHandshake) : undefined,
@@ -898,8 +832,8 @@ export const CompactPeerStatus: MessageFns<CompactPeerStatus> = {
 
   toJSON(message: CompactPeerStatus): unknown {
     const obj: any = {};
-    if (message.nodeKey !== undefined) {
-      obj.nodeKey = NodePublic.toJSON(message.nodeKey);
+    if (message.nodeKey !== "") {
+      obj.nodeKey = message.nodeKey;
     }
     if (message.txBytes !== 0) {
       obj.txBytes = Math.round(message.txBytes);
@@ -918,40 +852,13 @@ export const CompactPeerStatus: MessageFns<CompactPeerStatus> = {
   },
   fromPartial<I extends Exact<DeepPartial<CompactPeerStatus>, I>>(object: I): CompactPeerStatus {
     const message = createBaseCompactPeerStatus();
-    message.nodeKey = (object.nodeKey !== undefined && object.nodeKey !== null)
-      ? NodePublic.fromPartial(object.nodeKey)
-      : undefined;
+    message.nodeKey = object.nodeKey ?? "";
     message.txBytes = object.txBytes ?? 0;
     message.rxBytes = object.rxBytes ?? 0;
     message.lastHandshake = object.lastHandshake ?? undefined;
     return message;
   },
 };
-
-function bytesFromBase64(b64: string): Uint8Array {
-  if ((globalThis as any).Buffer) {
-    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
-  } else {
-    const bin = globalThis.atob(b64);
-    const arr = new Uint8Array(bin.length);
-    for (let i = 0; i < bin.length; ++i) {
-      arr[i] = bin.charCodeAt(i);
-    }
-    return arr;
-  }
-}
-
-function base64FromBytes(arr: Uint8Array): string {
-  if ((globalThis as any).Buffer) {
-    return globalThis.Buffer.from(arr).toString("base64");
-  } else {
-    const bin: string[] = [];
-    arr.forEach((byte) => {
-      bin.push(globalThis.String.fromCharCode(byte));
-    });
-    return globalThis.btoa(bin.join(""));
-  }
-}
 
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
