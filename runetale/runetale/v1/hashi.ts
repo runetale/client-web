@@ -17,19 +17,16 @@ export interface Endpoint {
   type: string;
 }
 
-export interface Status {
+export interface HashiStatus {
   backendState: string;
   /** netip.Addr を文字列として扱う */
   runetaleIps: string[];
   interactiveLoginUrl?: string | undefined;
-  self?:
-    | PeerStatus
-    | undefined;
-  /** map[key.NodePublic]*PeerStatus */
+  self?: PeerStatus | undefined;
   peer: { [key: string]: PeerStatus };
 }
 
-export interface Status_PeerEntry {
+export interface HashiStatus_PeerEntry {
   key: string;
   value: PeerStatus | undefined;
 }
@@ -173,12 +170,12 @@ export const Endpoint: MessageFns<Endpoint> = {
   },
 };
 
-function createBaseStatus(): Status {
+function createBaseHashiStatus(): HashiStatus {
   return { backendState: "", runetaleIps: [], interactiveLoginUrl: undefined, self: undefined, peer: {} };
 }
 
-export const Status: MessageFns<Status> = {
-  encode(message: Status, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const HashiStatus: MessageFns<HashiStatus> = {
+  encode(message: HashiStatus, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.backendState !== "") {
       writer.uint32(10).string(message.backendState);
     }
@@ -192,15 +189,15 @@ export const Status: MessageFns<Status> = {
       PeerStatus.encode(message.self, writer.uint32(34).fork()).join();
     }
     Object.entries(message.peer).forEach(([key, value]) => {
-      Status_PeerEntry.encode({ key: key as any, value }, writer.uint32(42).fork()).join();
+      HashiStatus_PeerEntry.encode({ key: key as any, value }, writer.uint32(42).fork()).join();
     });
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): Status {
+  decode(input: BinaryReader | Uint8Array, length?: number): HashiStatus {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseStatus();
+    const message = createBaseHashiStatus();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -241,7 +238,7 @@ export const Status: MessageFns<Status> = {
             break;
           }
 
-          const entry5 = Status_PeerEntry.decode(reader, reader.uint32());
+          const entry5 = HashiStatus_PeerEntry.decode(reader, reader.uint32());
           if (entry5.value !== undefined) {
             message.peer[entry5.key] = entry5.value;
           }
@@ -256,18 +253,18 @@ export const Status: MessageFns<Status> = {
     return message;
   },
 
-  fromJSON(object: any): Status {
+  fromJSON(object: any): HashiStatus {
     return {
-      backendState: isSet(object.backendState) ? globalThis.String(object.backendState) : "",
-      runetaleIps: globalThis.Array.isArray(object?.runetaleIps)
-        ? object.runetaleIps.map((e: any) => globalThis.String(e))
+      backendState: isSet(object.BackendState) ? globalThis.String(object.BackendState) : "",
+      runetaleIps: globalThis.Array.isArray(object?.RunetaleIPs)
+        ? object.RunetaleIPs.map((e: any) => globalThis.String(e))
         : [],
-      interactiveLoginUrl: isSet(object.interactiveLoginUrl)
-        ? globalThis.String(object.interactiveLoginUrl)
+      interactiveLoginUrl: isSet(object.InteractiveLoginURL)
+        ? globalThis.String(object.InteractiveLoginURL)
         : undefined,
-      self: isSet(object.self) ? PeerStatus.fromJSON(object.self) : undefined,
-      peer: isObject(object.peer)
-        ? Object.entries(object.peer).reduce<{ [key: string]: PeerStatus }>((acc, [key, value]) => {
+      self: isSet(object.Self) ? PeerStatus.fromJSON(object.Self) : undefined,
+      peer: isObject(object.Peer)
+        ? Object.entries(object.Peer).reduce<{ [key: string]: PeerStatus }>((acc, [key, value]) => {
           acc[key] = PeerStatus.fromJSON(value);
           return acc;
         }, {})
@@ -275,37 +272,37 @@ export const Status: MessageFns<Status> = {
     };
   },
 
-  toJSON(message: Status): unknown {
+  toJSON(message: HashiStatus): unknown {
     const obj: any = {};
     if (message.backendState !== "") {
-      obj.backendState = message.backendState;
+      obj.BackendState = message.backendState;
     }
     if (message.runetaleIps?.length) {
-      obj.runetaleIps = message.runetaleIps;
+      obj.RunetaleIPs = message.runetaleIps;
     }
     if (message.interactiveLoginUrl !== undefined) {
-      obj.interactiveLoginUrl = message.interactiveLoginUrl;
+      obj.InteractiveLoginURL = message.interactiveLoginUrl;
     }
     if (message.self !== undefined) {
-      obj.self = PeerStatus.toJSON(message.self);
+      obj.Self = PeerStatus.toJSON(message.self);
     }
     if (message.peer) {
       const entries = Object.entries(message.peer);
       if (entries.length > 0) {
-        obj.peer = {};
+        obj.Peer = {};
         entries.forEach(([k, v]) => {
-          obj.peer[k] = PeerStatus.toJSON(v);
+          obj.Peer[k] = PeerStatus.toJSON(v);
         });
       }
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Status>, I>>(base?: I): Status {
-    return Status.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<HashiStatus>, I>>(base?: I): HashiStatus {
+    return HashiStatus.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Status>, I>>(object: I): Status {
-    const message = createBaseStatus();
+  fromPartial<I extends Exact<DeepPartial<HashiStatus>, I>>(object: I): HashiStatus {
+    const message = createBaseHashiStatus();
     message.backendState = object.backendState ?? "";
     message.runetaleIps = object.runetaleIps?.map((e) => e) || [];
     message.interactiveLoginUrl = object.interactiveLoginUrl ?? undefined;
@@ -322,12 +319,12 @@ export const Status: MessageFns<Status> = {
   },
 };
 
-function createBaseStatus_PeerEntry(): Status_PeerEntry {
+function createBaseHashiStatus_PeerEntry(): HashiStatus_PeerEntry {
   return { key: "", value: undefined };
 }
 
-export const Status_PeerEntry: MessageFns<Status_PeerEntry> = {
-  encode(message: Status_PeerEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const HashiStatus_PeerEntry: MessageFns<HashiStatus_PeerEntry> = {
+  encode(message: HashiStatus_PeerEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.key !== "") {
       writer.uint32(10).string(message.key);
     }
@@ -337,10 +334,10 @@ export const Status_PeerEntry: MessageFns<Status_PeerEntry> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): Status_PeerEntry {
+  decode(input: BinaryReader | Uint8Array, length?: number): HashiStatus_PeerEntry {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseStatus_PeerEntry();
+    const message = createBaseHashiStatus_PeerEntry();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -369,14 +366,14 @@ export const Status_PeerEntry: MessageFns<Status_PeerEntry> = {
     return message;
   },
 
-  fromJSON(object: any): Status_PeerEntry {
+  fromJSON(object: any): HashiStatus_PeerEntry {
     return {
       key: isSet(object.key) ? globalThis.String(object.key) : "",
       value: isSet(object.value) ? PeerStatus.fromJSON(object.value) : undefined,
     };
   },
 
-  toJSON(message: Status_PeerEntry): unknown {
+  toJSON(message: HashiStatus_PeerEntry): unknown {
     const obj: any = {};
     if (message.key !== "") {
       obj.key = message.key;
@@ -387,11 +384,11 @@ export const Status_PeerEntry: MessageFns<Status_PeerEntry> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<Status_PeerEntry>, I>>(base?: I): Status_PeerEntry {
-    return Status_PeerEntry.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<HashiStatus_PeerEntry>, I>>(base?: I): HashiStatus_PeerEntry {
+    return HashiStatus_PeerEntry.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<Status_PeerEntry>, I>>(object: I): Status_PeerEntry {
-    const message = createBaseStatus_PeerEntry();
+  fromPartial<I extends Exact<DeepPartial<HashiStatus_PeerEntry>, I>>(object: I): HashiStatus_PeerEntry {
+    const message = createBaseHashiStatus_PeerEntry();
     message.key = object.key ?? "";
     message.value = (object.value !== undefined && object.value !== null)
       ? PeerStatus.fromPartial(object.value)
