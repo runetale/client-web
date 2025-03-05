@@ -66,6 +66,36 @@ export interface CompactPeerStatus {
   lastHandshake: Date | undefined;
 }
 
+/**
+ * Hashigo struct like, hashiog(梯子) is a bridge in Japanese.
+ * 橋 are essential infrastructure in the world.
+ * The same holds true in the world of Runetale.
+ * A 橋 serves as the sole common pathway for a node, referenced through the API to enable flexible network configuration within Runetale.
+ * There is also a double meaning with "Hashi(お箸, chopstick)" a part of Japanese culture.
+ * Like using chopsticks, we carefully pick and fine-tune the settings with precision.
+ */
+export interface Hashigo {
+  serverUrl: string;
+  signalUrl: string;
+  /** incoming packet all block */
+  barricade: boolean;
+  /** このノードがAdvertiseするRoutes */
+  advertiseRoutes: string[];
+  /** Whether to accept routes from subnet linker. Default: on */
+  acceptRoutes: boolean;
+  /**
+   * SNAT を無効にすると、Runetaleのトラフィックをサブネットリレーを
+   * ネットワークで追加の手動設定が必要になります。
+   * 基本的にはonにしておいてください。
+   */
+  snatSubnetRoutes: boolean;
+  /**
+   * linuxのfirewallをstatefulで扱うかどうかを設定します。
+   * デフォルトはONです。
+   */
+  statefulFilter: boolean;
+}
+
 function createBaseEndpoint(): Endpoint {
   return { addr: "", type: 0 };
 }
@@ -569,8 +599,8 @@ export const PeerStatus: MessageFns<PeerStatus> = {
       publicKey: isSet(object.publicKey) ? globalThis.String(object.publicKey) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
       hostName: isSet(object.hostName) ? globalThis.String(object.hostName) : "",
-      runetaleIps: globalThis.Array.isArray(object?.runetaleIps)
-        ? object.runetaleIps.map((e: any) => globalThis.String(e))
+      runetaleIps: globalThis.Array.isArray(object?.RunetaleIPs)
+        ? object.RunetaleIPs.map((e: any) => globalThis.String(e))
         : [],
       peerApiUrl: globalThis.Array.isArray(object?.peerApiUrl)
         ? object.peerApiUrl.map((e: any) => globalThis.String(e))
@@ -603,7 +633,7 @@ export const PeerStatus: MessageFns<PeerStatus> = {
       obj.hostName = message.hostName;
     }
     if (message.runetaleIps?.length) {
-      obj.runetaleIps = message.runetaleIps;
+      obj.RunetaleIPs = message.runetaleIps;
     }
     if (message.peerApiUrl?.length) {
       obj.peerApiUrl = message.peerApiUrl;
@@ -856,6 +886,172 @@ export const CompactPeerStatus: MessageFns<CompactPeerStatus> = {
     message.txBytes = object.txBytes ?? 0;
     message.rxBytes = object.rxBytes ?? 0;
     message.lastHandshake = object.lastHandshake ?? undefined;
+    return message;
+  },
+};
+
+function createBaseHashigo(): Hashigo {
+  return {
+    serverUrl: "",
+    signalUrl: "",
+    barricade: false,
+    advertiseRoutes: [],
+    acceptRoutes: false,
+    snatSubnetRoutes: false,
+    statefulFilter: false,
+  };
+}
+
+export const Hashigo: MessageFns<Hashigo> = {
+  encode(message: Hashigo, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.serverUrl !== "") {
+      writer.uint32(10).string(message.serverUrl);
+    }
+    if (message.signalUrl !== "") {
+      writer.uint32(18).string(message.signalUrl);
+    }
+    if (message.barricade !== false) {
+      writer.uint32(24).bool(message.barricade);
+    }
+    for (const v of message.advertiseRoutes) {
+      writer.uint32(34).string(v!);
+    }
+    if (message.acceptRoutes !== false) {
+      writer.uint32(40).bool(message.acceptRoutes);
+    }
+    if (message.snatSubnetRoutes !== false) {
+      writer.uint32(48).bool(message.snatSubnetRoutes);
+    }
+    if (message.statefulFilter !== false) {
+      writer.uint32(56).bool(message.statefulFilter);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Hashigo {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHashigo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.serverUrl = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.signalUrl = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.barricade = reader.bool();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.advertiseRoutes.push(reader.string());
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.acceptRoutes = reader.bool();
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.snatSubnetRoutes = reader.bool();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.statefulFilter = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): Hashigo {
+    return {
+      serverUrl: isSet(object.serverUrl) ? globalThis.String(object.serverUrl) : "",
+      signalUrl: isSet(object.signalUrl) ? globalThis.String(object.signalUrl) : "",
+      barricade: isSet(object.barricade) ? globalThis.Boolean(object.barricade) : false,
+      advertiseRoutes: globalThis.Array.isArray(object?.advertiseRoutes)
+        ? object.advertiseRoutes.map((e: any) => globalThis.String(e))
+        : [],
+      acceptRoutes: isSet(object.acceptRoutes) ? globalThis.Boolean(object.acceptRoutes) : false,
+      snatSubnetRoutes: isSet(object.snatSubnetRoutes) ? globalThis.Boolean(object.snatSubnetRoutes) : false,
+      statefulFilter: isSet(object.statefulFilter) ? globalThis.Boolean(object.statefulFilter) : false,
+    };
+  },
+
+  toJSON(message: Hashigo): unknown {
+    const obj: any = {};
+    if (message.serverUrl !== "") {
+      obj.serverUrl = message.serverUrl;
+    }
+    if (message.signalUrl !== "") {
+      obj.signalUrl = message.signalUrl;
+    }
+    if (message.barricade !== false) {
+      obj.barricade = message.barricade;
+    }
+    if (message.advertiseRoutes?.length) {
+      obj.advertiseRoutes = message.advertiseRoutes;
+    }
+    if (message.acceptRoutes !== false) {
+      obj.acceptRoutes = message.acceptRoutes;
+    }
+    if (message.snatSubnetRoutes !== false) {
+      obj.snatSubnetRoutes = message.snatSubnetRoutes;
+    }
+    if (message.statefulFilter !== false) {
+      obj.statefulFilter = message.statefulFilter;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Hashigo>, I>>(base?: I): Hashigo {
+    return Hashigo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Hashigo>, I>>(object: I): Hashigo {
+    const message = createBaseHashigo();
+    message.serverUrl = object.serverUrl ?? "";
+    message.signalUrl = object.signalUrl ?? "";
+    message.barricade = object.barricade ?? false;
+    message.advertiseRoutes = object.advertiseRoutes?.map((e) => e) || [];
+    message.acceptRoutes = object.acceptRoutes ?? false;
+    message.snatSubnetRoutes = object.snatSubnetRoutes ?? false;
+    message.statefulFilter = object.statefulFilter ?? false;
     return message;
   },
 };
