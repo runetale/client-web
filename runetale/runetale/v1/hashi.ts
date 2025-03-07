@@ -21,7 +21,7 @@ export interface HashiStatus {
   backendState: string;
   /** netip.Addr を文字列として扱う */
   runetaleIps: string[];
-  interactiveLoginUrl?: string | undefined;
+  interactiveLoginUrl: string;
   self?:
     | PeerStatus
     | undefined;
@@ -174,7 +174,7 @@ export const Endpoint: MessageFns<Endpoint> = {
 };
 
 function createBaseHashiStatus(): HashiStatus {
-  return { backendState: "", runetaleIps: [], interactiveLoginUrl: undefined, self: undefined, peer: {} };
+  return { backendState: "", runetaleIps: [], interactiveLoginUrl: "", self: undefined, peer: {} };
 }
 
 export const HashiStatus: MessageFns<HashiStatus> = {
@@ -185,7 +185,7 @@ export const HashiStatus: MessageFns<HashiStatus> = {
     for (const v of message.runetaleIps) {
       writer.uint32(18).string(v!);
     }
-    if (message.interactiveLoginUrl !== undefined) {
+    if (message.interactiveLoginUrl !== "") {
       writer.uint32(26).string(message.interactiveLoginUrl);
     }
     if (message.self !== undefined) {
@@ -262,9 +262,7 @@ export const HashiStatus: MessageFns<HashiStatus> = {
       runetaleIps: globalThis.Array.isArray(object?.runetaleIps)
         ? object.runetaleIps.map((e: any) => globalThis.String(e))
         : [],
-      interactiveLoginUrl: isSet(object.interactiveLoginUrl)
-        ? globalThis.String(object.interactiveLoginUrl)
-        : undefined,
+      interactiveLoginUrl: isSet(object.interactiveLoginUrl) ? globalThis.String(object.interactiveLoginUrl) : "",
       self: isSet(object.self) ? PeerStatus.fromJSON(object.self) : undefined,
       peer: isObject(object.peer)
         ? Object.entries(object.peer).reduce<{ [key: string]: PeerStatus }>((acc, [key, value]) => {
@@ -283,7 +281,7 @@ export const HashiStatus: MessageFns<HashiStatus> = {
     if (message.runetaleIps?.length) {
       obj.runetaleIps = message.runetaleIps;
     }
-    if (message.interactiveLoginUrl !== undefined) {
+    if (message.interactiveLoginUrl !== "") {
       obj.interactiveLoginUrl = message.interactiveLoginUrl;
     }
     if (message.self !== undefined) {
@@ -308,7 +306,7 @@ export const HashiStatus: MessageFns<HashiStatus> = {
     const message = createBaseHashiStatus();
     message.backendState = object.backendState ?? "";
     message.runetaleIps = object.runetaleIps?.map((e) => e) || [];
-    message.interactiveLoginUrl = object.interactiveLoginUrl ?? undefined;
+    message.interactiveLoginUrl = object.interactiveLoginUrl ?? "";
     message.self = (object.self !== undefined && object.self !== null)
       ? PeerStatus.fromPartial(object.self)
       : undefined;
