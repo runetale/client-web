@@ -144,22 +144,21 @@ export interface DNSConfig {
   /**
    * RoutesはDNS名のサフィックス（接尾辞）を、DNSリゾルバのセットにマッピングします。
    * 値が空のスライスである場合、そのサフィックスはWonderDNSの100.200.100.200で処理される。
-   * 2025/3/27時点では主にSplit DNSで使用する。
    * マップのキーはFQDNのsuffix
    * 例えば"printer.office.example.com."の場合は
    * "office.example.com."になる。
    * e.g. office.example.com.:["178.10.3.1"]
+   * - 2025/3/27時点では主にSplit DNSで使用する。
    */
   routes: { [key: string]: Resolvers };
   /**
-   * Domains はSearch Domainsの一覧。
-   * たとえばあるRunetに"example.com"と"test.com"が検索ドメインとして設定されている場合、
+   * SearchDomainsはたとえばあるRunetに"example.com"と"test.com"が検索ドメインとして設定されている場合、
    * ユーザーがserverという名前を入力すると、Runetaleは
    * 	1. server.example.comを設定されたネームサーバー（例：8.8.8.8 や 1.1.1.1）で検索します。
    * 	2. 一致しなければ、次にserver.test.comを同様のネームサーバーで検索します。
    * e.g. ["example.com","test.com"] のような感じ
    */
-  domains: string[];
+  searchDomains: string[];
 }
 
 export interface DNSConfig_RoutesEntry {
@@ -1139,7 +1138,7 @@ export const Resolvers: MessageFns<Resolvers> = {
 };
 
 function createBaseDNSConfig(): DNSConfig {
-  return { resolvers: [], routes: {}, domains: [] };
+  return { resolvers: [], routes: {}, searchDomains: [] };
 }
 
 export const DNSConfig: MessageFns<DNSConfig> = {
@@ -1150,7 +1149,7 @@ export const DNSConfig: MessageFns<DNSConfig> = {
     Object.entries(message.routes).forEach(([key, value]) => {
       DNSConfig_RoutesEntry.encode({ key: key as any, value }, writer.uint32(18).fork()).join();
     });
-    for (const v of message.domains) {
+    for (const v of message.searchDomains) {
       writer.uint32(26).string(v!);
     }
     return writer;
@@ -1187,7 +1186,7 @@ export const DNSConfig: MessageFns<DNSConfig> = {
             break;
           }
 
-          message.domains.push(reader.string());
+          message.searchDomains.push(reader.string());
           continue;
         }
       }
@@ -1210,7 +1209,9 @@ export const DNSConfig: MessageFns<DNSConfig> = {
           return acc;
         }, {})
         : {},
-      domains: globalThis.Array.isArray(object?.domains) ? object.domains.map((e: any) => globalThis.String(e)) : [],
+      searchDomains: globalThis.Array.isArray(object?.searchDomains)
+        ? object.searchDomains.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -1228,8 +1229,8 @@ export const DNSConfig: MessageFns<DNSConfig> = {
         });
       }
     }
-    if (message.domains?.length) {
-      obj.domains = message.domains;
+    if (message.searchDomains?.length) {
+      obj.searchDomains = message.searchDomains;
     }
     return obj;
   },
@@ -1246,7 +1247,7 @@ export const DNSConfig: MessageFns<DNSConfig> = {
       }
       return acc;
     }, {});
-    message.domains = object.domains?.map((e) => e) || [];
+    message.searchDomains = object.searchDomains?.map((e) => e) || [];
     return message;
   },
 };
