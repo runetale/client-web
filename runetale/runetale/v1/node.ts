@@ -159,6 +159,14 @@ export interface DNSConfig {
    * e.g. ["example.com","test.com"] のような感じ
    */
   searchDomains: string[];
+  /**
+   * 出口ノードとして DNS プロキシを行う際に
+   * 応答を無視するDNSサフィックスのリスト
+   * defaultでは[.rt.net]
+   */
+  exitNodeFilterd: string[];
+  /** wonderdnsを有効にするかどうか */
+  enabledWonderDNS: boolean;
 }
 
 export interface DNSConfig_RoutesEntry {
@@ -1138,7 +1146,7 @@ export const Resolvers: MessageFns<Resolvers> = {
 };
 
 function createBaseDNSConfig(): DNSConfig {
-  return { resolvers: [], routes: {}, searchDomains: [] };
+  return { resolvers: [], routes: {}, searchDomains: [], exitNodeFilterd: [], enabledWonderDNS: false };
 }
 
 export const DNSConfig: MessageFns<DNSConfig> = {
@@ -1151,6 +1159,12 @@ export const DNSConfig: MessageFns<DNSConfig> = {
     });
     for (const v of message.searchDomains) {
       writer.uint32(26).string(v!);
+    }
+    for (const v of message.exitNodeFilterd) {
+      writer.uint32(34).string(v!);
+    }
+    if (message.enabledWonderDNS !== false) {
+      writer.uint32(40).bool(message.enabledWonderDNS);
     }
     return writer;
   },
@@ -1189,6 +1203,22 @@ export const DNSConfig: MessageFns<DNSConfig> = {
           message.searchDomains.push(reader.string());
           continue;
         }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.exitNodeFilterd.push(reader.string());
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.enabledWonderDNS = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1212,6 +1242,10 @@ export const DNSConfig: MessageFns<DNSConfig> = {
       searchDomains: globalThis.Array.isArray(object?.searchDomains)
         ? object.searchDomains.map((e: any) => globalThis.String(e))
         : [],
+      exitNodeFilterd: globalThis.Array.isArray(object?.exitNodeFilterd)
+        ? object.exitNodeFilterd.map((e: any) => globalThis.String(e))
+        : [],
+      enabledWonderDNS: isSet(object.enabledWonderDNS) ? globalThis.Boolean(object.enabledWonderDNS) : false,
     };
   },
 
@@ -1232,6 +1266,12 @@ export const DNSConfig: MessageFns<DNSConfig> = {
     if (message.searchDomains?.length) {
       obj.searchDomains = message.searchDomains;
     }
+    if (message.exitNodeFilterd?.length) {
+      obj.exitNodeFilterd = message.exitNodeFilterd;
+    }
+    if (message.enabledWonderDNS !== false) {
+      obj.enabledWonderDNS = message.enabledWonderDNS;
+    }
     return obj;
   },
 
@@ -1248,6 +1288,8 @@ export const DNSConfig: MessageFns<DNSConfig> = {
       return acc;
     }, {});
     message.searchDomains = object.searchDomains?.map((e) => e) || [];
+    message.exitNodeFilterd = object.exitNodeFilterd?.map((e) => e) || [];
+    message.enabledWonderDNS = object.enabledWonderDNS ?? false;
     return message;
   },
 };
