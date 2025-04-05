@@ -6,6 +6,9 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import { grpc } from "@improbable-eng/grpc-web";
+import { BrowserHeaders } from "browser-headers";
+import { Empty } from "../../../google/protobuf/empty";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 
 export const protobufPackage = "protos";
@@ -95,6 +98,29 @@ export interface Hashigo {
    * デフォルトはONです。
    */
   statefulFilter: boolean;
+}
+
+export interface PingResult {
+  ip: string;
+  nodeIp: string;
+  nodeName: string;
+  err: string;
+  latencySeconds: number;
+  endpoint: string;
+  peerApiPort: number;
+  peerApiUrl: string;
+  isLocalIp: boolean;
+}
+
+export interface ComposeRequest {
+  key: string;
+}
+
+export interface HashigoRequest {
+  barricadeSet: boolean;
+  acceptRoutesSet: boolean;
+  snatSubnetRoutesSet: boolean;
+  statefulFilterSet: boolean;
 }
 
 function createBaseEndpoint(): Endpoint {
@@ -1055,6 +1081,716 @@ export const Hashigo: MessageFns<Hashigo> = {
   },
 };
 
+function createBasePingResult(): PingResult {
+  return {
+    ip: "",
+    nodeIp: "",
+    nodeName: "",
+    err: "",
+    latencySeconds: 0,
+    endpoint: "",
+    peerApiPort: 0,
+    peerApiUrl: "",
+    isLocalIp: false,
+  };
+}
+
+export const PingResult: MessageFns<PingResult> = {
+  encode(message: PingResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.ip !== "") {
+      writer.uint32(10).string(message.ip);
+    }
+    if (message.nodeIp !== "") {
+      writer.uint32(18).string(message.nodeIp);
+    }
+    if (message.nodeName !== "") {
+      writer.uint32(26).string(message.nodeName);
+    }
+    if (message.err !== "") {
+      writer.uint32(34).string(message.err);
+    }
+    if (message.latencySeconds !== 0) {
+      writer.uint32(41).double(message.latencySeconds);
+    }
+    if (message.endpoint !== "") {
+      writer.uint32(50).string(message.endpoint);
+    }
+    if (message.peerApiPort !== 0) {
+      writer.uint32(56).uint32(message.peerApiPort);
+    }
+    if (message.peerApiUrl !== "") {
+      writer.uint32(66).string(message.peerApiUrl);
+    }
+    if (message.isLocalIp !== false) {
+      writer.uint32(72).bool(message.isLocalIp);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PingResult {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePingResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ip = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.nodeIp = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.nodeName = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.err = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 41) {
+            break;
+          }
+
+          message.latencySeconds = reader.double();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.endpoint = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.peerApiPort = reader.uint32();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.peerApiUrl = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.isLocalIp = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PingResult {
+    return {
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      nodeIp: isSet(object.nodeIp) ? globalThis.String(object.nodeIp) : "",
+      nodeName: isSet(object.nodeName) ? globalThis.String(object.nodeName) : "",
+      err: isSet(object.err) ? globalThis.String(object.err) : "",
+      latencySeconds: isSet(object.latencySeconds) ? globalThis.Number(object.latencySeconds) : 0,
+      endpoint: isSet(object.endpoint) ? globalThis.String(object.endpoint) : "",
+      peerApiPort: isSet(object.peerApiPort) ? globalThis.Number(object.peerApiPort) : 0,
+      peerApiUrl: isSet(object.peerApiUrl) ? globalThis.String(object.peerApiUrl) : "",
+      isLocalIp: isSet(object.isLocalIp) ? globalThis.Boolean(object.isLocalIp) : false,
+    };
+  },
+
+  toJSON(message: PingResult): unknown {
+    const obj: any = {};
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.nodeIp !== "") {
+      obj.nodeIp = message.nodeIp;
+    }
+    if (message.nodeName !== "") {
+      obj.nodeName = message.nodeName;
+    }
+    if (message.err !== "") {
+      obj.err = message.err;
+    }
+    if (message.latencySeconds !== 0) {
+      obj.latencySeconds = message.latencySeconds;
+    }
+    if (message.endpoint !== "") {
+      obj.endpoint = message.endpoint;
+    }
+    if (message.peerApiPort !== 0) {
+      obj.peerApiPort = Math.round(message.peerApiPort);
+    }
+    if (message.peerApiUrl !== "") {
+      obj.peerApiUrl = message.peerApiUrl;
+    }
+    if (message.isLocalIp !== false) {
+      obj.isLocalIp = message.isLocalIp;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PingResult>, I>>(base?: I): PingResult {
+    return PingResult.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PingResult>, I>>(object: I): PingResult {
+    const message = createBasePingResult();
+    message.ip = object.ip ?? "";
+    message.nodeIp = object.nodeIp ?? "";
+    message.nodeName = object.nodeName ?? "";
+    message.err = object.err ?? "";
+    message.latencySeconds = object.latencySeconds ?? 0;
+    message.endpoint = object.endpoint ?? "";
+    message.peerApiPort = object.peerApiPort ?? 0;
+    message.peerApiUrl = object.peerApiUrl ?? "";
+    message.isLocalIp = object.isLocalIp ?? false;
+    return message;
+  },
+};
+
+function createBaseComposeRequest(): ComposeRequest {
+  return { key: "" };
+}
+
+export const ComposeRequest: MessageFns<ComposeRequest> = {
+  encode(message: ComposeRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ComposeRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseComposeRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ComposeRequest {
+    return { key: isSet(object.key) ? globalThis.String(object.key) : "" };
+  },
+
+  toJSON(message: ComposeRequest): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ComposeRequest>, I>>(base?: I): ComposeRequest {
+    return ComposeRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ComposeRequest>, I>>(object: I): ComposeRequest {
+    const message = createBaseComposeRequest();
+    message.key = object.key ?? "";
+    return message;
+  },
+};
+
+function createBaseHashigoRequest(): HashigoRequest {
+  return { barricadeSet: false, acceptRoutesSet: false, snatSubnetRoutesSet: false, statefulFilterSet: false };
+}
+
+export const HashigoRequest: MessageFns<HashigoRequest> = {
+  encode(message: HashigoRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.barricadeSet !== false) {
+      writer.uint32(16).bool(message.barricadeSet);
+    }
+    if (message.acceptRoutesSet !== false) {
+      writer.uint32(24).bool(message.acceptRoutesSet);
+    }
+    if (message.snatSubnetRoutesSet !== false) {
+      writer.uint32(32).bool(message.snatSubnetRoutesSet);
+    }
+    if (message.statefulFilterSet !== false) {
+      writer.uint32(40).bool(message.statefulFilterSet);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): HashigoRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHashigoRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.barricadeSet = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.acceptRoutesSet = reader.bool();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.snatSubnetRoutesSet = reader.bool();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.statefulFilterSet = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): HashigoRequest {
+    return {
+      barricadeSet: isSet(object.barricadeSet) ? globalThis.Boolean(object.barricadeSet) : false,
+      acceptRoutesSet: isSet(object.acceptRoutesSet) ? globalThis.Boolean(object.acceptRoutesSet) : false,
+      snatSubnetRoutesSet: isSet(object.snatSubnetRoutesSet) ? globalThis.Boolean(object.snatSubnetRoutesSet) : false,
+      statefulFilterSet: isSet(object.statefulFilterSet) ? globalThis.Boolean(object.statefulFilterSet) : false,
+    };
+  },
+
+  toJSON(message: HashigoRequest): unknown {
+    const obj: any = {};
+    if (message.barricadeSet !== false) {
+      obj.barricadeSet = message.barricadeSet;
+    }
+    if (message.acceptRoutesSet !== false) {
+      obj.acceptRoutesSet = message.acceptRoutesSet;
+    }
+    if (message.snatSubnetRoutesSet !== false) {
+      obj.snatSubnetRoutesSet = message.snatSubnetRoutesSet;
+    }
+    if (message.statefulFilterSet !== false) {
+      obj.statefulFilterSet = message.statefulFilterSet;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<HashigoRequest>, I>>(base?: I): HashigoRequest {
+    return HashigoRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<HashigoRequest>, I>>(object: I): HashigoRequest {
+    const message = createBaseHashigoRequest();
+    message.barricadeSet = object.barricadeSet ?? false;
+    message.acceptRoutesSet = object.acceptRoutesSet ?? false;
+    message.snatSubnetRoutesSet = object.snatSubnetRoutesSet ?? false;
+    message.statefulFilterSet = object.statefulFilterSet ?? false;
+    return message;
+  },
+};
+
+/**
+ * HashiServiceはRunetale Clientのバックエンド専用のAPI's
+ * hashilocalbackendのgrpc serviceとして実装されます
+ */
+export interface HashiService {
+  Status(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
+  Ping(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<PingResult>;
+  Login(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
+  Compose(request: DeepPartial<ComposeRequest>, metadata?: grpc.Metadata): Promise<HashiStatus>;
+  Logout(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
+  Stop(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
+  Dial(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
+  GetHashigo(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Hashigo>;
+  PatchHashigo(request: DeepPartial<HashigoRequest>, metadata?: grpc.Metadata): Promise<Hashigo>;
+}
+
+export class HashiServiceClientImpl implements HashiService {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.Status = this.Status.bind(this);
+    this.Ping = this.Ping.bind(this);
+    this.Login = this.Login.bind(this);
+    this.Compose = this.Compose.bind(this);
+    this.Logout = this.Logout.bind(this);
+    this.Stop = this.Stop.bind(this);
+    this.Dial = this.Dial.bind(this);
+    this.GetHashigo = this.GetHashigo.bind(this);
+    this.PatchHashigo = this.PatchHashigo.bind(this);
+  }
+
+  Status(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus> {
+    return this.rpc.unary(HashiServiceStatusDesc, Empty.fromPartial(request), metadata);
+  }
+
+  Ping(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<PingResult> {
+    return this.rpc.unary(HashiServicePingDesc, Empty.fromPartial(request), metadata);
+  }
+
+  Login(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus> {
+    return this.rpc.unary(HashiServiceLoginDesc, Empty.fromPartial(request), metadata);
+  }
+
+  Compose(request: DeepPartial<ComposeRequest>, metadata?: grpc.Metadata): Promise<HashiStatus> {
+    return this.rpc.unary(HashiServiceComposeDesc, ComposeRequest.fromPartial(request), metadata);
+  }
+
+  Logout(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus> {
+    return this.rpc.unary(HashiServiceLogoutDesc, Empty.fromPartial(request), metadata);
+  }
+
+  Stop(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus> {
+    return this.rpc.unary(HashiServiceStopDesc, Empty.fromPartial(request), metadata);
+  }
+
+  Dial(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus> {
+    return this.rpc.unary(HashiServiceDialDesc, Empty.fromPartial(request), metadata);
+  }
+
+  GetHashigo(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Hashigo> {
+    return this.rpc.unary(HashiServiceGetHashigoDesc, Empty.fromPartial(request), metadata);
+  }
+
+  PatchHashigo(request: DeepPartial<HashigoRequest>, metadata?: grpc.Metadata): Promise<Hashigo> {
+    return this.rpc.unary(HashiServicePatchHashigoDesc, HashigoRequest.fromPartial(request), metadata);
+  }
+}
+
+export const HashiServiceDesc = { serviceName: "protos.HashiService" };
+
+export const HashiServiceStatusDesc: UnaryMethodDefinitionish = {
+  methodName: "Status",
+  service: HashiServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = HashiStatus.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const HashiServicePingDesc: UnaryMethodDefinitionish = {
+  methodName: "Ping",
+  service: HashiServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = PingResult.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const HashiServiceLoginDesc: UnaryMethodDefinitionish = {
+  methodName: "Login",
+  service: HashiServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = HashiStatus.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const HashiServiceComposeDesc: UnaryMethodDefinitionish = {
+  methodName: "Compose",
+  service: HashiServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ComposeRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = HashiStatus.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const HashiServiceLogoutDesc: UnaryMethodDefinitionish = {
+  methodName: "Logout",
+  service: HashiServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = HashiStatus.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const HashiServiceStopDesc: UnaryMethodDefinitionish = {
+  methodName: "Stop",
+  service: HashiServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = HashiStatus.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const HashiServiceDialDesc: UnaryMethodDefinitionish = {
+  methodName: "Dial",
+  service: HashiServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = HashiStatus.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const HashiServiceGetHashigoDesc: UnaryMethodDefinitionish = {
+  methodName: "GetHashigo",
+  service: HashiServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Hashigo.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const HashiServicePatchHashigoDesc: UnaryMethodDefinitionish = {
+  methodName: "PatchHashigo",
+  service: HashiServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return HashigoRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Hashigo.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
+interface Rpc {
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+    upStreamRetryCodes?: number[];
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+      upStreamRetryCodes?: number[];
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata ?? this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata ?? {},
+        ...(this.options.transport !== undefined ? { transport: this.options.transport } : {}),
+        debug: this.options.debug ?? false,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message!.toObject());
+          } else {
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
+            reject(err);
+          }
+        },
+      });
+    });
+  }
+}
+
 type Builtin = Date | Function | Uint8Array | string | number | boolean | undefined;
 
 export type DeepPartial<T> = T extends Builtin ? T
@@ -1106,6 +1842,12 @@ function isObject(value: any): boolean {
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
+}
+
+export class GrpcWebError extends globalThis.Error {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+    super(message);
+  }
 }
 
 export interface MessageFns<T> {
