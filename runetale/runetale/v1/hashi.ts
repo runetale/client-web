@@ -116,6 +116,16 @@ export interface ComposeRequest {
   key: string;
 }
 
+export interface PingRequest {
+  ip: string;
+  type: string;
+  size: number;
+}
+
+export interface StopRequest {
+  reason: string;
+}
+
 export interface HashigoRequest {
   barricadeSet: boolean;
   acceptRoutesSet: boolean;
@@ -1337,6 +1347,156 @@ export const ComposeRequest: MessageFns<ComposeRequest> = {
   },
 };
 
+function createBasePingRequest(): PingRequest {
+  return { ip: "", type: "", size: 0 };
+}
+
+export const PingRequest: MessageFns<PingRequest> = {
+  encode(message: PingRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.ip !== "") {
+      writer.uint32(10).string(message.ip);
+    }
+    if (message.type !== "") {
+      writer.uint32(18).string(message.type);
+    }
+    if (message.size !== 0) {
+      writer.uint32(24).int32(message.size);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PingRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePingRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ip = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.size = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PingRequest {
+    return {
+      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      size: isSet(object.size) ? globalThis.Number(object.size) : 0,
+    };
+  },
+
+  toJSON(message: PingRequest): unknown {
+    const obj: any = {};
+    if (message.ip !== "") {
+      obj.ip = message.ip;
+    }
+    if (message.type !== "") {
+      obj.type = message.type;
+    }
+    if (message.size !== 0) {
+      obj.size = Math.round(message.size);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PingRequest>, I>>(base?: I): PingRequest {
+    return PingRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PingRequest>, I>>(object: I): PingRequest {
+    const message = createBasePingRequest();
+    message.ip = object.ip ?? "";
+    message.type = object.type ?? "";
+    message.size = object.size ?? 0;
+    return message;
+  },
+};
+
+function createBaseStopRequest(): StopRequest {
+  return { reason: "" };
+}
+
+export const StopRequest: MessageFns<StopRequest> = {
+  encode(message: StopRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.reason !== "") {
+      writer.uint32(10).string(message.reason);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): StopRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStopRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.reason = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StopRequest {
+    return { reason: isSet(object.reason) ? globalThis.String(object.reason) : "" };
+  },
+
+  toJSON(message: StopRequest): unknown {
+    const obj: any = {};
+    if (message.reason !== "") {
+      obj.reason = message.reason;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<StopRequest>, I>>(base?: I): StopRequest {
+    return StopRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<StopRequest>, I>>(object: I): StopRequest {
+    const message = createBaseStopRequest();
+    message.reason = object.reason ?? "";
+    return message;
+  },
+};
+
 function createBaseHashigoRequest(): HashigoRequest {
   return { barricadeSet: false, acceptRoutesSet: false, snatSubnetRoutesSet: false, statefulFilterSet: false };
 }
@@ -1451,11 +1611,11 @@ export const HashigoRequest: MessageFns<HashigoRequest> = {
  */
 export interface HashiService {
   Status(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
-  Ping(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<PingResult>;
+  Ping(request: DeepPartial<PingRequest>, metadata?: grpc.Metadata): Promise<PingResult>;
   Login(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
   Compose(request: DeepPartial<ComposeRequest>, metadata?: grpc.Metadata): Promise<HashiStatus>;
   Logout(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
-  Stop(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
+  Stop(request: DeepPartial<StopRequest>, metadata?: grpc.Metadata): Promise<HashiStatus>;
   Dial(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
   GetHashigo(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Hashigo>;
   PatchHashigo(request: DeepPartial<HashigoRequest>, metadata?: grpc.Metadata): Promise<Hashigo>;
@@ -1481,8 +1641,8 @@ export class HashiServiceClientImpl implements HashiService {
     return this.rpc.unary(HashiServiceStatusDesc, Empty.fromPartial(request), metadata);
   }
 
-  Ping(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<PingResult> {
-    return this.rpc.unary(HashiServicePingDesc, Empty.fromPartial(request), metadata);
+  Ping(request: DeepPartial<PingRequest>, metadata?: grpc.Metadata): Promise<PingResult> {
+    return this.rpc.unary(HashiServicePingDesc, PingRequest.fromPartial(request), metadata);
   }
 
   Login(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus> {
@@ -1497,8 +1657,8 @@ export class HashiServiceClientImpl implements HashiService {
     return this.rpc.unary(HashiServiceLogoutDesc, Empty.fromPartial(request), metadata);
   }
 
-  Stop(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus> {
-    return this.rpc.unary(HashiServiceStopDesc, Empty.fromPartial(request), metadata);
+  Stop(request: DeepPartial<StopRequest>, metadata?: grpc.Metadata): Promise<HashiStatus> {
+    return this.rpc.unary(HashiServiceStopDesc, StopRequest.fromPartial(request), metadata);
   }
 
   Dial(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus> {
@@ -1546,7 +1706,7 @@ export const HashiServicePingDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return Empty.encode(this).finish();
+      return PingRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -1638,7 +1798,7 @@ export const HashiServiceStopDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return Empty.encode(this).finish();
+      return StopRequest.encode(this).finish();
     },
   } as any,
   responseType: {
