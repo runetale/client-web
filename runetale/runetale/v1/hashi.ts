@@ -55,6 +55,8 @@ export interface PeerStatus {
   curAddr?: string | undefined;
   iceAddr?: string | undefined;
   advertiseRoutes: string[];
+  /** subnet linkerを許可するかどうか */
+  isSnatSubnet: boolean;
 }
 
 export interface UserspacePeerEngineStatus {
@@ -452,6 +454,7 @@ function createBasePeerStatus(): PeerStatus {
     curAddr: undefined,
     iceAddr: undefined,
     advertiseRoutes: [],
+    isSnatSubnet: false,
   };
 }
 
@@ -501,6 +504,9 @@ export const PeerStatus: MessageFns<PeerStatus> = {
     }
     for (const v of message.advertiseRoutes) {
       writer.uint32(122).string(v!);
+    }
+    if (message.isSnatSubnet !== false) {
+      writer.uint32(128).bool(message.isSnatSubnet);
     }
     return writer;
   },
@@ -632,6 +638,14 @@ export const PeerStatus: MessageFns<PeerStatus> = {
           message.advertiseRoutes.push(reader.string());
           continue;
         }
+        case 16: {
+          if (tag !== 128) {
+            break;
+          }
+
+          message.isSnatSubnet = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -666,6 +680,7 @@ export const PeerStatus: MessageFns<PeerStatus> = {
       advertiseRoutes: globalThis.Array.isArray(object?.advertiseRoutes)
         ? object.advertiseRoutes.map((e: any) => globalThis.String(e))
         : [],
+      isSnatSubnet: isSet(object.isSnatSubnet) ? globalThis.Boolean(object.isSnatSubnet) : false,
     };
   },
 
@@ -716,6 +731,9 @@ export const PeerStatus: MessageFns<PeerStatus> = {
     if (message.advertiseRoutes?.length) {
       obj.advertiseRoutes = message.advertiseRoutes;
     }
+    if (message.isSnatSubnet !== false) {
+      obj.isSnatSubnet = message.isSnatSubnet;
+    }
     return obj;
   },
 
@@ -739,6 +757,7 @@ export const PeerStatus: MessageFns<PeerStatus> = {
     message.curAddr = object.curAddr ?? undefined;
     message.iceAddr = object.iceAddr ?? undefined;
     message.advertiseRoutes = object.advertiseRoutes?.map((e) => e) || [];
+    message.isSnatSubnet = object.isSnatSubnet ?? false;
     return message;
   },
 };
