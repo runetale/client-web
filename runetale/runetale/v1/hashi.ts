@@ -54,6 +54,7 @@ export interface PeerStatus {
   addrs: string[];
   curAddr?: string | undefined;
   iceAddr?: string | undefined;
+  advertiseRoutes: string[];
 }
 
 export interface UserspacePeerEngineStatus {
@@ -450,6 +451,7 @@ function createBasePeerStatus(): PeerStatus {
     addrs: [],
     curAddr: undefined,
     iceAddr: undefined,
+    advertiseRoutes: [],
   };
 }
 
@@ -496,6 +498,9 @@ export const PeerStatus: MessageFns<PeerStatus> = {
     }
     if (message.iceAddr !== undefined) {
       writer.uint32(114).string(message.iceAddr);
+    }
+    for (const v of message.advertiseRoutes) {
+      writer.uint32(122).string(v!);
     }
     return writer;
   },
@@ -619,6 +624,14 @@ export const PeerStatus: MessageFns<PeerStatus> = {
           message.iceAddr = reader.string();
           continue;
         }
+        case 15: {
+          if (tag !== 122) {
+            break;
+          }
+
+          message.advertiseRoutes.push(reader.string());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -650,6 +663,9 @@ export const PeerStatus: MessageFns<PeerStatus> = {
       addrs: globalThis.Array.isArray(object?.addrs) ? object.addrs.map((e: any) => globalThis.String(e)) : [],
       curAddr: isSet(object.curAddr) ? globalThis.String(object.curAddr) : undefined,
       iceAddr: isSet(object.iceAddr) ? globalThis.String(object.iceAddr) : undefined,
+      advertiseRoutes: globalThis.Array.isArray(object?.advertiseRoutes)
+        ? object.advertiseRoutes.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -697,6 +713,9 @@ export const PeerStatus: MessageFns<PeerStatus> = {
     if (message.iceAddr !== undefined) {
       obj.iceAddr = message.iceAddr;
     }
+    if (message.advertiseRoutes?.length) {
+      obj.advertiseRoutes = message.advertiseRoutes;
+    }
     return obj;
   },
 
@@ -719,6 +738,7 @@ export const PeerStatus: MessageFns<PeerStatus> = {
     message.addrs = object.addrs?.map((e) => e) || [];
     message.curAddr = object.curAddr ?? undefined;
     message.iceAddr = object.iceAddr ?? undefined;
+    message.advertiseRoutes = object.advertiseRoutes?.map((e) => e) || [];
     return message;
   },
 };
