@@ -17,7 +17,7 @@ export const protobufPackage = "protos";
 export interface LoginNodeResponse {
   isRegistered: boolean;
   loginUrl: string;
-  ip: string;
+  ip: string[];
   cidr: string;
   signalHost: string;
   signalPort: number;
@@ -25,7 +25,7 @@ export interface LoginNodeResponse {
 
 export interface LoginSessionResponse {
   /** host ip */
-  ip: string;
+  ip: string[];
   /** host wireguard cidr */
   cidr: string;
   /** host name */
@@ -46,7 +46,7 @@ export interface GetInvitationResponse {
 }
 
 function createBaseLoginNodeResponse(): LoginNodeResponse {
-  return { isRegistered: false, loginUrl: "", ip: "", cidr: "", signalHost: "", signalPort: 0 };
+  return { isRegistered: false, loginUrl: "", ip: [], cidr: "", signalHost: "", signalPort: 0 };
 }
 
 export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
@@ -57,8 +57,8 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
     if (message.loginUrl !== "") {
       writer.uint32(18).string(message.loginUrl);
     }
-    if (message.ip !== "") {
-      writer.uint32(26).string(message.ip);
+    for (const v of message.ip) {
+      writer.uint32(26).string(v!);
     }
     if (message.cidr !== "") {
       writer.uint32(34).string(message.cidr);
@@ -100,7 +100,7 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
             break;
           }
 
-          message.ip = reader.string();
+          message.ip.push(reader.string());
           continue;
         }
         case 4: {
@@ -140,7 +140,7 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
     return {
       isRegistered: isSet(object.isRegistered) ? globalThis.Boolean(object.isRegistered) : false,
       loginUrl: isSet(object.loginUrl) ? globalThis.String(object.loginUrl) : "",
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      ip: globalThis.Array.isArray(object?.ip) ? object.ip.map((e: any) => globalThis.String(e)) : [],
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
       signalHost: isSet(object.signalHost) ? globalThis.String(object.signalHost) : "",
       signalPort: isSet(object.signalPort) ? globalThis.Number(object.signalPort) : 0,
@@ -155,7 +155,7 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
     if (message.loginUrl !== "") {
       obj.loginUrl = message.loginUrl;
     }
-    if (message.ip !== "") {
+    if (message.ip?.length) {
       obj.ip = message.ip;
     }
     if (message.cidr !== "") {
@@ -177,7 +177,7 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
     const message = createBaseLoginNodeResponse();
     message.isRegistered = object.isRegistered ?? false;
     message.loginUrl = object.loginUrl ?? "";
-    message.ip = object.ip ?? "";
+    message.ip = object.ip?.map((e) => e) || [];
     message.cidr = object.cidr ?? "";
     message.signalHost = object.signalHost ?? "";
     message.signalPort = object.signalPort ?? 0;
@@ -186,13 +186,13 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
 };
 
 function createBaseLoginSessionResponse(): LoginSessionResponse {
-  return { ip: "", cidr: "", host: "", os: "", signalServerHost: "", signalServerPort: 0 };
+  return { ip: [], cidr: "", host: "", os: "", signalServerHost: "", signalServerPort: 0 };
 }
 
 export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
   encode(message: LoginSessionResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.ip !== "") {
-      writer.uint32(10).string(message.ip);
+    for (const v of message.ip) {
+      writer.uint32(10).string(v!);
     }
     if (message.cidr !== "") {
       writer.uint32(18).string(message.cidr);
@@ -224,7 +224,7 @@ export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
             break;
           }
 
-          message.ip = reader.string();
+          message.ip.push(reader.string());
           continue;
         }
         case 2: {
@@ -278,7 +278,7 @@ export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
 
   fromJSON(object: any): LoginSessionResponse {
     return {
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      ip: globalThis.Array.isArray(object?.ip) ? object.ip.map((e: any) => globalThis.String(e)) : [],
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
       host: isSet(object.host) ? globalThis.String(object.host) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
@@ -289,7 +289,7 @@ export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
 
   toJSON(message: LoginSessionResponse): unknown {
     const obj: any = {};
-    if (message.ip !== "") {
+    if (message.ip?.length) {
       obj.ip = message.ip;
     }
     if (message.cidr !== "") {
@@ -315,7 +315,7 @@ export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<LoginSessionResponse>, I>>(object: I): LoginSessionResponse {
     const message = createBaseLoginSessionResponse();
-    message.ip = object.ip ?? "";
+    message.ip = object.ip?.map((e) => e) || [];
     message.cidr = object.cidr ?? "";
     message.host = object.host ?? "";
     message.os = object.os ?? "";
