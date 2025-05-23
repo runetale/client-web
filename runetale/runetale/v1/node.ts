@@ -48,8 +48,8 @@ export interface Node {
   nodeKey: string;
   wgPubKey: string;
   allowedIPs: string[];
-  ips: string[];
-  cidr: string;
+  /** e.g. 100.x.y.z/16, fe80::/64 */
+  addresses: string[];
 }
 
 export interface ComposeNodeResponse {
@@ -539,7 +539,7 @@ export const PacketFlowLog: MessageFns<PacketFlowLog> = {
 };
 
 function createBaseNode(): Node {
-  return { name: "", nodeId: 0, nodeKey: "", wgPubKey: "", allowedIPs: [], ips: [], cidr: "" };
+  return { name: "", nodeId: 0, nodeKey: "", wgPubKey: "", allowedIPs: [], addresses: [] };
 }
 
 export const Node: MessageFns<Node> = {
@@ -559,11 +559,8 @@ export const Node: MessageFns<Node> = {
     for (const v of message.allowedIPs) {
       writer.uint32(42).string(v!);
     }
-    for (const v of message.ips) {
+    for (const v of message.addresses) {
       writer.uint32(50).string(v!);
-    }
-    if (message.cidr !== "") {
-      writer.uint32(58).string(message.cidr);
     }
     return writer;
   },
@@ -620,15 +617,7 @@ export const Node: MessageFns<Node> = {
             break;
           }
 
-          message.ips.push(reader.string());
-          continue;
-        }
-        case 7: {
-          if (tag !== 58) {
-            break;
-          }
-
-          message.cidr = reader.string();
+          message.addresses.push(reader.string());
           continue;
         }
       }
@@ -649,8 +638,9 @@ export const Node: MessageFns<Node> = {
       allowedIPs: globalThis.Array.isArray(object?.allowedIPs)
         ? object.allowedIPs.map((e: any) => globalThis.String(e))
         : [],
-      ips: globalThis.Array.isArray(object?.ips) ? object.ips.map((e: any) => globalThis.String(e)) : [],
-      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
+      addresses: globalThis.Array.isArray(object?.addresses)
+        ? object.addresses.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -671,11 +661,8 @@ export const Node: MessageFns<Node> = {
     if (message.allowedIPs?.length) {
       obj.allowedIPs = message.allowedIPs;
     }
-    if (message.ips?.length) {
-      obj.ips = message.ips;
-    }
-    if (message.cidr !== "") {
-      obj.cidr = message.cidr;
+    if (message.addresses?.length) {
+      obj.addresses = message.addresses;
     }
     return obj;
   },
@@ -690,8 +677,7 @@ export const Node: MessageFns<Node> = {
     message.nodeKey = object.nodeKey ?? "";
     message.wgPubKey = object.wgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
-    message.ips = object.ips?.map((e) => e) || [];
-    message.cidr = object.cidr ?? "";
+    message.addresses = object.addresses?.map((e) => e) || [];
     return message;
   },
 };
