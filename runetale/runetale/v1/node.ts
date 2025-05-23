@@ -42,22 +42,13 @@ export interface PacketFlowLog {
   RxBytes: number;
 }
 
-export interface SyncNodesResponse {
-  isEmpty: boolean;
-  remoteNodes: Node[];
-  /** host ip */
-  ip: string;
-  /** host cidr */
-  cidr: string;
-}
-
 export interface Node {
   name: string;
   nodeId: number;
   nodeKey: string;
   wgPubKey: string;
   allowedIPs: string[];
-  ip: string;
+  ips: string[];
   cidr: string;
 }
 
@@ -547,118 +538,8 @@ export const PacketFlowLog: MessageFns<PacketFlowLog> = {
   },
 };
 
-function createBaseSyncNodesResponse(): SyncNodesResponse {
-  return { isEmpty: false, remoteNodes: [], ip: "", cidr: "" };
-}
-
-export const SyncNodesResponse: MessageFns<SyncNodesResponse> = {
-  encode(message: SyncNodesResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.isEmpty !== false) {
-      writer.uint32(8).bool(message.isEmpty);
-    }
-    for (const v of message.remoteNodes) {
-      Node.encode(v!, writer.uint32(18).fork()).join();
-    }
-    if (message.ip !== "") {
-      writer.uint32(26).string(message.ip);
-    }
-    if (message.cidr !== "") {
-      writer.uint32(34).string(message.cidr);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): SyncNodesResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSyncNodesResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.isEmpty = reader.bool();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.remoteNodes.push(Node.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.ip = reader.string();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.cidr = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): SyncNodesResponse {
-    return {
-      isEmpty: isSet(object.isEmpty) ? globalThis.Boolean(object.isEmpty) : false,
-      remoteNodes: globalThis.Array.isArray(object?.remoteNodes)
-        ? object.remoteNodes.map((e: any) => Node.fromJSON(e))
-        : [],
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
-      cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
-    };
-  },
-
-  toJSON(message: SyncNodesResponse): unknown {
-    const obj: any = {};
-    if (message.isEmpty !== false) {
-      obj.isEmpty = message.isEmpty;
-    }
-    if (message.remoteNodes?.length) {
-      obj.remoteNodes = message.remoteNodes.map((e) => Node.toJSON(e));
-    }
-    if (message.ip !== "") {
-      obj.ip = message.ip;
-    }
-    if (message.cidr !== "") {
-      obj.cidr = message.cidr;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<SyncNodesResponse>, I>>(base?: I): SyncNodesResponse {
-    return SyncNodesResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<SyncNodesResponse>, I>>(object: I): SyncNodesResponse {
-    const message = createBaseSyncNodesResponse();
-    message.isEmpty = object.isEmpty ?? false;
-    message.remoteNodes = object.remoteNodes?.map((e) => Node.fromPartial(e)) || [];
-    message.ip = object.ip ?? "";
-    message.cidr = object.cidr ?? "";
-    return message;
-  },
-};
-
 function createBaseNode(): Node {
-  return { name: "", nodeId: 0, nodeKey: "", wgPubKey: "", allowedIPs: [], ip: "", cidr: "" };
+  return { name: "", nodeId: 0, nodeKey: "", wgPubKey: "", allowedIPs: [], ips: [], cidr: "" };
 }
 
 export const Node: MessageFns<Node> = {
@@ -678,8 +559,8 @@ export const Node: MessageFns<Node> = {
     for (const v of message.allowedIPs) {
       writer.uint32(42).string(v!);
     }
-    if (message.ip !== "") {
-      writer.uint32(50).string(message.ip);
+    for (const v of message.ips) {
+      writer.uint32(50).string(v!);
     }
     if (message.cidr !== "") {
       writer.uint32(58).string(message.cidr);
@@ -739,7 +620,7 @@ export const Node: MessageFns<Node> = {
             break;
           }
 
-          message.ip = reader.string();
+          message.ips.push(reader.string());
           continue;
         }
         case 7: {
@@ -768,7 +649,7 @@ export const Node: MessageFns<Node> = {
       allowedIPs: globalThis.Array.isArray(object?.allowedIPs)
         ? object.allowedIPs.map((e: any) => globalThis.String(e))
         : [],
-      ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
+      ips: globalThis.Array.isArray(object?.ips) ? object.ips.map((e: any) => globalThis.String(e)) : [],
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
     };
   },
@@ -790,8 +671,8 @@ export const Node: MessageFns<Node> = {
     if (message.allowedIPs?.length) {
       obj.allowedIPs = message.allowedIPs;
     }
-    if (message.ip !== "") {
-      obj.ip = message.ip;
+    if (message.ips?.length) {
+      obj.ips = message.ips;
     }
     if (message.cidr !== "") {
       obj.cidr = message.cidr;
@@ -809,7 +690,7 @@ export const Node: MessageFns<Node> = {
     message.nodeKey = object.nodeKey ?? "";
     message.wgPubKey = object.wgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
-    message.ip = object.ip ?? "";
+    message.ips = object.ips?.map((e) => e) || [];
     message.cidr = object.cidr ?? "";
     return message;
   },
