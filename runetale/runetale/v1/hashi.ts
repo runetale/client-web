@@ -74,12 +74,22 @@ export interface CompactPeerStatus {
 }
 
 /**
- * Hashigo struct like, hashiog(梯子) is a bridge in Japanese.
+ * Hashigo struct like, hashigo(梯子) is a bridge in Japanese.
  * 橋 are essential infrastructure in the world.
  * The same holds true in the world of Runetale.
  * A 橋 serves as the sole common pathway for a node, referenced through the API to enable flexible network configuration within Runetale.
  * There is also a double meaning with "Hashi(お箸, chopstick)" a part of Japanese culture.
  * Like using chopsticks, we carefully pick and fine-tune the settings with precision.
+ *     O <- HashigoConfigRequest
+ *    /|\
+ *    / \
+ *    |
+ *    |==|==|==|==|==|==|==|==|==|==|==|==|==|
+ *    |  |  |  |  |  |  |  |  |  |  |  |  |  |
+ *    |==|==|==|==|==|==|==|==|==|==|==|==|==|
+ *                                     +=======+
+ *                                     |Hashigo|
+ *                                     +=======+
  */
 export interface Hashigo {
   serverUrl: string;
@@ -101,6 +111,8 @@ export interface Hashigo {
    * デフォルトはONです。
    */
   statefulFilter: boolean;
+  /** app_linkerを有効にするかどうかを設定します。 */
+  appLinker: boolean;
 }
 
 export interface PingResult {
@@ -129,11 +141,12 @@ export interface StopRequest {
   reason: string;
 }
 
-export interface HashigoRequest {
+export interface HashigoConfigRequest {
   barricadeSet: boolean;
   acceptRoutesSet: boolean;
   snatSubnetRoutesSet: boolean;
   statefulFilterSet: boolean;
+  appLinker: boolean;
 }
 
 function createBaseEndpoint(): Endpoint {
@@ -973,6 +986,7 @@ function createBaseHashigo(): Hashigo {
     acceptRoutes: false,
     snatSubnetRoutes: false,
     statefulFilter: false,
+    appLinker: false,
   };
 }
 
@@ -998,6 +1012,9 @@ export const Hashigo: MessageFns<Hashigo> = {
     }
     if (message.statefulFilter !== false) {
       writer.uint32(56).bool(message.statefulFilter);
+    }
+    if (message.appLinker !== false) {
+      writer.uint32(64).bool(message.appLinker);
     }
     return writer;
   },
@@ -1065,6 +1082,14 @@ export const Hashigo: MessageFns<Hashigo> = {
           message.statefulFilter = reader.bool();
           continue;
         }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.appLinker = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1085,6 +1110,7 @@ export const Hashigo: MessageFns<Hashigo> = {
       acceptRoutes: isSet(object.acceptRoutes) ? globalThis.Boolean(object.acceptRoutes) : false,
       snatSubnetRoutes: isSet(object.snatSubnetRoutes) ? globalThis.Boolean(object.snatSubnetRoutes) : false,
       statefulFilter: isSet(object.statefulFilter) ? globalThis.Boolean(object.statefulFilter) : false,
+      appLinker: isSet(object.appLinker) ? globalThis.Boolean(object.appLinker) : false,
     };
   },
 
@@ -1111,6 +1137,9 @@ export const Hashigo: MessageFns<Hashigo> = {
     if (message.statefulFilter !== false) {
       obj.statefulFilter = message.statefulFilter;
     }
+    if (message.appLinker !== false) {
+      obj.appLinker = message.appLinker;
+    }
     return obj;
   },
 
@@ -1126,6 +1155,7 @@ export const Hashigo: MessageFns<Hashigo> = {
     message.acceptRoutes = object.acceptRoutes ?? false;
     message.snatSubnetRoutes = object.snatSubnetRoutes ?? false;
     message.statefulFilter = object.statefulFilter ?? false;
+    message.appLinker = object.appLinker ?? false;
     return message;
   },
 };
@@ -1536,40 +1566,57 @@ export const StopRequest: MessageFns<StopRequest> = {
   },
 };
 
-function createBaseHashigoRequest(): HashigoRequest {
-  return { barricadeSet: false, acceptRoutesSet: false, snatSubnetRoutesSet: false, statefulFilterSet: false };
+function createBaseHashigoConfigRequest(): HashigoConfigRequest {
+  return {
+    barricadeSet: false,
+    acceptRoutesSet: false,
+    snatSubnetRoutesSet: false,
+    statefulFilterSet: false,
+    appLinker: false,
+  };
 }
 
-export const HashigoRequest: MessageFns<HashigoRequest> = {
-  encode(message: HashigoRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const HashigoConfigRequest: MessageFns<HashigoConfigRequest> = {
+  encode(message: HashigoConfigRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.barricadeSet !== false) {
-      writer.uint32(16).bool(message.barricadeSet);
+      writer.uint32(8).bool(message.barricadeSet);
     }
     if (message.acceptRoutesSet !== false) {
-      writer.uint32(24).bool(message.acceptRoutesSet);
+      writer.uint32(16).bool(message.acceptRoutesSet);
     }
     if (message.snatSubnetRoutesSet !== false) {
-      writer.uint32(32).bool(message.snatSubnetRoutesSet);
+      writer.uint32(24).bool(message.snatSubnetRoutesSet);
     }
     if (message.statefulFilterSet !== false) {
-      writer.uint32(40).bool(message.statefulFilterSet);
+      writer.uint32(32).bool(message.statefulFilterSet);
+    }
+    if (message.appLinker !== false) {
+      writer.uint32(40).bool(message.appLinker);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): HashigoRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): HashigoConfigRequest {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseHashigoRequest();
+    const message = createBaseHashigoConfigRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.barricadeSet = reader.bool();
+          continue;
+        }
         case 2: {
           if (tag !== 16) {
             break;
           }
 
-          message.barricadeSet = reader.bool();
+          message.acceptRoutesSet = reader.bool();
           continue;
         }
         case 3: {
@@ -1577,7 +1624,7 @@ export const HashigoRequest: MessageFns<HashigoRequest> = {
             break;
           }
 
-          message.acceptRoutesSet = reader.bool();
+          message.snatSubnetRoutesSet = reader.bool();
           continue;
         }
         case 4: {
@@ -1585,7 +1632,7 @@ export const HashigoRequest: MessageFns<HashigoRequest> = {
             break;
           }
 
-          message.snatSubnetRoutesSet = reader.bool();
+          message.statefulFilterSet = reader.bool();
           continue;
         }
         case 5: {
@@ -1593,7 +1640,7 @@ export const HashigoRequest: MessageFns<HashigoRequest> = {
             break;
           }
 
-          message.statefulFilterSet = reader.bool();
+          message.appLinker = reader.bool();
           continue;
         }
       }
@@ -1605,16 +1652,17 @@ export const HashigoRequest: MessageFns<HashigoRequest> = {
     return message;
   },
 
-  fromJSON(object: any): HashigoRequest {
+  fromJSON(object: any): HashigoConfigRequest {
     return {
       barricadeSet: isSet(object.barricadeSet) ? globalThis.Boolean(object.barricadeSet) : false,
       acceptRoutesSet: isSet(object.acceptRoutesSet) ? globalThis.Boolean(object.acceptRoutesSet) : false,
       snatSubnetRoutesSet: isSet(object.snatSubnetRoutesSet) ? globalThis.Boolean(object.snatSubnetRoutesSet) : false,
       statefulFilterSet: isSet(object.statefulFilterSet) ? globalThis.Boolean(object.statefulFilterSet) : false,
+      appLinker: isSet(object.appLinker) ? globalThis.Boolean(object.appLinker) : false,
     };
   },
 
-  toJSON(message: HashigoRequest): unknown {
+  toJSON(message: HashigoConfigRequest): unknown {
     const obj: any = {};
     if (message.barricadeSet !== false) {
       obj.barricadeSet = message.barricadeSet;
@@ -1628,18 +1676,22 @@ export const HashigoRequest: MessageFns<HashigoRequest> = {
     if (message.statefulFilterSet !== false) {
       obj.statefulFilterSet = message.statefulFilterSet;
     }
+    if (message.appLinker !== false) {
+      obj.appLinker = message.appLinker;
+    }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<HashigoRequest>, I>>(base?: I): HashigoRequest {
-    return HashigoRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<HashigoConfigRequest>, I>>(base?: I): HashigoConfigRequest {
+    return HashigoConfigRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<HashigoRequest>, I>>(object: I): HashigoRequest {
-    const message = createBaseHashigoRequest();
+  fromPartial<I extends Exact<DeepPartial<HashigoConfigRequest>, I>>(object: I): HashigoConfigRequest {
+    const message = createBaseHashigoConfigRequest();
     message.barricadeSet = object.barricadeSet ?? false;
     message.acceptRoutesSet = object.acceptRoutesSet ?? false;
     message.snatSubnetRoutesSet = object.snatSubnetRoutesSet ?? false;
     message.statefulFilterSet = object.statefulFilterSet ?? false;
+    message.appLinker = object.appLinker ?? false;
     return message;
   },
 };
@@ -1657,7 +1709,7 @@ export interface HashiService {
   Stop(request: DeepPartial<StopRequest>, metadata?: grpc.Metadata): Promise<HashiStatus>;
   Dial(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
   GetHashigo(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Hashigo>;
-  PatchHashigo(request: DeepPartial<HashigoRequest>, metadata?: grpc.Metadata): Promise<Hashigo>;
+  PatchHashigo(request: DeepPartial<HashigoConfigRequest>, metadata?: grpc.Metadata): Promise<Hashigo>;
 }
 
 export class HashiServiceClientImpl implements HashiService {
@@ -1708,8 +1760,8 @@ export class HashiServiceClientImpl implements HashiService {
     return this.rpc.unary(HashiServiceGetHashigoDesc, Empty.fromPartial(request), metadata);
   }
 
-  PatchHashigo(request: DeepPartial<HashigoRequest>, metadata?: grpc.Metadata): Promise<Hashigo> {
-    return this.rpc.unary(HashiServicePatchHashigoDesc, HashigoRequest.fromPartial(request), metadata);
+  PatchHashigo(request: DeepPartial<HashigoConfigRequest>, metadata?: grpc.Metadata): Promise<Hashigo> {
+    return this.rpc.unary(HashiServicePatchHashigoDesc, HashigoConfigRequest.fromPartial(request), metadata);
   }
 }
 
@@ -1906,7 +1958,7 @@ export const HashiServicePatchHashigoDesc: UnaryMethodDefinitionish = {
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return HashigoRequest.encode(this).finish();
+      return HashigoConfigRequest.encode(this).finish();
     },
   } as any,
   responseType: {
