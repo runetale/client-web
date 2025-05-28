@@ -7,7 +7,7 @@
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 
-export const protobufPackage = "admin_dashboard";
+export const protobufPackage = "protos";
 
 /** Enum definitions */
 export enum OS {
@@ -311,12 +311,6 @@ export function userRolesToJSON(object: UserRoles): string {
 export interface Timestamp {
   seconds: number;
   nanos: number;
-}
-
-/** Authentication message definitions */
-export interface AuthenticateResponse {
-  token: string;
-  refreshToken: string;
 }
 
 export interface LogoutResponse {
@@ -663,82 +657,6 @@ export const Timestamp: MessageFns<Timestamp> = {
     const message = createBaseTimestamp();
     message.seconds = object.seconds ?? 0;
     message.nanos = object.nanos ?? 0;
-    return message;
-  },
-};
-
-function createBaseAuthenticateResponse(): AuthenticateResponse {
-  return { token: "", refreshToken: "" };
-}
-
-export const AuthenticateResponse: MessageFns<AuthenticateResponse> = {
-  encode(message: AuthenticateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.token !== "") {
-      writer.uint32(10).string(message.token);
-    }
-    if (message.refreshToken !== "") {
-      writer.uint32(18).string(message.refreshToken);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): AuthenticateResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    let end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseAuthenticateResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.token = reader.string();
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.refreshToken = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): AuthenticateResponse {
-    return {
-      token: isSet(object.token) ? globalThis.String(object.token) : "",
-      refreshToken: isSet(object.refreshToken) ? globalThis.String(object.refreshToken) : "",
-    };
-  },
-
-  toJSON(message: AuthenticateResponse): unknown {
-    const obj: any = {};
-    if (message.token !== "") {
-      obj.token = message.token;
-    }
-    if (message.refreshToken !== "") {
-      obj.refreshToken = message.refreshToken;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<AuthenticateResponse>, I>>(base?: I): AuthenticateResponse {
-    return AuthenticateResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<AuthenticateResponse>, I>>(object: I): AuthenticateResponse {
-    const message = createBaseAuthenticateResponse();
-    message.token = object.token ?? "";
-    message.refreshToken = object.refreshToken ?? "";
     return message;
   },
 };
