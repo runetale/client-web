@@ -137,6 +137,24 @@ export interface NetworkMapResponse {
   jailed: boolean;
   iceTable: Node[];
   dns: DNSConfig | undefined;
+  appLinker: AppLinker | undefined;
+}
+
+export interface AppLinker {
+  /** NameはこのAppLinkerの名前です。 */
+  name: string;
+  /**
+   * Domainsは指定されたAppLinkerによってサービスされるドメインの一覧です。
+   * ドメインは以下の形式を取ることができます
+   * - example.com
+   * - *.example.com
+   */
+  domains: string[];
+  /**
+   * Routesは指定されたAppLinkerrによってアドバタイズされる事前定義されたルートの一覧です。
+   * ルートはCIDR表記で表現されます（例：192.168.1.0/24）。
+   */
+  routes: string[];
 }
 
 export interface Resolver {
@@ -1044,6 +1062,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     jailed: false,
     iceTable: [],
     dns: undefined,
+    appLinker: undefined,
   };
 }
 
@@ -1080,6 +1099,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     }
     if (message.dns !== undefined) {
       DNSConfig.encode(message.dns, writer.uint32(82).fork()).join();
+    }
+    if (message.appLinker !== undefined) {
+      AppLinker.encode(message.appLinker, writer.uint32(90).fork()).join();
     }
     return writer;
   },
@@ -1181,6 +1203,14 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
           message.dns = DNSConfig.decode(reader, reader.uint32());
           continue;
         }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.appLinker = AppLinker.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1208,6 +1238,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
       jailed: isSet(object.jailed) ? globalThis.Boolean(object.jailed) : false,
       iceTable: globalThis.Array.isArray(object?.iceTable) ? object.iceTable.map((e: any) => Node.fromJSON(e)) : [],
       dns: isSet(object.dns) ? DNSConfig.fromJSON(object.dns) : undefined,
+      appLinker: isSet(object.appLinker) ? AppLinker.fromJSON(object.appLinker) : undefined,
     };
   },
 
@@ -1243,6 +1274,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.dns !== undefined) {
       obj.dns = DNSConfig.toJSON(message.dns);
     }
+    if (message.appLinker !== undefined) {
+      obj.appLinker = AppLinker.toJSON(message.appLinker);
+    }
     return obj;
   },
 
@@ -1261,6 +1295,101 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.jailed = object.jailed ?? false;
     message.iceTable = object.iceTable?.map((e) => Node.fromPartial(e)) || [];
     message.dns = (object.dns !== undefined && object.dns !== null) ? DNSConfig.fromPartial(object.dns) : undefined;
+    message.appLinker = (object.appLinker !== undefined && object.appLinker !== null)
+      ? AppLinker.fromPartial(object.appLinker)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseAppLinker(): AppLinker {
+  return { name: "", domains: [], routes: [] };
+}
+
+export const AppLinker: MessageFns<AppLinker> = {
+  encode(message: AppLinker, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    for (const v of message.domains) {
+      writer.uint32(18).string(v!);
+    }
+    for (const v of message.routes) {
+      writer.uint32(26).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AppLinker {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    let end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseAppLinker();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.domains.push(reader.string());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.routes.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): AppLinker {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      domains: globalThis.Array.isArray(object?.domains) ? object.domains.map((e: any) => globalThis.String(e)) : [],
+      routes: globalThis.Array.isArray(object?.routes) ? object.routes.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: AppLinker): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.domains?.length) {
+      obj.domains = message.domains;
+    }
+    if (message.routes?.length) {
+      obj.routes = message.routes;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AppLinker>, I>>(base?: I): AppLinker {
+    return AppLinker.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AppLinker>, I>>(object: I): AppLinker {
+    const message = createBaseAppLinker();
+    message.name = object.name ?? "";
+    message.domains = object.domains?.map((e) => e) || [];
+    message.routes = object.routes?.map((e) => e) || [];
     return message;
   },
 };
