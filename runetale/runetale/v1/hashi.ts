@@ -142,11 +142,12 @@ export interface StopRequest {
 }
 
 export interface HashigoConfigRequest {
+  hashigo: Hashigo | undefined;
   barricadeSet: boolean;
   acceptRoutesSet: boolean;
   snatSubnetRoutesSet: boolean;
   statefulFilterSet: boolean;
-  appLinker: boolean;
+  appLinkerSet: boolean;
 }
 
 function createBaseEndpoint(): Endpoint {
@@ -1568,30 +1569,34 @@ export const StopRequest: MessageFns<StopRequest> = {
 
 function createBaseHashigoConfigRequest(): HashigoConfigRequest {
   return {
+    hashigo: undefined,
     barricadeSet: false,
     acceptRoutesSet: false,
     snatSubnetRoutesSet: false,
     statefulFilterSet: false,
-    appLinker: false,
+    appLinkerSet: false,
   };
 }
 
 export const HashigoConfigRequest: MessageFns<HashigoConfigRequest> = {
   encode(message: HashigoConfigRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.hashigo !== undefined) {
+      Hashigo.encode(message.hashigo, writer.uint32(10).fork()).join();
+    }
     if (message.barricadeSet !== false) {
-      writer.uint32(8).bool(message.barricadeSet);
+      writer.uint32(16).bool(message.barricadeSet);
     }
     if (message.acceptRoutesSet !== false) {
-      writer.uint32(16).bool(message.acceptRoutesSet);
+      writer.uint32(24).bool(message.acceptRoutesSet);
     }
     if (message.snatSubnetRoutesSet !== false) {
-      writer.uint32(24).bool(message.snatSubnetRoutesSet);
+      writer.uint32(32).bool(message.snatSubnetRoutesSet);
     }
     if (message.statefulFilterSet !== false) {
-      writer.uint32(32).bool(message.statefulFilterSet);
+      writer.uint32(40).bool(message.statefulFilterSet);
     }
-    if (message.appLinker !== false) {
-      writer.uint32(40).bool(message.appLinker);
+    if (message.appLinkerSet !== false) {
+      writer.uint32(48).bool(message.appLinkerSet);
     }
     return writer;
   },
@@ -1604,11 +1609,11 @@ export const HashigoConfigRequest: MessageFns<HashigoConfigRequest> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.barricadeSet = reader.bool();
+          message.hashigo = Hashigo.decode(reader, reader.uint32());
           continue;
         }
         case 2: {
@@ -1616,7 +1621,7 @@ export const HashigoConfigRequest: MessageFns<HashigoConfigRequest> = {
             break;
           }
 
-          message.acceptRoutesSet = reader.bool();
+          message.barricadeSet = reader.bool();
           continue;
         }
         case 3: {
@@ -1624,7 +1629,7 @@ export const HashigoConfigRequest: MessageFns<HashigoConfigRequest> = {
             break;
           }
 
-          message.snatSubnetRoutesSet = reader.bool();
+          message.acceptRoutesSet = reader.bool();
           continue;
         }
         case 4: {
@@ -1632,7 +1637,7 @@ export const HashigoConfigRequest: MessageFns<HashigoConfigRequest> = {
             break;
           }
 
-          message.statefulFilterSet = reader.bool();
+          message.snatSubnetRoutesSet = reader.bool();
           continue;
         }
         case 5: {
@@ -1640,7 +1645,15 @@ export const HashigoConfigRequest: MessageFns<HashigoConfigRequest> = {
             break;
           }
 
-          message.appLinker = reader.bool();
+          message.statefulFilterSet = reader.bool();
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.appLinkerSet = reader.bool();
           continue;
         }
       }
@@ -1654,16 +1667,20 @@ export const HashigoConfigRequest: MessageFns<HashigoConfigRequest> = {
 
   fromJSON(object: any): HashigoConfigRequest {
     return {
+      hashigo: isSet(object.hashigo) ? Hashigo.fromJSON(object.hashigo) : undefined,
       barricadeSet: isSet(object.barricadeSet) ? globalThis.Boolean(object.barricadeSet) : false,
       acceptRoutesSet: isSet(object.acceptRoutesSet) ? globalThis.Boolean(object.acceptRoutesSet) : false,
       snatSubnetRoutesSet: isSet(object.snatSubnetRoutesSet) ? globalThis.Boolean(object.snatSubnetRoutesSet) : false,
       statefulFilterSet: isSet(object.statefulFilterSet) ? globalThis.Boolean(object.statefulFilterSet) : false,
-      appLinker: isSet(object.appLinker) ? globalThis.Boolean(object.appLinker) : false,
+      appLinkerSet: isSet(object.appLinkerSet) ? globalThis.Boolean(object.appLinkerSet) : false,
     };
   },
 
   toJSON(message: HashigoConfigRequest): unknown {
     const obj: any = {};
+    if (message.hashigo !== undefined) {
+      obj.hashigo = Hashigo.toJSON(message.hashigo);
+    }
     if (message.barricadeSet !== false) {
       obj.barricadeSet = message.barricadeSet;
     }
@@ -1676,8 +1693,8 @@ export const HashigoConfigRequest: MessageFns<HashigoConfigRequest> = {
     if (message.statefulFilterSet !== false) {
       obj.statefulFilterSet = message.statefulFilterSet;
     }
-    if (message.appLinker !== false) {
-      obj.appLinker = message.appLinker;
+    if (message.appLinkerSet !== false) {
+      obj.appLinkerSet = message.appLinkerSet;
     }
     return obj;
   },
@@ -1687,11 +1704,14 @@ export const HashigoConfigRequest: MessageFns<HashigoConfigRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<HashigoConfigRequest>, I>>(object: I): HashigoConfigRequest {
     const message = createBaseHashigoConfigRequest();
+    message.hashigo = (object.hashigo !== undefined && object.hashigo !== null)
+      ? Hashigo.fromPartial(object.hashigo)
+      : undefined;
     message.barricadeSet = object.barricadeSet ?? false;
     message.acceptRoutesSet = object.acceptRoutesSet ?? false;
     message.snatSubnetRoutesSet = object.snatSubnetRoutesSet ?? false;
     message.statefulFilterSet = object.statefulFilterSet ?? false;
-    message.appLinker = object.appLinker ?? false;
+    message.appLinkerSet = object.appLinkerSet ?? false;
     return message;
   },
 };
