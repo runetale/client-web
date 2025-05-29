@@ -137,7 +137,7 @@ export interface NetworkMapResponse {
   jailed: boolean;
   iceTable: Node[];
   dns: DNSConfig | undefined;
-  appLinker: AppLinker | undefined;
+  appLinker: AppLinker[];
 }
 
 export interface AppLinker {
@@ -1062,7 +1062,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     jailed: false,
     iceTable: [],
     dns: undefined,
-    appLinker: undefined,
+    appLinker: [],
   };
 }
 
@@ -1100,8 +1100,8 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.dns !== undefined) {
       DNSConfig.encode(message.dns, writer.uint32(82).fork()).join();
     }
-    if (message.appLinker !== undefined) {
-      AppLinker.encode(message.appLinker, writer.uint32(90).fork()).join();
+    for (const v of message.appLinker) {
+      AppLinker.encode(v!, writer.uint32(90).fork()).join();
     }
     return writer;
   },
@@ -1208,7 +1208,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
             break;
           }
 
-          message.appLinker = AppLinker.decode(reader, reader.uint32());
+          message.appLinker.push(AppLinker.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -1238,7 +1238,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
       jailed: isSet(object.jailed) ? globalThis.Boolean(object.jailed) : false,
       iceTable: globalThis.Array.isArray(object?.iceTable) ? object.iceTable.map((e: any) => Node.fromJSON(e)) : [],
       dns: isSet(object.dns) ? DNSConfig.fromJSON(object.dns) : undefined,
-      appLinker: isSet(object.appLinker) ? AppLinker.fromJSON(object.appLinker) : undefined,
+      appLinker: globalThis.Array.isArray(object?.appLinker)
+        ? object.appLinker.map((e: any) => AppLinker.fromJSON(e))
+        : [],
     };
   },
 
@@ -1274,8 +1276,8 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.dns !== undefined) {
       obj.dns = DNSConfig.toJSON(message.dns);
     }
-    if (message.appLinker !== undefined) {
-      obj.appLinker = AppLinker.toJSON(message.appLinker);
+    if (message.appLinker?.length) {
+      obj.appLinker = message.appLinker.map((e) => AppLinker.toJSON(e));
     }
     return obj;
   },
@@ -1295,9 +1297,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.jailed = object.jailed ?? false;
     message.iceTable = object.iceTable?.map((e) => Node.fromPartial(e)) || [];
     message.dns = (object.dns !== undefined && object.dns !== null) ? DNSConfig.fromPartial(object.dns) : undefined;
-    message.appLinker = (object.appLinker !== undefined && object.appLinker !== null)
-      ? AppLinker.fromPartial(object.appLinker)
-      : undefined;
+    message.appLinker = object.appLinker?.map((e) => AppLinker.fromPartial(e)) || [];
     return message;
   },
 };
