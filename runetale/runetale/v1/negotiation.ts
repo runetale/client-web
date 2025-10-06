@@ -67,6 +67,7 @@ export interface NegotiationRequest {
   uFlag: string;
   pwd: string;
   candidate: string;
+  sessionID: Uint8Array;
 }
 
 export interface NegotiationResponse {
@@ -77,6 +78,7 @@ export interface NegotiationResponse {
   uFlag: string;
   pwd: string;
   candidate: string;
+  sessionID: Uint8Array;
 }
 
 export interface HandshakeRequest {
@@ -102,7 +104,7 @@ export interface CandidateRequest {
 }
 
 function createBaseNegotiationRequest(): NegotiationRequest {
-  return { type: 0, dstNodeKey: "", dstWgPubKey: "", uFlag: "", pwd: "", candidate: "" };
+  return { type: 0, dstNodeKey: "", dstWgPubKey: "", uFlag: "", pwd: "", candidate: "", sessionID: new Uint8Array(0) };
 }
 
 export const NegotiationRequest: MessageFns<NegotiationRequest> = {
@@ -124,6 +126,9 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     }
     if (message.candidate !== "") {
       writer.uint32(50).string(message.candidate);
+    }
+    if (message.sessionID.length !== 0) {
+      writer.uint32(58).bytes(message.sessionID);
     }
     return writer;
   },
@@ -183,6 +188,14 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
           message.candidate = reader.string();
           continue;
         }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.sessionID = reader.bytes();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -200,6 +213,7 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
       uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
       candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
+      sessionID: isSet(object.sessionID) ? bytesFromBase64(object.sessionID) : new Uint8Array(0),
     };
   },
 
@@ -223,6 +237,9 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     if (message.candidate !== "") {
       obj.candidate = message.candidate;
     }
+    if (message.sessionID.length !== 0) {
+      obj.sessionID = base64FromBytes(message.sessionID);
+    }
     return obj;
   },
 
@@ -237,12 +254,13 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
     message.candidate = object.candidate ?? "";
+    message.sessionID = object.sessionID ?? new Uint8Array(0);
     return message;
   },
 };
 
 function createBaseNegotiationResponse(): NegotiationResponse {
-  return { type: 0, dstNodeKey: "", dstWgPubKey: "", uFlag: "", pwd: "", candidate: "" };
+  return { type: 0, dstNodeKey: "", dstWgPubKey: "", uFlag: "", pwd: "", candidate: "", sessionID: new Uint8Array(0) };
 }
 
 export const NegotiationResponse: MessageFns<NegotiationResponse> = {
@@ -264,6 +282,9 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
     }
     if (message.candidate !== "") {
       writer.uint32(50).string(message.candidate);
+    }
+    if (message.sessionID.length !== 0) {
+      writer.uint32(58).bytes(message.sessionID);
     }
     return writer;
   },
@@ -323,6 +344,14 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
           message.candidate = reader.string();
           continue;
         }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.sessionID = reader.bytes();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -340,6 +369,7 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
       uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
       candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
+      sessionID: isSet(object.sessionID) ? bytesFromBase64(object.sessionID) : new Uint8Array(0),
     };
   },
 
@@ -363,6 +393,9 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
     if (message.candidate !== "") {
       obj.candidate = message.candidate;
     }
+    if (message.sessionID.length !== 0) {
+      obj.sessionID = base64FromBytes(message.sessionID);
+    }
     return obj;
   },
 
@@ -377,6 +410,7 @@ export const NegotiationResponse: MessageFns<NegotiationResponse> = {
     message.uFlag = object.uFlag ?? "";
     message.pwd = object.pwd ?? "";
     message.candidate = object.candidate ?? "";
+    message.sessionID = object.sessionID ?? new Uint8Array(0);
     return message;
   },
 };
