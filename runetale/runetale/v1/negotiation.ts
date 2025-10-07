@@ -18,7 +18,7 @@ export enum NegotiationType {
   OFFER = 0,
   ANSWER = 1,
   CANDIDATE = 2,
-  PEEKABOO = 3,
+  SAYHELLO = 3,
   UNRECOGNIZED = -1,
 }
 
@@ -34,8 +34,8 @@ export function negotiationTypeFromJSON(object: any): NegotiationType {
     case "CANDIDATE":
       return NegotiationType.CANDIDATE;
     case 3:
-    case "PEEKABOO":
-      return NegotiationType.PEEKABOO;
+    case "SAYHELLO":
+      return NegotiationType.SAYHELLO;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -51,8 +51,8 @@ export function negotiationTypeToJSON(object: NegotiationType): string {
       return "ANSWER";
     case NegotiationType.CANDIDATE:
       return "CANDIDATE";
-    case NegotiationType.PEEKABOO:
-      return "PEEKABOO";
+    case NegotiationType.SAYHELLO:
+      return "SAYHELLO";
     case NegotiationType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
