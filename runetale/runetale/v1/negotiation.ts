@@ -688,7 +688,7 @@ export const CandidateRequest: MessageFns<CandidateRequest> = {
 export interface NegotiationService {
   Offer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Answer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
-  SayHello(request: DeepPartial<FleaPacketMessage>, metadata?: grpc.Metadata): Promise<Empty>;
+  FleaMessage(request: DeepPartial<FleaPacketMessage>, metadata?: grpc.Metadata): Promise<Empty>;
   Candidate(request: DeepPartial<CandidateRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Connect(
     request: Observable<DeepPartial<NegotiationMessage>>,
@@ -703,7 +703,7 @@ export class NegotiationServiceClientImpl implements NegotiationService {
     this.rpc = rpc;
     this.Offer = this.Offer.bind(this);
     this.Answer = this.Answer.bind(this);
-    this.SayHello = this.SayHello.bind(this);
+    this.FleaMessage = this.FleaMessage.bind(this);
     this.Candidate = this.Candidate.bind(this);
     this.Connect = this.Connect.bind(this);
   }
@@ -716,8 +716,8 @@ export class NegotiationServiceClientImpl implements NegotiationService {
     return this.rpc.unary(NegotiationServiceAnswerDesc, HandshakeRequest.fromPartial(request), metadata);
   }
 
-  SayHello(request: DeepPartial<FleaPacketMessage>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(NegotiationServiceSayHelloDesc, FleaPacketMessage.fromPartial(request), metadata);
+  FleaMessage(request: DeepPartial<FleaPacketMessage>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(NegotiationServiceFleaMessageDesc, FleaPacketMessage.fromPartial(request), metadata);
   }
 
   Candidate(request: DeepPartial<CandidateRequest>, metadata?: grpc.Metadata): Promise<Empty> {
@@ -780,8 +780,8 @@ export const NegotiationServiceAnswerDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const NegotiationServiceSayHelloDesc: UnaryMethodDefinitionish = {
-  methodName: "SayHello",
+export const NegotiationServiceFleaMessageDesc: UnaryMethodDefinitionish = {
+  methodName: "FleaMessage",
   service: NegotiationServiceDesc,
   requestStream: false,
   responseStream: false,
