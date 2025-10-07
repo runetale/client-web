@@ -72,6 +72,12 @@ export interface NegotiationMessage {
 }
 
 export interface FleaPacketMessage {
+  /** remote node key of the Peer you want to connect to */
+  dstNodeKey: string;
+  /** node key of the originating peer to be sent to the remote peer */
+  srcNodeKey: string;
+  /** wgPubKey from request node */
+  wgPubKey: string;
   /** "ip:port" 形式を最大8件 */
   endpoints: string[];
   /** 鮮度/デバッグ用 */
@@ -290,19 +296,28 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
 };
 
 function createBaseFleaPacketMessage(): FleaPacketMessage {
-  return { endpoints: [], epochTs: undefined, dedupeId: undefined };
+  return { dstNodeKey: "", srcNodeKey: "", wgPubKey: "", endpoints: [], epochTs: undefined, dedupeId: undefined };
 }
 
 export const FleaPacketMessage: MessageFns<FleaPacketMessage> = {
   encode(message: FleaPacketMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.dstNodeKey !== "") {
+      writer.uint32(10).string(message.dstNodeKey);
+    }
+    if (message.srcNodeKey !== "") {
+      writer.uint32(18).string(message.srcNodeKey);
+    }
+    if (message.wgPubKey !== "") {
+      writer.uint32(26).string(message.wgPubKey);
+    }
     for (const v of message.endpoints) {
-      writer.uint32(10).string(v!);
+      writer.uint32(34).string(v!);
     }
     if (message.epochTs !== undefined) {
-      writer.uint32(16).uint64(message.epochTs);
+      writer.uint32(40).uint64(message.epochTs);
     }
     if (message.dedupeId !== undefined) {
-      writer.uint32(26).bytes(message.dedupeId);
+      writer.uint32(50).bytes(message.dedupeId);
     }
     return writer;
   },
@@ -319,19 +334,43 @@ export const FleaPacketMessage: MessageFns<FleaPacketMessage> = {
             break;
           }
 
-          message.endpoints.push(reader.string());
+          message.dstNodeKey = reader.string();
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.srcNodeKey = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.wgPubKey = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.endpoints.push(reader.string());
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
             break;
           }
 
           message.epochTs = longToNumber(reader.uint64());
           continue;
         }
-        case 3: {
-          if (tag !== 26) {
+        case 6: {
+          if (tag !== 50) {
             break;
           }
 
@@ -349,6 +388,9 @@ export const FleaPacketMessage: MessageFns<FleaPacketMessage> = {
 
   fromJSON(object: any): FleaPacketMessage {
     return {
+      dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
+      srcNodeKey: isSet(object.srcNodeKey) ? globalThis.String(object.srcNodeKey) : "",
+      wgPubKey: isSet(object.wgPubKey) ? globalThis.String(object.wgPubKey) : "",
       endpoints: globalThis.Array.isArray(object?.endpoints)
         ? object.endpoints.map((e: any) => globalThis.String(e))
         : [],
@@ -359,6 +401,15 @@ export const FleaPacketMessage: MessageFns<FleaPacketMessage> = {
 
   toJSON(message: FleaPacketMessage): unknown {
     const obj: any = {};
+    if (message.dstNodeKey !== "") {
+      obj.dstNodeKey = message.dstNodeKey;
+    }
+    if (message.srcNodeKey !== "") {
+      obj.srcNodeKey = message.srcNodeKey;
+    }
+    if (message.wgPubKey !== "") {
+      obj.wgPubKey = message.wgPubKey;
+    }
     if (message.endpoints?.length) {
       obj.endpoints = message.endpoints;
     }
@@ -376,6 +427,9 @@ export const FleaPacketMessage: MessageFns<FleaPacketMessage> = {
   },
   fromPartial<I extends Exact<DeepPartial<FleaPacketMessage>, I>>(object: I): FleaPacketMessage {
     const message = createBaseFleaPacketMessage();
+    message.dstNodeKey = object.dstNodeKey ?? "";
+    message.srcNodeKey = object.srcNodeKey ?? "";
+    message.wgPubKey = object.wgPubKey ?? "";
     message.endpoints = object.endpoints?.map((e) => e) || [];
     message.epochTs = object.epochTs ?? undefined;
     message.dedupeId = object.dedupeId ?? undefined;
