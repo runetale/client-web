@@ -68,6 +68,10 @@ export interface NegotiationMessage {
   pwd: string;
   candidate: string;
   sessionID: Uint8Array;
+  fleaPacketMessage: FleaPacketMessage | undefined;
+}
+
+export interface FleaPacketMessage {
   /** "ip:port" 形式を最大8件 */
   endpoints: string[];
   /** 鮮度/デバッグ用 */
@@ -109,9 +113,7 @@ function createBaseNegotiationMessage(): NegotiationMessage {
     pwd: "",
     candidate: "",
     sessionID: new Uint8Array(0),
-    endpoints: [],
-    epochTs: undefined,
-    dedupeId: undefined,
+    fleaPacketMessage: undefined,
   };
 }
 
@@ -138,14 +140,8 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
     if (message.sessionID.length !== 0) {
       writer.uint32(58).bytes(message.sessionID);
     }
-    for (const v of message.endpoints) {
-      writer.uint32(66).string(v!);
-    }
-    if (message.epochTs !== undefined) {
-      writer.uint32(72).uint64(message.epochTs);
-    }
-    if (message.dedupeId !== undefined) {
-      writer.uint32(82).bytes(message.dedupeId);
+    if (message.fleaPacketMessage !== undefined) {
+      FleaPacketMessage.encode(message.fleaPacketMessage, writer.uint32(66).fork()).join();
     }
     return writer;
   },
@@ -218,23 +214,7 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
             break;
           }
 
-          message.endpoints.push(reader.string());
-          continue;
-        }
-        case 9: {
-          if (tag !== 72) {
-            break;
-          }
-
-          message.epochTs = longToNumber(reader.uint64());
-          continue;
-        }
-        case 10: {
-          if (tag !== 82) {
-            break;
-          }
-
-          message.dedupeId = reader.bytes();
+          message.fleaPacketMessage = FleaPacketMessage.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -255,11 +235,9 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
       candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
       sessionID: isSet(object.sessionID) ? bytesFromBase64(object.sessionID) : new Uint8Array(0),
-      endpoints: globalThis.Array.isArray(object?.endpoints)
-        ? object.endpoints.map((e: any) => globalThis.String(e))
-        : [],
-      epochTs: isSet(object.epochTs) ? globalThis.Number(object.epochTs) : undefined,
-      dedupeId: isSet(object.dedupeId) ? bytesFromBase64(object.dedupeId) : undefined,
+      fleaPacketMessage: isSet(object.fleaPacketMessage)
+        ? FleaPacketMessage.fromJSON(object.fleaPacketMessage)
+        : undefined,
     };
   },
 
@@ -286,14 +264,8 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
     if (message.sessionID.length !== 0) {
       obj.sessionID = base64FromBytes(message.sessionID);
     }
-    if (message.endpoints?.length) {
-      obj.endpoints = message.endpoints;
-    }
-    if (message.epochTs !== undefined) {
-      obj.epochTs = Math.round(message.epochTs);
-    }
-    if (message.dedupeId !== undefined) {
-      obj.dedupeId = base64FromBytes(message.dedupeId);
+    if (message.fleaPacketMessage !== undefined) {
+      obj.fleaPacketMessage = FleaPacketMessage.toJSON(message.fleaPacketMessage);
     }
     return obj;
   },
@@ -310,6 +282,100 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
     message.pwd = object.pwd ?? "";
     message.candidate = object.candidate ?? "";
     message.sessionID = object.sessionID ?? new Uint8Array(0);
+    message.fleaPacketMessage = (object.fleaPacketMessage !== undefined && object.fleaPacketMessage !== null)
+      ? FleaPacketMessage.fromPartial(object.fleaPacketMessage)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseFleaPacketMessage(): FleaPacketMessage {
+  return { endpoints: [], epochTs: undefined, dedupeId: undefined };
+}
+
+export const FleaPacketMessage: MessageFns<FleaPacketMessage> = {
+  encode(message: FleaPacketMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.endpoints) {
+      writer.uint32(10).string(v!);
+    }
+    if (message.epochTs !== undefined) {
+      writer.uint32(16).uint64(message.epochTs);
+    }
+    if (message.dedupeId !== undefined) {
+      writer.uint32(26).bytes(message.dedupeId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FleaPacketMessage {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFleaPacketMessage();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.endpoints.push(reader.string());
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.epochTs = longToNumber(reader.uint64());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.dedupeId = reader.bytes();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FleaPacketMessage {
+    return {
+      endpoints: globalThis.Array.isArray(object?.endpoints)
+        ? object.endpoints.map((e: any) => globalThis.String(e))
+        : [],
+      epochTs: isSet(object.epochTs) ? globalThis.Number(object.epochTs) : undefined,
+      dedupeId: isSet(object.dedupeId) ? bytesFromBase64(object.dedupeId) : undefined,
+    };
+  },
+
+  toJSON(message: FleaPacketMessage): unknown {
+    const obj: any = {};
+    if (message.endpoints?.length) {
+      obj.endpoints = message.endpoints;
+    }
+    if (message.epochTs !== undefined) {
+      obj.epochTs = Math.round(message.epochTs);
+    }
+    if (message.dedupeId !== undefined) {
+      obj.dedupeId = base64FromBytes(message.dedupeId);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FleaPacketMessage>, I>>(base?: I): FleaPacketMessage {
+    return FleaPacketMessage.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FleaPacketMessage>, I>>(object: I): FleaPacketMessage {
+    const message = createBaseFleaPacketMessage();
     message.endpoints = object.endpoints?.map((e) => e) || [];
     message.epochTs = object.epochTs ?? undefined;
     message.dedupeId = object.dedupeId ?? undefined;
@@ -568,6 +634,7 @@ export const CandidateRequest: MessageFns<CandidateRequest> = {
 export interface NegotiationService {
   Offer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Answer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
+  SayHello(request: DeepPartial<FleaPacketMessage>, metadata?: grpc.Metadata): Promise<Empty>;
   Candidate(request: DeepPartial<CandidateRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Connect(
     request: Observable<DeepPartial<NegotiationMessage>>,
@@ -582,6 +649,7 @@ export class NegotiationServiceClientImpl implements NegotiationService {
     this.rpc = rpc;
     this.Offer = this.Offer.bind(this);
     this.Answer = this.Answer.bind(this);
+    this.SayHello = this.SayHello.bind(this);
     this.Candidate = this.Candidate.bind(this);
     this.Connect = this.Connect.bind(this);
   }
@@ -592,6 +660,10 @@ export class NegotiationServiceClientImpl implements NegotiationService {
 
   Answer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty> {
     return this.rpc.unary(NegotiationServiceAnswerDesc, HandshakeRequest.fromPartial(request), metadata);
+  }
+
+  SayHello(request: DeepPartial<FleaPacketMessage>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(NegotiationServiceSayHelloDesc, FleaPacketMessage.fromPartial(request), metadata);
   }
 
   Candidate(request: DeepPartial<CandidateRequest>, metadata?: grpc.Metadata): Promise<Empty> {
@@ -639,6 +711,29 @@ export const NegotiationServiceAnswerDesc: UnaryMethodDefinitionish = {
   requestType: {
     serializeBinary() {
       return HandshakeRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NegotiationServiceSayHelloDesc: UnaryMethodDefinitionish = {
+  methodName: "SayHello",
+  service: NegotiationServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return FleaPacketMessage.encode(this).finish();
     },
   } as any,
   responseType: {
