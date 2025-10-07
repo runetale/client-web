@@ -18,7 +18,7 @@ export enum NegotiationType {
   OFFER = 0,
   ANSWER = 1,
   CANDIDATE = 2,
-  JOIN = 3,
+  PEEKABOO = 3,
   UNRECOGNIZED = -1,
 }
 
@@ -34,8 +34,8 @@ export function negotiationTypeFromJSON(object: any): NegotiationType {
     case "CANDIDATE":
       return NegotiationType.CANDIDATE;
     case 3:
-    case "JOIN":
-      return NegotiationType.JOIN;
+    case "PEEKABOO":
+      return NegotiationType.PEEKABOO;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -51,28 +51,17 @@ export function negotiationTypeToJSON(object: NegotiationType): string {
       return "ANSWER";
     case NegotiationType.CANDIDATE:
       return "CANDIDATE";
-    case NegotiationType.JOIN:
-      return "JOIN";
+    case NegotiationType.PEEKABOO:
+      return "PEEKABOO";
     case NegotiationType.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
 }
 
-export interface NegotiationRequest {
+export interface NegotiationMessage {
   type: NegotiationType;
   /** remote node key of the Peer you want to connect to */
-  dstNodeKey: string;
-  dstWgPubKey: string;
-  uFlag: string;
-  pwd: string;
-  candidate: string;
-  sessionID: Uint8Array;
-}
-
-export interface NegotiationResponse {
-  type: NegotiationType;
-  /** node key of the originating peer to be sent to the remote peer */
   dstNodeKey: string;
   dstWgPubKey: string;
   uFlag: string;
@@ -103,12 +92,12 @@ export interface CandidateRequest {
   candidate: string;
 }
 
-function createBaseNegotiationRequest(): NegotiationRequest {
+function createBaseNegotiationMessage(): NegotiationMessage {
   return { type: 0, dstNodeKey: "", dstWgPubKey: "", uFlag: "", pwd: "", candidate: "", sessionID: new Uint8Array(0) };
 }
 
-export const NegotiationRequest: MessageFns<NegotiationRequest> = {
-  encode(message: NegotiationRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const NegotiationMessage: MessageFns<NegotiationMessage> = {
+  encode(message: NegotiationMessage, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.type !== 0) {
       writer.uint32(8).int32(message.type);
     }
@@ -133,10 +122,10 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): NegotiationRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): NegotiationMessage {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseNegotiationRequest();
+    const message = createBaseNegotiationMessage();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -205,7 +194,7 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     return message;
   },
 
-  fromJSON(object: any): NegotiationRequest {
+  fromJSON(object: any): NegotiationMessage {
     return {
       type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
       dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
@@ -217,7 +206,7 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     };
   },
 
-  toJSON(message: NegotiationRequest): unknown {
+  toJSON(message: NegotiationMessage): unknown {
     const obj: any = {};
     if (message.type !== 0) {
       obj.type = negotiationTypeToJSON(message.type);
@@ -243,167 +232,11 @@ export const NegotiationRequest: MessageFns<NegotiationRequest> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<NegotiationRequest>, I>>(base?: I): NegotiationRequest {
-    return NegotiationRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<NegotiationMessage>, I>>(base?: I): NegotiationMessage {
+    return NegotiationMessage.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<NegotiationRequest>, I>>(object: I): NegotiationRequest {
-    const message = createBaseNegotiationRequest();
-    message.type = object.type ?? 0;
-    message.dstNodeKey = object.dstNodeKey ?? "";
-    message.dstWgPubKey = object.dstWgPubKey ?? "";
-    message.uFlag = object.uFlag ?? "";
-    message.pwd = object.pwd ?? "";
-    message.candidate = object.candidate ?? "";
-    message.sessionID = object.sessionID ?? new Uint8Array(0);
-    return message;
-  },
-};
-
-function createBaseNegotiationResponse(): NegotiationResponse {
-  return { type: 0, dstNodeKey: "", dstWgPubKey: "", uFlag: "", pwd: "", candidate: "", sessionID: new Uint8Array(0) };
-}
-
-export const NegotiationResponse: MessageFns<NegotiationResponse> = {
-  encode(message: NegotiationResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.type !== 0) {
-      writer.uint32(8).int32(message.type);
-    }
-    if (message.dstNodeKey !== "") {
-      writer.uint32(18).string(message.dstNodeKey);
-    }
-    if (message.dstWgPubKey !== "") {
-      writer.uint32(26).string(message.dstWgPubKey);
-    }
-    if (message.uFlag !== "") {
-      writer.uint32(34).string(message.uFlag);
-    }
-    if (message.pwd !== "") {
-      writer.uint32(42).string(message.pwd);
-    }
-    if (message.candidate !== "") {
-      writer.uint32(50).string(message.candidate);
-    }
-    if (message.sessionID.length !== 0) {
-      writer.uint32(58).bytes(message.sessionID);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): NegotiationResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseNegotiationResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.type = reader.int32() as any;
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.dstNodeKey = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.dstWgPubKey = reader.string();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.uFlag = reader.string();
-          continue;
-        }
-        case 5: {
-          if (tag !== 42) {
-            break;
-          }
-
-          message.pwd = reader.string();
-          continue;
-        }
-        case 6: {
-          if (tag !== 50) {
-            break;
-          }
-
-          message.candidate = reader.string();
-          continue;
-        }
-        case 7: {
-          if (tag !== 58) {
-            break;
-          }
-
-          message.sessionID = reader.bytes();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): NegotiationResponse {
-    return {
-      type: isSet(object.type) ? negotiationTypeFromJSON(object.type) : 0,
-      dstNodeKey: isSet(object.dstNodeKey) ? globalThis.String(object.dstNodeKey) : "",
-      dstWgPubKey: isSet(object.dstWgPubKey) ? globalThis.String(object.dstWgPubKey) : "",
-      uFlag: isSet(object.uFlag) ? globalThis.String(object.uFlag) : "",
-      pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
-      candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
-      sessionID: isSet(object.sessionID) ? bytesFromBase64(object.sessionID) : new Uint8Array(0),
-    };
-  },
-
-  toJSON(message: NegotiationResponse): unknown {
-    const obj: any = {};
-    if (message.type !== 0) {
-      obj.type = negotiationTypeToJSON(message.type);
-    }
-    if (message.dstNodeKey !== "") {
-      obj.dstNodeKey = message.dstNodeKey;
-    }
-    if (message.dstWgPubKey !== "") {
-      obj.dstWgPubKey = message.dstWgPubKey;
-    }
-    if (message.uFlag !== "") {
-      obj.uFlag = message.uFlag;
-    }
-    if (message.pwd !== "") {
-      obj.pwd = message.pwd;
-    }
-    if (message.candidate !== "") {
-      obj.candidate = message.candidate;
-    }
-    if (message.sessionID.length !== 0) {
-      obj.sessionID = base64FromBytes(message.sessionID);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<NegotiationResponse>, I>>(base?: I): NegotiationResponse {
-    return NegotiationResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<NegotiationResponse>, I>>(object: I): NegotiationResponse {
-    const message = createBaseNegotiationResponse();
+  fromPartial<I extends Exact<DeepPartial<NegotiationMessage>, I>>(object: I): NegotiationMessage {
+    const message = createBaseNegotiationMessage();
     message.type = object.type ?? 0;
     message.dstNodeKey = object.dstNodeKey ?? "";
     message.dstWgPubKey = object.dstWgPubKey ?? "";
@@ -668,9 +501,9 @@ export interface NegotiationService {
   Answer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Candidate(request: DeepPartial<CandidateRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Connect(
-    request: Observable<DeepPartial<NegotiationRequest>>,
+    request: Observable<DeepPartial<NegotiationMessage>>,
     metadata?: grpc.Metadata,
-  ): Observable<NegotiationRequest>;
+  ): Observable<NegotiationMessage>;
 }
 
 export class NegotiationServiceClientImpl implements NegotiationService {
@@ -697,9 +530,9 @@ export class NegotiationServiceClientImpl implements NegotiationService {
   }
 
   Connect(
-    request: Observable<DeepPartial<NegotiationRequest>>,
+    request: Observable<DeepPartial<NegotiationMessage>>,
     metadata?: grpc.Metadata,
-  ): Observable<NegotiationRequest> {
+  ): Observable<NegotiationMessage> {
     throw new Error("ts-proto does not yet support client streaming!");
   }
 }
