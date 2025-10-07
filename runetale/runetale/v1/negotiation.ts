@@ -688,12 +688,12 @@ export const CandidateRequest: MessageFns<CandidateRequest> = {
 export interface NegotiationService {
   Offer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Answer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
-  FleaMessage(request: DeepPartial<FleaPacketMessage>, metadata?: grpc.Metadata): Promise<Empty>;
   Candidate(request: DeepPartial<CandidateRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Connect(
     request: Observable<DeepPartial<NegotiationMessage>>,
     metadata?: grpc.Metadata,
   ): Observable<NegotiationMessage>;
+  FleaMessage(request: DeepPartial<FleaPacketMessage>, metadata?: grpc.Metadata): Promise<Empty>;
 }
 
 export class NegotiationServiceClientImpl implements NegotiationService {
@@ -703,9 +703,9 @@ export class NegotiationServiceClientImpl implements NegotiationService {
     this.rpc = rpc;
     this.Offer = this.Offer.bind(this);
     this.Answer = this.Answer.bind(this);
-    this.FleaMessage = this.FleaMessage.bind(this);
     this.Candidate = this.Candidate.bind(this);
     this.Connect = this.Connect.bind(this);
+    this.FleaMessage = this.FleaMessage.bind(this);
   }
 
   Offer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty> {
@@ -714,10 +714,6 @@ export class NegotiationServiceClientImpl implements NegotiationService {
 
   Answer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty> {
     return this.rpc.unary(NegotiationServiceAnswerDesc, HandshakeRequest.fromPartial(request), metadata);
-  }
-
-  FleaMessage(request: DeepPartial<FleaPacketMessage>, metadata?: grpc.Metadata): Promise<Empty> {
-    return this.rpc.unary(NegotiationServiceFleaMessageDesc, FleaPacketMessage.fromPartial(request), metadata);
   }
 
   Candidate(request: DeepPartial<CandidateRequest>, metadata?: grpc.Metadata): Promise<Empty> {
@@ -729,6 +725,10 @@ export class NegotiationServiceClientImpl implements NegotiationService {
     metadata?: grpc.Metadata,
   ): Observable<NegotiationMessage> {
     throw new Error("ts-proto does not yet support client streaming!");
+  }
+
+  FleaMessage(request: DeepPartial<FleaPacketMessage>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(NegotiationServiceFleaMessageDesc, FleaPacketMessage.fromPartial(request), metadata);
   }
 }
 
@@ -780,14 +780,14 @@ export const NegotiationServiceAnswerDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const NegotiationServiceFleaMessageDesc: UnaryMethodDefinitionish = {
-  methodName: "FleaMessage",
+export const NegotiationServiceCandidateDesc: UnaryMethodDefinitionish = {
+  methodName: "Candidate",
   service: NegotiationServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return FleaPacketMessage.encode(this).finish();
+      return CandidateRequest.encode(this).finish();
     },
   } as any,
   responseType: {
@@ -803,14 +803,14 @@ export const NegotiationServiceFleaMessageDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const NegotiationServiceCandidateDesc: UnaryMethodDefinitionish = {
-  methodName: "Candidate",
+export const NegotiationServiceFleaMessageDesc: UnaryMethodDefinitionish = {
+  methodName: "FleaMessage",
   service: NegotiationServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return CandidateRequest.encode(this).finish();
+      return FleaPacketMessage.encode(this).finish();
     },
   } as any,
   responseType: {
