@@ -68,6 +68,14 @@ export interface NegotiationMessage {
   pwd: string;
   candidate: string;
   sessionID: Uint8Array;
+  /** "ip:port" 形式を最大8件 */
+  endpoints: string[];
+  /** 鮮度/デバッグ用 */
+  epochTs?:
+    | number
+    | undefined;
+  /** 重褊定 */
+  dedupeId?: Uint8Array | undefined;
 }
 
 export interface HandshakeRequest {
@@ -93,7 +101,18 @@ export interface CandidateRequest {
 }
 
 function createBaseNegotiationMessage(): NegotiationMessage {
-  return { type: 0, dstNodeKey: "", dstWgPubKey: "", uFlag: "", pwd: "", candidate: "", sessionID: new Uint8Array(0) };
+  return {
+    type: 0,
+    dstNodeKey: "",
+    dstWgPubKey: "",
+    uFlag: "",
+    pwd: "",
+    candidate: "",
+    sessionID: new Uint8Array(0),
+    endpoints: [],
+    epochTs: undefined,
+    dedupeId: undefined,
+  };
 }
 
 export const NegotiationMessage: MessageFns<NegotiationMessage> = {
@@ -118,6 +137,15 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
     }
     if (message.sessionID.length !== 0) {
       writer.uint32(58).bytes(message.sessionID);
+    }
+    for (const v of message.endpoints) {
+      writer.uint32(66).string(v!);
+    }
+    if (message.epochTs !== undefined) {
+      writer.uint32(72).uint64(message.epochTs);
+    }
+    if (message.dedupeId !== undefined) {
+      writer.uint32(82).bytes(message.dedupeId);
     }
     return writer;
   },
@@ -185,6 +213,30 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
           message.sessionID = reader.bytes();
           continue;
         }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.endpoints.push(reader.string());
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.epochTs = longToNumber(reader.uint64());
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.dedupeId = reader.bytes();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -203,6 +255,11 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
       pwd: isSet(object.pwd) ? globalThis.String(object.pwd) : "",
       candidate: isSet(object.candidate) ? globalThis.String(object.candidate) : "",
       sessionID: isSet(object.sessionID) ? bytesFromBase64(object.sessionID) : new Uint8Array(0),
+      endpoints: globalThis.Array.isArray(object?.endpoints)
+        ? object.endpoints.map((e: any) => globalThis.String(e))
+        : [],
+      epochTs: isSet(object.epochTs) ? globalThis.Number(object.epochTs) : undefined,
+      dedupeId: isSet(object.dedupeId) ? bytesFromBase64(object.dedupeId) : undefined,
     };
   },
 
@@ -229,6 +286,15 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
     if (message.sessionID.length !== 0) {
       obj.sessionID = base64FromBytes(message.sessionID);
     }
+    if (message.endpoints?.length) {
+      obj.endpoints = message.endpoints;
+    }
+    if (message.epochTs !== undefined) {
+      obj.epochTs = Math.round(message.epochTs);
+    }
+    if (message.dedupeId !== undefined) {
+      obj.dedupeId = base64FromBytes(message.dedupeId);
+    }
     return obj;
   },
 
@@ -244,6 +310,9 @@ export const NegotiationMessage: MessageFns<NegotiationMessage> = {
     message.pwd = object.pwd ?? "";
     message.candidate = object.candidate ?? "";
     message.sessionID = object.sessionID ?? new Uint8Array(0);
+    message.endpoints = object.endpoints?.map((e) => e) || [];
+    message.epochTs = object.epochTs ?? undefined;
+    message.dedupeId = object.dedupeId ?? undefined;
     return message;
   },
 };
@@ -757,6 +826,17 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function longToNumber(int64: { toString(): string }): number {
+  const num = globalThis.Number(int64.toString());
+  if (num > globalThis.Number.MAX_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is larger than Number.MAX_SAFE_INTEGER");
+  }
+  if (num < globalThis.Number.MIN_SAFE_INTEGER) {
+    throw new globalThis.Error("Value is smaller than Number.MIN_SAFE_INTEGER");
+  }
+  return num;
+}
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
