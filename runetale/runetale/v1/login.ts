@@ -32,6 +32,8 @@ export interface LoginSessionResponse {
   host: string;
   /** host os */
   os: string;
+  /** host computer name */
+  computerName: string;
   signalServerHost: string;
   signalServerPort: number;
 }
@@ -186,7 +188,7 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
 };
 
 function createBaseLoginSessionResponse(): LoginSessionResponse {
-  return { ip: [], cidr: "", host: "", os: "", signalServerHost: "", signalServerPort: 0 };
+  return { ip: [], cidr: "", host: "", os: "", computerName: "", signalServerHost: "", signalServerPort: 0 };
 }
 
 export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
@@ -203,11 +205,14 @@ export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
     if (message.os !== "") {
       writer.uint32(34).string(message.os);
     }
+    if (message.computerName !== "") {
+      writer.uint32(42).string(message.computerName);
+    }
     if (message.signalServerHost !== "") {
-      writer.uint32(42).string(message.signalServerHost);
+      writer.uint32(50).string(message.signalServerHost);
     }
     if (message.signalServerPort !== 0) {
-      writer.uint32(48).uint64(message.signalServerPort);
+      writer.uint32(56).uint64(message.signalServerPort);
     }
     return writer;
   },
@@ -256,11 +261,19 @@ export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
             break;
           }
 
-          message.signalServerHost = reader.string();
+          message.computerName = reader.string();
           continue;
         }
         case 6: {
-          if (tag !== 48) {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.signalServerHost = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
             break;
           }
 
@@ -282,6 +295,7 @@ export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
       host: isSet(object.host) ? globalThis.String(object.host) : "",
       os: isSet(object.os) ? globalThis.String(object.os) : "",
+      computerName: isSet(object.computerName) ? globalThis.String(object.computerName) : "",
       signalServerHost: isSet(object.signalServerHost) ? globalThis.String(object.signalServerHost) : "",
       signalServerPort: isSet(object.signalServerPort) ? globalThis.Number(object.signalServerPort) : 0,
     };
@@ -301,6 +315,9 @@ export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
     if (message.os !== "") {
       obj.os = message.os;
     }
+    if (message.computerName !== "") {
+      obj.computerName = message.computerName;
+    }
     if (message.signalServerHost !== "") {
       obj.signalServerHost = message.signalServerHost;
     }
@@ -319,6 +336,7 @@ export const LoginSessionResponse: MessageFns<LoginSessionResponse> = {
     message.cidr = object.cidr ?? "";
     message.host = object.host ?? "";
     message.os = object.os ?? "";
+    message.computerName = object.computerName ?? "";
     message.signalServerHost = object.signalServerHost ?? "";
     message.signalServerPort = object.signalServerPort ?? 0;
     return message;
