@@ -479,6 +479,7 @@ export const GetInvitationResponse: MessageFns<GetInvitationResponse> = {
 
 export interface LoginService {
   LoginNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginNodeResponse>;
+  Logout(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty>;
   LoginSession(request: Observable<DeepPartial<Empty>>, metadata?: grpc.Metadata): Observable<LoginSessionResponse>;
   GetInvitation(request: DeepPartial<GetInvitationRequest>, metadata?: grpc.Metadata): Promise<GetInvitationResponse>;
 }
@@ -489,12 +490,17 @@ export class LoginServiceClientImpl implements LoginService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.LoginNode = this.LoginNode.bind(this);
+    this.Logout = this.Logout.bind(this);
     this.LoginSession = this.LoginSession.bind(this);
     this.GetInvitation = this.GetInvitation.bind(this);
   }
 
   LoginNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<LoginNodeResponse> {
     return this.rpc.unary(LoginServiceLoginNodeDesc, Empty.fromPartial(request), metadata);
+  }
+
+  Logout(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<Empty> {
+    return this.rpc.unary(LoginServiceLogoutDesc, Empty.fromPartial(request), metadata);
   }
 
   LoginSession(request: Observable<DeepPartial<Empty>>, metadata?: grpc.Metadata): Observable<LoginSessionResponse> {
@@ -521,6 +527,29 @@ export const LoginServiceLoginNodeDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = LoginNodeResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const LoginServiceLogoutDesc: UnaryMethodDefinitionish = {
+  methodName: "Logout",
+  service: LoginServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = Empty.decode(data);
       return {
         ...value,
         toObject() {
