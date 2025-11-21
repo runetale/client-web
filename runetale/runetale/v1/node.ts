@@ -59,6 +59,10 @@ export interface Node {
 export interface ComposeNodeResponse {
   ip: string;
   cidr: string;
+  userId: number;
+  email: string;
+  displayName: string;
+  loginName: string;
 }
 
 export interface NetPortRange {
@@ -780,7 +784,7 @@ export const Node: MessageFns<Node> = {
 };
 
 function createBaseComposeNodeResponse(): ComposeNodeResponse {
-  return { ip: "", cidr: "" };
+  return { ip: "", cidr: "", userId: 0, email: "", displayName: "", loginName: "" };
 }
 
 export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
@@ -790,6 +794,18 @@ export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
     }
     if (message.cidr !== "") {
       writer.uint32(18).string(message.cidr);
+    }
+    if (message.userId !== 0) {
+      writer.uint32(24).uint64(message.userId);
+    }
+    if (message.email !== "") {
+      writer.uint32(34).string(message.email);
+    }
+    if (message.displayName !== "") {
+      writer.uint32(42).string(message.displayName);
+    }
+    if (message.loginName !== "") {
+      writer.uint32(50).string(message.loginName);
     }
     return writer;
   },
@@ -817,6 +833,38 @@ export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
           message.cidr = reader.string();
           continue;
         }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.userId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.displayName = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.loginName = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -830,6 +878,10 @@ export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
     return {
       ip: isSet(object.ip) ? globalThis.String(object.ip) : "",
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
+      userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0,
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
+      loginName: isSet(object.loginName) ? globalThis.String(object.loginName) : "",
     };
   },
 
@@ -841,6 +893,18 @@ export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
     if (message.cidr !== "") {
       obj.cidr = message.cidr;
     }
+    if (message.userId !== 0) {
+      obj.userId = Math.round(message.userId);
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.displayName !== "") {
+      obj.displayName = message.displayName;
+    }
+    if (message.loginName !== "") {
+      obj.loginName = message.loginName;
+    }
     return obj;
   },
 
@@ -851,6 +915,10 @@ export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
     const message = createBaseComposeNodeResponse();
     message.ip = object.ip ?? "";
     message.cidr = object.cidr ?? "";
+    message.userId = object.userId ?? 0;
+    message.email = object.email ?? "";
+    message.displayName = object.displayName ?? "";
+    message.loginName = object.loginName ?? "";
     return message;
   },
 };
