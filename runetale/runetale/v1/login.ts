@@ -21,6 +21,10 @@ export interface LoginNodeResponse {
   cidr: string;
   signalHost: string;
   signalPort: number;
+  userId: number;
+  email: string;
+  displayName: string;
+  loginName: string;
 }
 
 export interface LoginSessionResponse {
@@ -48,7 +52,18 @@ export interface GetInvitationResponse {
 }
 
 function createBaseLoginNodeResponse(): LoginNodeResponse {
-  return { isRegistered: false, loginUrl: "", ip: [], cidr: "", signalHost: "", signalPort: 0 };
+  return {
+    isRegistered: false,
+    loginUrl: "",
+    ip: [],
+    cidr: "",
+    signalHost: "",
+    signalPort: 0,
+    userId: 0,
+    email: "",
+    displayName: "",
+    loginName: "",
+  };
 }
 
 export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
@@ -70,6 +85,18 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
     }
     if (message.signalPort !== 0) {
       writer.uint32(48).uint64(message.signalPort);
+    }
+    if (message.userId !== 0) {
+      writer.uint32(56).uint64(message.userId);
+    }
+    if (message.email !== "") {
+      writer.uint32(66).string(message.email);
+    }
+    if (message.displayName !== "") {
+      writer.uint32(74).string(message.displayName);
+    }
+    if (message.loginName !== "") {
+      writer.uint32(82).string(message.loginName);
     }
     return writer;
   },
@@ -129,6 +156,38 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
           message.signalPort = longToNumber(reader.uint64());
           continue;
         }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.userId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.displayName = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.loginName = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -146,6 +205,10 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
       cidr: isSet(object.cidr) ? globalThis.String(object.cidr) : "",
       signalHost: isSet(object.signalHost) ? globalThis.String(object.signalHost) : "",
       signalPort: isSet(object.signalPort) ? globalThis.Number(object.signalPort) : 0,
+      userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0,
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
+      loginName: isSet(object.loginName) ? globalThis.String(object.loginName) : "",
     };
   },
 
@@ -169,6 +232,18 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
     if (message.signalPort !== 0) {
       obj.signalPort = Math.round(message.signalPort);
     }
+    if (message.userId !== 0) {
+      obj.userId = Math.round(message.userId);
+    }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.displayName !== "") {
+      obj.displayName = message.displayName;
+    }
+    if (message.loginName !== "") {
+      obj.loginName = message.loginName;
+    }
     return obj;
   },
 
@@ -183,6 +258,10 @@ export const LoginNodeResponse: MessageFns<LoginNodeResponse> = {
     message.cidr = object.cidr ?? "";
     message.signalHost = object.signalHost ?? "";
     message.signalPort = object.signalPort ?? 0;
+    message.userId = object.userId ?? 0;
+    message.email = object.email ?? "";
+    message.displayName = object.displayName ?? "";
+    message.loginName = object.loginName ?? "";
     return message;
   },
 };
