@@ -50,6 +50,7 @@ export interface Node {
   allowedIPs: string[];
   /** e.g. 100.x.y.z/16, fe80::/64 */
   addresses: string[];
+  userId: number;
 }
 
 export interface ComposeNodeResponse {
@@ -557,7 +558,7 @@ export const PacketFlowLog: MessageFns<PacketFlowLog> = {
 };
 
 function createBaseNode(): Node {
-  return { name: "", nodeId: 0, nodeKey: "", wgPubKey: "", allowedIPs: [], addresses: [] };
+  return { name: "", nodeId: 0, nodeKey: "", wgPubKey: "", allowedIPs: [], addresses: [], userId: 0 };
 }
 
 export const Node: MessageFns<Node> = {
@@ -579,6 +580,9 @@ export const Node: MessageFns<Node> = {
     }
     for (const v of message.addresses) {
       writer.uint32(50).string(v!);
+    }
+    if (message.userId !== 0) {
+      writer.uint32(56).uint64(message.userId);
     }
     return writer;
   },
@@ -638,6 +642,14 @@ export const Node: MessageFns<Node> = {
           message.addresses.push(reader.string());
           continue;
         }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.userId = longToNumber(reader.uint64());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -659,6 +671,7 @@ export const Node: MessageFns<Node> = {
       addresses: globalThis.Array.isArray(object?.addresses)
         ? object.addresses.map((e: any) => globalThis.String(e))
         : [],
+      userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0,
     };
   },
 
@@ -682,6 +695,9 @@ export const Node: MessageFns<Node> = {
     if (message.addresses?.length) {
       obj.addresses = message.addresses;
     }
+    if (message.userId !== 0) {
+      obj.userId = Math.round(message.userId);
+    }
     return obj;
   },
 
@@ -696,6 +712,7 @@ export const Node: MessageFns<Node> = {
     message.wgPubKey = object.wgPubKey ?? "";
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
     message.addresses = object.addresses?.map((e) => e) || [];
+    message.userId = object.userId ?? 0;
     return message;
   },
 };
