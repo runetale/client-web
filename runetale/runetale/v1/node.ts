@@ -51,6 +51,9 @@ export interface Node {
   /** e.g. 100.x.y.z/16, fe80::/64 */
   addresses: string[];
   userId: number;
+  email: string;
+  displayName: string;
+  loginName: string;
 }
 
 export interface ComposeNodeResponse {
@@ -558,7 +561,18 @@ export const PacketFlowLog: MessageFns<PacketFlowLog> = {
 };
 
 function createBaseNode(): Node {
-  return { name: "", nodeId: 0, nodeKey: "", wgPubKey: "", allowedIPs: [], addresses: [], userId: 0 };
+  return {
+    name: "",
+    nodeId: 0,
+    nodeKey: "",
+    wgPubKey: "",
+    allowedIPs: [],
+    addresses: [],
+    userId: 0,
+    email: "",
+    displayName: "",
+    loginName: "",
+  };
 }
 
 export const Node: MessageFns<Node> = {
@@ -583,6 +597,15 @@ export const Node: MessageFns<Node> = {
     }
     if (message.userId !== 0) {
       writer.uint32(56).uint64(message.userId);
+    }
+    if (message.email !== "") {
+      writer.uint32(66).string(message.email);
+    }
+    if (message.displayName !== "") {
+      writer.uint32(74).string(message.displayName);
+    }
+    if (message.loginName !== "") {
+      writer.uint32(82).string(message.loginName);
     }
     return writer;
   },
@@ -650,6 +673,30 @@ export const Node: MessageFns<Node> = {
           message.userId = longToNumber(reader.uint64());
           continue;
         }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.email = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.displayName = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.loginName = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -672,6 +719,9 @@ export const Node: MessageFns<Node> = {
         ? object.addresses.map((e: any) => globalThis.String(e))
         : [],
       userId: isSet(object.userId) ? globalThis.Number(object.userId) : 0,
+      email: isSet(object.email) ? globalThis.String(object.email) : "",
+      displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
+      loginName: isSet(object.loginName) ? globalThis.String(object.loginName) : "",
     };
   },
 
@@ -698,6 +748,15 @@ export const Node: MessageFns<Node> = {
     if (message.userId !== 0) {
       obj.userId = Math.round(message.userId);
     }
+    if (message.email !== "") {
+      obj.email = message.email;
+    }
+    if (message.displayName !== "") {
+      obj.displayName = message.displayName;
+    }
+    if (message.loginName !== "") {
+      obj.loginName = message.loginName;
+    }
     return obj;
   },
 
@@ -713,6 +772,9 @@ export const Node: MessageFns<Node> = {
     message.allowedIPs = object.allowedIPs?.map((e) => e) || [];
     message.addresses = object.addresses?.map((e) => e) || [];
     message.userId = object.userId ?? 0;
+    message.email = object.email ?? "";
+    message.displayName = object.displayName ?? "";
+    message.loginName = object.loginName ?? "";
     return message;
   },
 };
