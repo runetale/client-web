@@ -54,6 +54,7 @@ export interface Node {
   email: string;
   displayName: string;
   loginName: string;
+  hostOS: string;
 }
 
 export interface ComposeNodeResponse {
@@ -576,6 +577,7 @@ function createBaseNode(): Node {
     email: "",
     displayName: "",
     loginName: "",
+    hostOS: "",
   };
 }
 
@@ -610,6 +612,9 @@ export const Node: MessageFns<Node> = {
     }
     if (message.loginName !== "") {
       writer.uint32(82).string(message.loginName);
+    }
+    if (message.hostOS !== "") {
+      writer.uint32(90).string(message.hostOS);
     }
     return writer;
   },
@@ -701,6 +706,14 @@ export const Node: MessageFns<Node> = {
           message.loginName = reader.string();
           continue;
         }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.hostOS = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -726,6 +739,7 @@ export const Node: MessageFns<Node> = {
       email: isSet(object.email) ? globalThis.String(object.email) : "",
       displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
       loginName: isSet(object.loginName) ? globalThis.String(object.loginName) : "",
+      hostOS: isSet(object.hostOS) ? globalThis.String(object.hostOS) : "",
     };
   },
 
@@ -761,6 +775,9 @@ export const Node: MessageFns<Node> = {
     if (message.loginName !== "") {
       obj.loginName = message.loginName;
     }
+    if (message.hostOS !== "") {
+      obj.hostOS = message.hostOS;
+    }
     return obj;
   },
 
@@ -779,6 +796,7 @@ export const Node: MessageFns<Node> = {
     message.email = object.email ?? "";
     message.displayName = object.displayName ?? "";
     message.loginName = object.loginName ?? "";
+    message.hostOS = object.hostOS ?? "";
     return message;
   },
 };
