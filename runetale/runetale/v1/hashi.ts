@@ -99,6 +99,44 @@ export interface StopRequest {
   reason: string;
 }
 
+export interface NetCheckReport {
+  now:
+    | Date
+    | undefined;
+  /** a UDP STUN round trip completed */
+  udp: boolean;
+  /** an IPv6 STUN round trip completed */
+  ipv6: boolean;
+  /** an IPv4 STUN round trip completed */
+  ipv4: boolean;
+  /** an IPv6 packet was able to be sent */
+  ipv6CanSend: boolean;
+  /** an IPv4 packet was able to be sent */
+  ipv4CanSend: boolean;
+  /** could bind a socket to ::1 */
+  osHasIpv6: boolean;
+  /** best IPv4 global address (netip.AddrPort as string) */
+  globalV4: string;
+  /** best IPv6 global address (netip.AddrPort as string) */
+  globalV6: string;
+  /** STUN server URI -> latency in milliseconds */
+  stunLatency: { [key: string]: number };
+  /** TURN server URI -> latency in milliseconds */
+  turnLatency: { [key: string]: number };
+  /** errors encountered during the check */
+  errors: string[];
+}
+
+export interface NetCheckReport_StunLatencyEntry {
+  key: string;
+  value: number;
+}
+
+export interface NetCheckReport_TurnLatencyEntry {
+  key: string;
+  value: number;
+}
+
 function createBaseEndpoint(): Endpoint {
   return { addr: "", type: "" };
 }
@@ -1333,6 +1371,455 @@ export const StopRequest: MessageFns<StopRequest> = {
   },
 };
 
+function createBaseNetCheckReport(): NetCheckReport {
+  return {
+    now: undefined,
+    udp: false,
+    ipv6: false,
+    ipv4: false,
+    ipv6CanSend: false,
+    ipv4CanSend: false,
+    osHasIpv6: false,
+    globalV4: "",
+    globalV6: "",
+    stunLatency: {},
+    turnLatency: {},
+    errors: [],
+  };
+}
+
+export const NetCheckReport: MessageFns<NetCheckReport> = {
+  encode(message: NetCheckReport, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.now !== undefined) {
+      Timestamp.encode(toTimestamp(message.now), writer.uint32(10).fork()).join();
+    }
+    if (message.udp !== false) {
+      writer.uint32(16).bool(message.udp);
+    }
+    if (message.ipv6 !== false) {
+      writer.uint32(24).bool(message.ipv6);
+    }
+    if (message.ipv4 !== false) {
+      writer.uint32(32).bool(message.ipv4);
+    }
+    if (message.ipv6CanSend !== false) {
+      writer.uint32(40).bool(message.ipv6CanSend);
+    }
+    if (message.ipv4CanSend !== false) {
+      writer.uint32(48).bool(message.ipv4CanSend);
+    }
+    if (message.osHasIpv6 !== false) {
+      writer.uint32(56).bool(message.osHasIpv6);
+    }
+    if (message.globalV4 !== "") {
+      writer.uint32(66).string(message.globalV4);
+    }
+    if (message.globalV6 !== "") {
+      writer.uint32(74).string(message.globalV6);
+    }
+    Object.entries(message.stunLatency).forEach(([key, value]) => {
+      NetCheckReport_StunLatencyEntry.encode({ key: key as any, value }, writer.uint32(82).fork()).join();
+    });
+    Object.entries(message.turnLatency).forEach(([key, value]) => {
+      NetCheckReport_TurnLatencyEntry.encode({ key: key as any, value }, writer.uint32(90).fork()).join();
+    });
+    for (const v of message.errors) {
+      writer.uint32(98).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetCheckReport {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetCheckReport();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.now = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.udp = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.ipv6 = reader.bool();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.ipv4 = reader.bool();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.ipv6CanSend = reader.bool();
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.ipv4CanSend = reader.bool();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.osHasIpv6 = reader.bool();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.globalV4 = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.globalV6 = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          const entry10 = NetCheckReport_StunLatencyEntry.decode(reader, reader.uint32());
+          if (entry10.value !== undefined) {
+            message.stunLatency[entry10.key] = entry10.value;
+          }
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          const entry11 = NetCheckReport_TurnLatencyEntry.decode(reader, reader.uint32());
+          if (entry11.value !== undefined) {
+            message.turnLatency[entry11.key] = entry11.value;
+          }
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.errors.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetCheckReport {
+    return {
+      now: isSet(object.now) ? fromJsonTimestamp(object.now) : undefined,
+      udp: isSet(object.udp) ? globalThis.Boolean(object.udp) : false,
+      ipv6: isSet(object.ipv6) ? globalThis.Boolean(object.ipv6) : false,
+      ipv4: isSet(object.ipv4) ? globalThis.Boolean(object.ipv4) : false,
+      ipv6CanSend: isSet(object.ipv6CanSend) ? globalThis.Boolean(object.ipv6CanSend) : false,
+      ipv4CanSend: isSet(object.ipv4CanSend) ? globalThis.Boolean(object.ipv4CanSend) : false,
+      osHasIpv6: isSet(object.osHasIpv6) ? globalThis.Boolean(object.osHasIpv6) : false,
+      globalV4: isSet(object.globalV4) ? globalThis.String(object.globalV4) : "",
+      globalV6: isSet(object.globalV6) ? globalThis.String(object.globalV6) : "",
+      stunLatency: isObject(object.stunLatency)
+        ? Object.entries(object.stunLatency).reduce<{ [key: string]: number }>((acc, [key, value]) => {
+          acc[key] = Number(value);
+          return acc;
+        }, {})
+        : {},
+      turnLatency: isObject(object.turnLatency)
+        ? Object.entries(object.turnLatency).reduce<{ [key: string]: number }>((acc, [key, value]) => {
+          acc[key] = Number(value);
+          return acc;
+        }, {})
+        : {},
+      errors: globalThis.Array.isArray(object?.errors) ? object.errors.map((e: any) => globalThis.String(e)) : [],
+    };
+  },
+
+  toJSON(message: NetCheckReport): unknown {
+    const obj: any = {};
+    if (message.now !== undefined) {
+      obj.now = message.now.toISOString();
+    }
+    if (message.udp !== false) {
+      obj.udp = message.udp;
+    }
+    if (message.ipv6 !== false) {
+      obj.ipv6 = message.ipv6;
+    }
+    if (message.ipv4 !== false) {
+      obj.ipv4 = message.ipv4;
+    }
+    if (message.ipv6CanSend !== false) {
+      obj.ipv6CanSend = message.ipv6CanSend;
+    }
+    if (message.ipv4CanSend !== false) {
+      obj.ipv4CanSend = message.ipv4CanSend;
+    }
+    if (message.osHasIpv6 !== false) {
+      obj.osHasIpv6 = message.osHasIpv6;
+    }
+    if (message.globalV4 !== "") {
+      obj.globalV4 = message.globalV4;
+    }
+    if (message.globalV6 !== "") {
+      obj.globalV6 = message.globalV6;
+    }
+    if (message.stunLatency) {
+      const entries = Object.entries(message.stunLatency);
+      if (entries.length > 0) {
+        obj.stunLatency = {};
+        entries.forEach(([k, v]) => {
+          obj.stunLatency[k] = Math.round(v);
+        });
+      }
+    }
+    if (message.turnLatency) {
+      const entries = Object.entries(message.turnLatency);
+      if (entries.length > 0) {
+        obj.turnLatency = {};
+        entries.forEach(([k, v]) => {
+          obj.turnLatency[k] = Math.round(v);
+        });
+      }
+    }
+    if (message.errors?.length) {
+      obj.errors = message.errors;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetCheckReport>, I>>(base?: I): NetCheckReport {
+    return NetCheckReport.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetCheckReport>, I>>(object: I): NetCheckReport {
+    const message = createBaseNetCheckReport();
+    message.now = object.now ?? undefined;
+    message.udp = object.udp ?? false;
+    message.ipv6 = object.ipv6 ?? false;
+    message.ipv4 = object.ipv4 ?? false;
+    message.ipv6CanSend = object.ipv6CanSend ?? false;
+    message.ipv4CanSend = object.ipv4CanSend ?? false;
+    message.osHasIpv6 = object.osHasIpv6 ?? false;
+    message.globalV4 = object.globalV4 ?? "";
+    message.globalV6 = object.globalV6 ?? "";
+    message.stunLatency = Object.entries(object.stunLatency ?? {}).reduce<{ [key: string]: number }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = globalThis.Number(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    message.turnLatency = Object.entries(object.turnLatency ?? {}).reduce<{ [key: string]: number }>(
+      (acc, [key, value]) => {
+        if (value !== undefined) {
+          acc[key] = globalThis.Number(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    message.errors = object.errors?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseNetCheckReport_StunLatencyEntry(): NetCheckReport_StunLatencyEntry {
+  return { key: "", value: 0 };
+}
+
+export const NetCheckReport_StunLatencyEntry: MessageFns<NetCheckReport_StunLatencyEntry> = {
+  encode(message: NetCheckReport_StunLatencyEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== 0) {
+      writer.uint32(16).int64(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetCheckReport_StunLatencyEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetCheckReport_StunLatencyEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.value = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetCheckReport_StunLatencyEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.Number(object.value) : 0,
+    };
+  },
+
+  toJSON(message: NetCheckReport_StunLatencyEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== 0) {
+      obj.value = Math.round(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetCheckReport_StunLatencyEntry>, I>>(base?: I): NetCheckReport_StunLatencyEntry {
+    return NetCheckReport_StunLatencyEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetCheckReport_StunLatencyEntry>, I>>(
+    object: I,
+  ): NetCheckReport_StunLatencyEntry {
+    const message = createBaseNetCheckReport_StunLatencyEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? 0;
+    return message;
+  },
+};
+
+function createBaseNetCheckReport_TurnLatencyEntry(): NetCheckReport_TurnLatencyEntry {
+  return { key: "", value: 0 };
+}
+
+export const NetCheckReport_TurnLatencyEntry: MessageFns<NetCheckReport_TurnLatencyEntry> = {
+  encode(message: NetCheckReport_TurnLatencyEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== 0) {
+      writer.uint32(16).int64(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetCheckReport_TurnLatencyEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetCheckReport_TurnLatencyEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.value = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetCheckReport_TurnLatencyEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.Number(object.value) : 0,
+    };
+  },
+
+  toJSON(message: NetCheckReport_TurnLatencyEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== 0) {
+      obj.value = Math.round(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetCheckReport_TurnLatencyEntry>, I>>(base?: I): NetCheckReport_TurnLatencyEntry {
+    return NetCheckReport_TurnLatencyEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetCheckReport_TurnLatencyEntry>, I>>(
+    object: I,
+  ): NetCheckReport_TurnLatencyEntry {
+    const message = createBaseNetCheckReport_TurnLatencyEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? 0;
+    return message;
+  },
+};
+
 /**
  * HashiServiceはRunetale Clientのバックエンド専用のAPI's
  * hashilocalbackendのgrpc serviceとして実装されます
@@ -1345,6 +1832,7 @@ export interface HashiService {
   Logout(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
   Stop(request: DeepPartial<StopRequest>, metadata?: grpc.Metadata): Promise<HashiStatus>;
   Dial(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus>;
+  NetCheck(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetCheckReport>;
 }
 
 export class HashiServiceClientImpl implements HashiService {
@@ -1359,6 +1847,7 @@ export class HashiServiceClientImpl implements HashiService {
     this.Logout = this.Logout.bind(this);
     this.Stop = this.Stop.bind(this);
     this.Dial = this.Dial.bind(this);
+    this.NetCheck = this.NetCheck.bind(this);
   }
 
   Status(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus> {
@@ -1387,6 +1876,10 @@ export class HashiServiceClientImpl implements HashiService {
 
   Dial(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<HashiStatus> {
     return this.rpc.unary(HashiServiceDialDesc, Empty.fromPartial(request), metadata);
+  }
+
+  NetCheck(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetCheckReport> {
+    return this.rpc.unary(HashiServiceNetCheckDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -1543,6 +2036,29 @@ export const HashiServiceDialDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = HashiStatus.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const HashiServiceNetCheckDesc: UnaryMethodDefinitionish = {
+  methodName: "NetCheck",
+  service: HashiServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = NetCheckReport.decode(data);
       return {
         ...value,
         toObject() {
