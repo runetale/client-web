@@ -55,6 +55,7 @@ export interface Node {
   displayName: string;
   loginName: string;
   hostOS: string;
+  runeKey: string;
 }
 
 export interface ComposeNodeResponse {
@@ -578,6 +579,7 @@ function createBaseNode(): Node {
     displayName: "",
     loginName: "",
     hostOS: "",
+    runeKey: "",
   };
 }
 
@@ -615,6 +617,9 @@ export const Node: MessageFns<Node> = {
     }
     if (message.hostOS !== "") {
       writer.uint32(90).string(message.hostOS);
+    }
+    if (message.runeKey !== "") {
+      writer.uint32(98).string(message.runeKey);
     }
     return writer;
   },
@@ -714,6 +719,14 @@ export const Node: MessageFns<Node> = {
           message.hostOS = reader.string();
           continue;
         }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.runeKey = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -740,6 +753,7 @@ export const Node: MessageFns<Node> = {
       displayName: isSet(object.displayName) ? globalThis.String(object.displayName) : "",
       loginName: isSet(object.loginName) ? globalThis.String(object.loginName) : "",
       hostOS: isSet(object.hostOS) ? globalThis.String(object.hostOS) : "",
+      runeKey: isSet(object.runeKey) ? globalThis.String(object.runeKey) : "",
     };
   },
 
@@ -778,6 +792,9 @@ export const Node: MessageFns<Node> = {
     if (message.hostOS !== "") {
       obj.hostOS = message.hostOS;
     }
+    if (message.runeKey !== "") {
+      obj.runeKey = message.runeKey;
+    }
     return obj;
   },
 
@@ -797,6 +814,7 @@ export const Node: MessageFns<Node> = {
     message.displayName = object.displayName ?? "";
     message.loginName = object.loginName ?? "";
     message.hostOS = object.hostOS ?? "";
+    message.runeKey = object.runeKey ?? "";
     return message;
   },
 };
