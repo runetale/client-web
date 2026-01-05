@@ -6,6 +6,8 @@
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
+import { grpc } from "@improbable-eng/grpc-web";
+import { BrowserHeaders } from "browser-headers";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 
 export const protobufPackage = "protos";
@@ -1390,6 +1392,132 @@ export const FilterDecision: MessageFns<FilterDecision> = {
   },
 };
 
+/**
+ * TelemetryService ingests low-cardinality client telemetry batches.
+ *
+ * Auth is performed out-of-band (e.g. gRPC metadata headers like node-key/wg-pub-key/rune-key),
+ * consistent with other node/daemon RPCs.
+ */
+export interface TelemetryService {
+  UploadTelemetryBatch(
+    request: DeepPartial<TelemetryBatchRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<TelemetryBatchResponse>;
+}
+
+export class TelemetryServiceClientImpl implements TelemetryService {
+  private readonly rpc: Rpc;
+
+  constructor(rpc: Rpc) {
+    this.rpc = rpc;
+    this.UploadTelemetryBatch = this.UploadTelemetryBatch.bind(this);
+  }
+
+  UploadTelemetryBatch(
+    request: DeepPartial<TelemetryBatchRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<TelemetryBatchResponse> {
+    return this.rpc.unary(
+      TelemetryServiceUploadTelemetryBatchDesc,
+      TelemetryBatchRequest.fromPartial(request),
+      metadata,
+    );
+  }
+}
+
+export const TelemetryServiceDesc = { serviceName: "protos.TelemetryService" };
+
+export const TelemetryServiceUploadTelemetryBatchDesc: UnaryMethodDefinitionish = {
+  methodName: "UploadTelemetryBatch",
+  service: TelemetryServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return TelemetryBatchRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = TelemetryBatchResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
+  requestStream: any;
+  responseStream: any;
+}
+
+type UnaryMethodDefinitionish = UnaryMethodDefinitionishR;
+
+interface Rpc {
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any>;
+}
+
+export class GrpcWebImpl {
+  private host: string;
+  private options: {
+    transport?: grpc.TransportFactory;
+
+    debug?: boolean;
+    metadata?: grpc.Metadata;
+    upStreamRetryCodes?: number[];
+  };
+
+  constructor(
+    host: string,
+    options: {
+      transport?: grpc.TransportFactory;
+
+      debug?: boolean;
+      metadata?: grpc.Metadata;
+      upStreamRetryCodes?: number[];
+    },
+  ) {
+    this.host = host;
+    this.options = options;
+  }
+
+  unary<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Promise<any> {
+    const request = { ..._request, ...methodDesc.requestType };
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata ?? this.options.metadata;
+    return new Promise((resolve, reject) => {
+      grpc.unary(methodDesc, {
+        request,
+        host: this.host,
+        metadata: maybeCombinedMetadata ?? {},
+        ...(this.options.transport !== undefined ? { transport: this.options.transport } : {}),
+        debug: this.options.debug ?? false,
+        onEnd: function (response) {
+          if (response.status === grpc.Code.OK) {
+            resolve(response.message!.toObject());
+          } else {
+            const err = new GrpcWebError(response.statusMessage, response.status, response.trailers);
+            reject(err);
+          }
+        },
+      });
+    });
+  }
+}
+
 function bytesFromBase64(b64: string): Uint8Array {
   if ((globalThis as any).Buffer) {
     return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
@@ -1462,6 +1590,12 @@ function longToNumber(int64: { toString(): string }): number {
 
 function isSet(value: any): boolean {
   return value !== null && value !== undefined;
+}
+
+export class GrpcWebError extends globalThis.Error {
+  constructor(message: string, public code: grpc.Code, public metadata: grpc.Metadata) {
+    super(message);
+  }
 }
 
 export interface MessageFns<T> {
