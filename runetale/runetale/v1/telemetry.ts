@@ -415,6 +415,76 @@ export function filterDecision_FilterResultToJSON(object: FilterDecision_FilterR
   }
 }
 
+/** GetEventsRequest はテレメトリイベントの取得リクエストです。 */
+export interface GetEventsRequest {
+  /** node_id でフィルタ（0 の場合は全ノード） */
+  nodeId: number;
+  /** session_id でフィルタ（空の場合は全セッション） */
+  sessionId: string;
+  /** 期間フィルタ（from <= event_day <= to） */
+  from: Date | undefined;
+  to:
+    | Date
+    | undefined;
+  /** ページネーション */
+  limit: number;
+  offset: number;
+}
+
+/** GetEventsResponse はテレメトリイベントの取得レスポンスです。 */
+export interface GetEventsResponse {
+  events: StoredTelemetryEvent[];
+  totalCount: number;
+}
+
+/**
+ * StoredTelemetryEvent はサーバーに保存されたテレメトリイベントです。
+ * TelemetryEvent に加えて、サーバー側のメタデータを含みます。
+ */
+export interface StoredTelemetryEvent {
+  id: number;
+  nodeId: number;
+  sessionId: string;
+  clientVersion: string;
+  receivedAt: Date | undefined;
+  eventAt: Date | undefined;
+  eventDay: Date | undefined;
+  peerHash: Uint8Array;
+  regionId: number;
+  transport: Transport;
+  payloadType: string;
+  /** JSON string */
+  payload: string;
+  createdAt: Date | undefined;
+}
+
+/** GetDailyCountsRequest は日次集計の取得リクエストです。 */
+export interface GetDailyCountsRequest {
+  /** node_id でフィルタ（0 の場合は全ノード） */
+  nodeId: number;
+  /** metric でフィルタ（空の場合は全メトリクス） */
+  metric: string;
+  /** 期間フィルタ（from <= day <= to） */
+  from: Date | undefined;
+  to: Date | undefined;
+}
+
+/** GetDailyCountsResponse は日次集計の取得レスポンスです。 */
+export interface GetDailyCountsResponse {
+  counts: DailyCount[];
+}
+
+/** DailyCount は1日分の集計データです。 */
+export interface DailyCount {
+  day: Date | undefined;
+  nodeId: number;
+  metric: string;
+  labelKey: string;
+  count: number;
+  createdAt: Date | undefined;
+  updatedAt: Date | undefined;
+}
+
 function createBaseTelemetryBatchRequest(): TelemetryBatchRequest {
   return { nodeId: 0, sessionId: "", version: "", events: [] };
 }
@@ -1392,6 +1462,814 @@ export const FilterDecision: MessageFns<FilterDecision> = {
   },
 };
 
+function createBaseGetEventsRequest(): GetEventsRequest {
+  return { nodeId: 0, sessionId: "", from: undefined, to: undefined, limit: 0, offset: 0 };
+}
+
+export const GetEventsRequest: MessageFns<GetEventsRequest> = {
+  encode(message: GetEventsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
+    }
+    if (message.sessionId !== "") {
+      writer.uint32(18).string(message.sessionId);
+    }
+    if (message.from !== undefined) {
+      Timestamp.encode(toTimestamp(message.from), writer.uint32(26).fork()).join();
+    }
+    if (message.to !== undefined) {
+      Timestamp.encode(toTimestamp(message.to), writer.uint32(34).fork()).join();
+    }
+    if (message.limit !== 0) {
+      writer.uint32(40).int32(message.limit);
+    }
+    if (message.offset !== 0) {
+      writer.uint32(48).int32(message.offset);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetEventsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetEventsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.nodeId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.from = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.to = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.limit = reader.int32();
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.offset = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetEventsRequest {
+    return {
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
+      sessionId: isSet(object.sessionId) ? globalThis.String(object.sessionId) : "",
+      from: isSet(object.from) ? fromJsonTimestamp(object.from) : undefined,
+      to: isSet(object.to) ? fromJsonTimestamp(object.to) : undefined,
+      limit: isSet(object.limit) ? globalThis.Number(object.limit) : 0,
+      offset: isSet(object.offset) ? globalThis.Number(object.offset) : 0,
+    };
+  },
+
+  toJSON(message: GetEventsRequest): unknown {
+    const obj: any = {};
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    if (message.from !== undefined) {
+      obj.from = message.from.toISOString();
+    }
+    if (message.to !== undefined) {
+      obj.to = message.to.toISOString();
+    }
+    if (message.limit !== 0) {
+      obj.limit = Math.round(message.limit);
+    }
+    if (message.offset !== 0) {
+      obj.offset = Math.round(message.offset);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetEventsRequest>, I>>(base?: I): GetEventsRequest {
+    return GetEventsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetEventsRequest>, I>>(object: I): GetEventsRequest {
+    const message = createBaseGetEventsRequest();
+    message.nodeId = object.nodeId ?? 0;
+    message.sessionId = object.sessionId ?? "";
+    message.from = object.from ?? undefined;
+    message.to = object.to ?? undefined;
+    message.limit = object.limit ?? 0;
+    message.offset = object.offset ?? 0;
+    return message;
+  },
+};
+
+function createBaseGetEventsResponse(): GetEventsResponse {
+  return { events: [], totalCount: 0 };
+}
+
+export const GetEventsResponse: MessageFns<GetEventsResponse> = {
+  encode(message: GetEventsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.events) {
+      StoredTelemetryEvent.encode(v!, writer.uint32(10).fork()).join();
+    }
+    if (message.totalCount !== 0) {
+      writer.uint32(16).int64(message.totalCount);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetEventsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetEventsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.events.push(StoredTelemetryEvent.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.totalCount = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetEventsResponse {
+    return {
+      events: globalThis.Array.isArray(object?.events)
+        ? object.events.map((e: any) => StoredTelemetryEvent.fromJSON(e))
+        : [],
+      totalCount: isSet(object.totalCount) ? globalThis.Number(object.totalCount) : 0,
+    };
+  },
+
+  toJSON(message: GetEventsResponse): unknown {
+    const obj: any = {};
+    if (message.events?.length) {
+      obj.events = message.events.map((e) => StoredTelemetryEvent.toJSON(e));
+    }
+    if (message.totalCount !== 0) {
+      obj.totalCount = Math.round(message.totalCount);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetEventsResponse>, I>>(base?: I): GetEventsResponse {
+    return GetEventsResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetEventsResponse>, I>>(object: I): GetEventsResponse {
+    const message = createBaseGetEventsResponse();
+    message.events = object.events?.map((e) => StoredTelemetryEvent.fromPartial(e)) || [];
+    message.totalCount = object.totalCount ?? 0;
+    return message;
+  },
+};
+
+function createBaseStoredTelemetryEvent(): StoredTelemetryEvent {
+  return {
+    id: 0,
+    nodeId: 0,
+    sessionId: "",
+    clientVersion: "",
+    receivedAt: undefined,
+    eventAt: undefined,
+    eventDay: undefined,
+    peerHash: new Uint8Array(0),
+    regionId: 0,
+    transport: 0,
+    payloadType: "",
+    payload: "",
+    createdAt: undefined,
+  };
+}
+
+export const StoredTelemetryEvent: MessageFns<StoredTelemetryEvent> = {
+  encode(message: StoredTelemetryEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== 0) {
+      writer.uint32(8).uint64(message.id);
+    }
+    if (message.nodeId !== 0) {
+      writer.uint32(16).uint64(message.nodeId);
+    }
+    if (message.sessionId !== "") {
+      writer.uint32(26).string(message.sessionId);
+    }
+    if (message.clientVersion !== "") {
+      writer.uint32(34).string(message.clientVersion);
+    }
+    if (message.receivedAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.receivedAt), writer.uint32(42).fork()).join();
+    }
+    if (message.eventAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.eventAt), writer.uint32(50).fork()).join();
+    }
+    if (message.eventDay !== undefined) {
+      Timestamp.encode(toTimestamp(message.eventDay), writer.uint32(58).fork()).join();
+    }
+    if (message.peerHash.length !== 0) {
+      writer.uint32(66).bytes(message.peerHash);
+    }
+    if (message.regionId !== 0) {
+      writer.uint32(72).uint32(message.regionId);
+    }
+    if (message.transport !== 0) {
+      writer.uint32(80).int32(message.transport);
+    }
+    if (message.payloadType !== "") {
+      writer.uint32(90).string(message.payloadType);
+    }
+    if (message.payload !== "") {
+      writer.uint32(98).string(message.payload);
+    }
+    if (message.createdAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(106).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): StoredTelemetryEvent {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStoredTelemetryEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.id = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.nodeId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.clientVersion = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.receivedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.eventAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.eventDay = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.peerHash = reader.bytes();
+          continue;
+        }
+        case 9: {
+          if (tag !== 72) {
+            break;
+          }
+
+          message.regionId = reader.uint32();
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.transport = reader.int32() as any;
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.payloadType = reader.string();
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.payload = reader.string();
+          continue;
+        }
+        case 13: {
+          if (tag !== 106) {
+            break;
+          }
+
+          message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StoredTelemetryEvent {
+    return {
+      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
+      sessionId: isSet(object.sessionId) ? globalThis.String(object.sessionId) : "",
+      clientVersion: isSet(object.clientVersion) ? globalThis.String(object.clientVersion) : "",
+      receivedAt: isSet(object.receivedAt) ? fromJsonTimestamp(object.receivedAt) : undefined,
+      eventAt: isSet(object.eventAt) ? fromJsonTimestamp(object.eventAt) : undefined,
+      eventDay: isSet(object.eventDay) ? fromJsonTimestamp(object.eventDay) : undefined,
+      peerHash: isSet(object.peerHash) ? bytesFromBase64(object.peerHash) : new Uint8Array(0),
+      regionId: isSet(object.regionId) ? globalThis.Number(object.regionId) : 0,
+      transport: isSet(object.transport) ? transportFromJSON(object.transport) : 0,
+      payloadType: isSet(object.payloadType) ? globalThis.String(object.payloadType) : "",
+      payload: isSet(object.payload) ? globalThis.String(object.payload) : "",
+      createdAt: isSet(object.createdAt) ? fromJsonTimestamp(object.createdAt) : undefined,
+    };
+  },
+
+  toJSON(message: StoredTelemetryEvent): unknown {
+    const obj: any = {};
+    if (message.id !== 0) {
+      obj.id = Math.round(message.id);
+    }
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    if (message.clientVersion !== "") {
+      obj.clientVersion = message.clientVersion;
+    }
+    if (message.receivedAt !== undefined) {
+      obj.receivedAt = message.receivedAt.toISOString();
+    }
+    if (message.eventAt !== undefined) {
+      obj.eventAt = message.eventAt.toISOString();
+    }
+    if (message.eventDay !== undefined) {
+      obj.eventDay = message.eventDay.toISOString();
+    }
+    if (message.peerHash.length !== 0) {
+      obj.peerHash = base64FromBytes(message.peerHash);
+    }
+    if (message.regionId !== 0) {
+      obj.regionId = Math.round(message.regionId);
+    }
+    if (message.transport !== 0) {
+      obj.transport = transportToJSON(message.transport);
+    }
+    if (message.payloadType !== "") {
+      obj.payloadType = message.payloadType;
+    }
+    if (message.payload !== "") {
+      obj.payload = message.payload;
+    }
+    if (message.createdAt !== undefined) {
+      obj.createdAt = message.createdAt.toISOString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<StoredTelemetryEvent>, I>>(base?: I): StoredTelemetryEvent {
+    return StoredTelemetryEvent.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<StoredTelemetryEvent>, I>>(object: I): StoredTelemetryEvent {
+    const message = createBaseStoredTelemetryEvent();
+    message.id = object.id ?? 0;
+    message.nodeId = object.nodeId ?? 0;
+    message.sessionId = object.sessionId ?? "";
+    message.clientVersion = object.clientVersion ?? "";
+    message.receivedAt = object.receivedAt ?? undefined;
+    message.eventAt = object.eventAt ?? undefined;
+    message.eventDay = object.eventDay ?? undefined;
+    message.peerHash = object.peerHash ?? new Uint8Array(0);
+    message.regionId = object.regionId ?? 0;
+    message.transport = object.transport ?? 0;
+    message.payloadType = object.payloadType ?? "";
+    message.payload = object.payload ?? "";
+    message.createdAt = object.createdAt ?? undefined;
+    return message;
+  },
+};
+
+function createBaseGetDailyCountsRequest(): GetDailyCountsRequest {
+  return { nodeId: 0, metric: "", from: undefined, to: undefined };
+}
+
+export const GetDailyCountsRequest: MessageFns<GetDailyCountsRequest> = {
+  encode(message: GetDailyCountsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
+    }
+    if (message.metric !== "") {
+      writer.uint32(18).string(message.metric);
+    }
+    if (message.from !== undefined) {
+      Timestamp.encode(toTimestamp(message.from), writer.uint32(26).fork()).join();
+    }
+    if (message.to !== undefined) {
+      Timestamp.encode(toTimestamp(message.to), writer.uint32(34).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetDailyCountsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetDailyCountsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.nodeId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.metric = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.from = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.to = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetDailyCountsRequest {
+    return {
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
+      metric: isSet(object.metric) ? globalThis.String(object.metric) : "",
+      from: isSet(object.from) ? fromJsonTimestamp(object.from) : undefined,
+      to: isSet(object.to) ? fromJsonTimestamp(object.to) : undefined,
+    };
+  },
+
+  toJSON(message: GetDailyCountsRequest): unknown {
+    const obj: any = {};
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.metric !== "") {
+      obj.metric = message.metric;
+    }
+    if (message.from !== undefined) {
+      obj.from = message.from.toISOString();
+    }
+    if (message.to !== undefined) {
+      obj.to = message.to.toISOString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetDailyCountsRequest>, I>>(base?: I): GetDailyCountsRequest {
+    return GetDailyCountsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetDailyCountsRequest>, I>>(object: I): GetDailyCountsRequest {
+    const message = createBaseGetDailyCountsRequest();
+    message.nodeId = object.nodeId ?? 0;
+    message.metric = object.metric ?? "";
+    message.from = object.from ?? undefined;
+    message.to = object.to ?? undefined;
+    return message;
+  },
+};
+
+function createBaseGetDailyCountsResponse(): GetDailyCountsResponse {
+  return { counts: [] };
+}
+
+export const GetDailyCountsResponse: MessageFns<GetDailyCountsResponse> = {
+  encode(message: GetDailyCountsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.counts) {
+      DailyCount.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetDailyCountsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetDailyCountsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.counts.push(DailyCount.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetDailyCountsResponse {
+    return {
+      counts: globalThis.Array.isArray(object?.counts) ? object.counts.map((e: any) => DailyCount.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: GetDailyCountsResponse): unknown {
+    const obj: any = {};
+    if (message.counts?.length) {
+      obj.counts = message.counts.map((e) => DailyCount.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetDailyCountsResponse>, I>>(base?: I): GetDailyCountsResponse {
+    return GetDailyCountsResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetDailyCountsResponse>, I>>(object: I): GetDailyCountsResponse {
+    const message = createBaseGetDailyCountsResponse();
+    message.counts = object.counts?.map((e) => DailyCount.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseDailyCount(): DailyCount {
+  return { day: undefined, nodeId: 0, metric: "", labelKey: "", count: 0, createdAt: undefined, updatedAt: undefined };
+}
+
+export const DailyCount: MessageFns<DailyCount> = {
+  encode(message: DailyCount, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.day !== undefined) {
+      Timestamp.encode(toTimestamp(message.day), writer.uint32(10).fork()).join();
+    }
+    if (message.nodeId !== 0) {
+      writer.uint32(16).uint64(message.nodeId);
+    }
+    if (message.metric !== "") {
+      writer.uint32(26).string(message.metric);
+    }
+    if (message.labelKey !== "") {
+      writer.uint32(34).string(message.labelKey);
+    }
+    if (message.count !== 0) {
+      writer.uint32(40).int64(message.count);
+    }
+    if (message.createdAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(50).fork()).join();
+    }
+    if (message.updatedAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.updatedAt), writer.uint32(58).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DailyCount {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDailyCount();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.day = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.nodeId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.metric = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.labelKey = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.count = longToNumber(reader.int64());
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.updatedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DailyCount {
+    return {
+      day: isSet(object.day) ? fromJsonTimestamp(object.day) : undefined,
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
+      metric: isSet(object.metric) ? globalThis.String(object.metric) : "",
+      labelKey: isSet(object.labelKey) ? globalThis.String(object.labelKey) : "",
+      count: isSet(object.count) ? globalThis.Number(object.count) : 0,
+      createdAt: isSet(object.createdAt) ? fromJsonTimestamp(object.createdAt) : undefined,
+      updatedAt: isSet(object.updatedAt) ? fromJsonTimestamp(object.updatedAt) : undefined,
+    };
+  },
+
+  toJSON(message: DailyCount): unknown {
+    const obj: any = {};
+    if (message.day !== undefined) {
+      obj.day = message.day.toISOString();
+    }
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.metric !== "") {
+      obj.metric = message.metric;
+    }
+    if (message.labelKey !== "") {
+      obj.labelKey = message.labelKey;
+    }
+    if (message.count !== 0) {
+      obj.count = Math.round(message.count);
+    }
+    if (message.createdAt !== undefined) {
+      obj.createdAt = message.createdAt.toISOString();
+    }
+    if (message.updatedAt !== undefined) {
+      obj.updatedAt = message.updatedAt.toISOString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DailyCount>, I>>(base?: I): DailyCount {
+    return DailyCount.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DailyCount>, I>>(object: I): DailyCount {
+    const message = createBaseDailyCount();
+    message.day = object.day ?? undefined;
+    message.nodeId = object.nodeId ?? 0;
+    message.metric = object.metric ?? "";
+    message.labelKey = object.labelKey ?? "";
+    message.count = object.count ?? 0;
+    message.createdAt = object.createdAt ?? undefined;
+    message.updatedAt = object.updatedAt ?? undefined;
+    return message;
+  },
+};
+
 /**
  * TelemetryService ingests low-cardinality client telemetry batches.
  *
@@ -1399,10 +2277,18 @@ export const FilterDecision: MessageFns<FilterDecision> = {
  * consistent with other node/daemon RPCs.
  */
 export interface TelemetryService {
+  /** UploadTelemetryBatch receives telemetry events from clients. */
   UploadTelemetryBatch(
     request: DeepPartial<TelemetryBatchRequest>,
     metadata?: grpc.Metadata,
   ): Promise<TelemetryBatchResponse>;
+  /** GetEvents retrieves stored telemetry events for analysis/debugging. */
+  GetEvents(request: DeepPartial<GetEventsRequest>, metadata?: grpc.Metadata): Promise<GetEventsResponse>;
+  /** GetDailyCounts retrieves aggregated daily counts for dashboards/trends. */
+  GetDailyCounts(
+    request: DeepPartial<GetDailyCountsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetDailyCountsResponse>;
 }
 
 export class TelemetryServiceClientImpl implements TelemetryService {
@@ -1411,6 +2297,8 @@ export class TelemetryServiceClientImpl implements TelemetryService {
   constructor(rpc: Rpc) {
     this.rpc = rpc;
     this.UploadTelemetryBatch = this.UploadTelemetryBatch.bind(this);
+    this.GetEvents = this.GetEvents.bind(this);
+    this.GetDailyCounts = this.GetDailyCounts.bind(this);
   }
 
   UploadTelemetryBatch(
@@ -1422,6 +2310,17 @@ export class TelemetryServiceClientImpl implements TelemetryService {
       TelemetryBatchRequest.fromPartial(request),
       metadata,
     );
+  }
+
+  GetEvents(request: DeepPartial<GetEventsRequest>, metadata?: grpc.Metadata): Promise<GetEventsResponse> {
+    return this.rpc.unary(TelemetryServiceGetEventsDesc, GetEventsRequest.fromPartial(request), metadata);
+  }
+
+  GetDailyCounts(
+    request: DeepPartial<GetDailyCountsRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<GetDailyCountsResponse> {
+    return this.rpc.unary(TelemetryServiceGetDailyCountsDesc, GetDailyCountsRequest.fromPartial(request), metadata);
   }
 }
 
@@ -1440,6 +2339,52 @@ export const TelemetryServiceUploadTelemetryBatchDesc: UnaryMethodDefinitionish 
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = TelemetryBatchResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const TelemetryServiceGetEventsDesc: UnaryMethodDefinitionish = {
+  methodName: "GetEvents",
+  service: TelemetryServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetEventsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetEventsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const TelemetryServiceGetDailyCountsDesc: UnaryMethodDefinitionish = {
+  methodName: "GetDailyCounts",
+  service: TelemetryServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetDailyCountsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetDailyCountsResponse.decode(data);
       return {
         ...value,
         toObject() {
