@@ -223,46 +223,46 @@ export function iPProtoToJSON(object: IPProto): string {
   }
 }
 
-export enum ExpirelyTime {
-  EXPIRELY_TIME_UNSPECIFIED = 0,
-  EXPIRELY_TIME_ONE_MONTH = 1,
-  EXPIRELY_TIME_TWO_MONTH = 2,
-  EXPIRELY_TIME_THREE_MONTH = 3,
+export enum ExpiryTime {
+  EXPIRY_TIME_UNSPECIFIED = 0,
+  EXPIRY_TIME_ONE_MONTH = 1,
+  EXPIRY_TIME_TWO_MONTH = 2,
+  EXPIRY_TIME_THREE_MONTH = 3,
   UNRECOGNIZED = -1,
 }
 
-export function expirelyTimeFromJSON(object: any): ExpirelyTime {
+export function expiryTimeFromJSON(object: any): ExpiryTime {
   switch (object) {
     case 0:
-    case "EXPIRELY_TIME_UNSPECIFIED":
-      return ExpirelyTime.EXPIRELY_TIME_UNSPECIFIED;
+    case "EXPIRY_TIME_UNSPECIFIED":
+      return ExpiryTime.EXPIRY_TIME_UNSPECIFIED;
     case 1:
-    case "EXPIRELY_TIME_ONE_MONTH":
-      return ExpirelyTime.EXPIRELY_TIME_ONE_MONTH;
+    case "EXPIRY_TIME_ONE_MONTH":
+      return ExpiryTime.EXPIRY_TIME_ONE_MONTH;
     case 2:
-    case "EXPIRELY_TIME_TWO_MONTH":
-      return ExpirelyTime.EXPIRELY_TIME_TWO_MONTH;
+    case "EXPIRY_TIME_TWO_MONTH":
+      return ExpiryTime.EXPIRY_TIME_TWO_MONTH;
     case 3:
-    case "EXPIRELY_TIME_THREE_MONTH":
-      return ExpirelyTime.EXPIRELY_TIME_THREE_MONTH;
+    case "EXPIRY_TIME_THREE_MONTH":
+      return ExpiryTime.EXPIRY_TIME_THREE_MONTH;
     case -1:
     case "UNRECOGNIZED":
     default:
-      return ExpirelyTime.UNRECOGNIZED;
+      return ExpiryTime.UNRECOGNIZED;
   }
 }
 
-export function expirelyTimeToJSON(object: ExpirelyTime): string {
+export function expiryTimeToJSON(object: ExpiryTime): string {
   switch (object) {
-    case ExpirelyTime.EXPIRELY_TIME_UNSPECIFIED:
-      return "EXPIRELY_TIME_UNSPECIFIED";
-    case ExpirelyTime.EXPIRELY_TIME_ONE_MONTH:
-      return "EXPIRELY_TIME_ONE_MONTH";
-    case ExpirelyTime.EXPIRELY_TIME_TWO_MONTH:
-      return "EXPIRELY_TIME_TWO_MONTH";
-    case ExpirelyTime.EXPIRELY_TIME_THREE_MONTH:
-      return "EXPIRELY_TIME_THREE_MONTH";
-    case ExpirelyTime.UNRECOGNIZED:
+    case ExpiryTime.EXPIRY_TIME_UNSPECIFIED:
+      return "EXPIRY_TIME_UNSPECIFIED";
+    case ExpiryTime.EXPIRY_TIME_ONE_MONTH:
+      return "EXPIRY_TIME_ONE_MONTH";
+    case ExpiryTime.EXPIRY_TIME_TWO_MONTH:
+      return "EXPIRY_TIME_TWO_MONTH";
+    case ExpiryTime.EXPIRY_TIME_THREE_MONTH:
+      return "EXPIRY_TIME_THREE_MONTH";
+    case ExpiryTime.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
