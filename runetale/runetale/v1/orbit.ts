@@ -12,44 +12,33 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
 
 export const protobufPackage = "protos";
 
-/**
- * orbit.proto
- *
- * Runetale Orbit (v1)
- *
- * 目的:
- * - Wonderwall/CERF/ICE/packet filter/userspace の挙動を「理由付き」で数値化するためのイベントを定義します。
- * - Phase A ではパケットの中身や 5-tuple 等の生フロー情報は送らず、軽量なイベント/集計に寄せます。
- *
- * 互換性:
- * - 既存フィールド番号の変更/再利用は禁止（後方互換性のため）
- * - フィールド追加はOK（末尾に追加推奨）
- * - enum は末尾に追加（既存値の変更禁止）
- */
-
-/** Transport は「どの経路/トランスポートで送受信したか」を表します。 */
+/** Transport describes how a packet was sent/received. */
 export enum Transport {
-  TRANSPORT_UNSPECIFIED = 0,
-  TRANSPORT_CERF = 1,
+  TRANSPORT_UNKNOWN = 0,
+  TRANSPORT_UDP = 1,
   TRANSPORT_ICE = 2,
-  TRANSPORT_UDP = 3,
+  TRANSPORT_CERF = 3,
+  TRANSPORT_CERF_WS = 4,
   UNRECOGNIZED = -1,
 }
 
 export function transportFromJSON(object: any): Transport {
   switch (object) {
     case 0:
-    case "TRANSPORT_UNSPECIFIED":
-      return Transport.TRANSPORT_UNSPECIFIED;
+    case "TRANSPORT_UNKNOWN":
+      return Transport.TRANSPORT_UNKNOWN;
     case 1:
-    case "TRANSPORT_CERF":
-      return Transport.TRANSPORT_CERF;
+    case "TRANSPORT_UDP":
+      return Transport.TRANSPORT_UDP;
     case 2:
     case "TRANSPORT_ICE":
       return Transport.TRANSPORT_ICE;
     case 3:
-    case "TRANSPORT_UDP":
-      return Transport.TRANSPORT_UDP;
+    case "TRANSPORT_CERF":
+      return Transport.TRANSPORT_CERF;
+    case 4:
+    case "TRANSPORT_CERF_WS":
+      return Transport.TRANSPORT_CERF_WS;
     case -1:
     case "UNRECOGNIZED":
     default:
@@ -59,388 +48,278 @@ export function transportFromJSON(object: any): Transport {
 
 export function transportToJSON(object: Transport): string {
   switch (object) {
-    case Transport.TRANSPORT_UNSPECIFIED:
-      return "TRANSPORT_UNSPECIFIED";
-    case Transport.TRANSPORT_CERF:
-      return "TRANSPORT_CERF";
-    case Transport.TRANSPORT_ICE:
-      return "TRANSPORT_ICE";
+    case Transport.TRANSPORT_UNKNOWN:
+      return "TRANSPORT_UNKNOWN";
     case Transport.TRANSPORT_UDP:
       return "TRANSPORT_UDP";
+    case Transport.TRANSPORT_ICE:
+      return "TRANSPORT_ICE";
+    case Transport.TRANSPORT_CERF:
+      return "TRANSPORT_CERF";
+    case Transport.TRANSPORT_CERF_WS:
+      return "TRANSPORT_CERF_WS";
     case Transport.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
 }
 
-/** PathState は endpoint の観測上の経路種別を表します。 */
-export enum PathState {
-  PATH_STATE_UNSPECIFIED = 0,
-  PATH_STATE_CERF = 1,
-  PATH_STATE_ICE = 2,
-  PATH_STATE_UDP = 3,
-  UNRECOGNIZED = -1,
-}
-
-export function pathStateFromJSON(object: any): PathState {
-  switch (object) {
-    case 0:
-    case "PATH_STATE_UNSPECIFIED":
-      return PathState.PATH_STATE_UNSPECIFIED;
-    case 1:
-    case "PATH_STATE_CERF":
-      return PathState.PATH_STATE_CERF;
-    case 2:
-    case "PATH_STATE_ICE":
-      return PathState.PATH_STATE_ICE;
-    case 3:
-    case "PATH_STATE_UDP":
-      return PathState.PATH_STATE_UDP;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return PathState.UNRECOGNIZED;
-  }
-}
-
-export function pathStateToJSON(object: PathState): string {
-  switch (object) {
-    case PathState.PATH_STATE_UNSPECIFIED:
-      return "PATH_STATE_UNSPECIFIED";
-    case PathState.PATH_STATE_CERF:
-      return "PATH_STATE_CERF";
-    case PathState.PATH_STATE_ICE:
-      return "PATH_STATE_ICE";
-    case PathState.PATH_STATE_UDP:
-      return "PATH_STATE_UDP";
-    case PathState.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
-/** RecvKind は受信したメッセージ種別です。 */
-export enum RecvKind {
-  RECV_KIND_UNSPECIFIED = 0,
-  RECV_KIND_WIREGUARD = 1,
-  RECV_KIND_RUNE = 2,
-  UNRECOGNIZED = -1,
-}
-
-export function recvKindFromJSON(object: any): RecvKind {
-  switch (object) {
-    case 0:
-    case "RECV_KIND_UNSPECIFIED":
-      return RecvKind.RECV_KIND_UNSPECIFIED;
-    case 1:
-    case "RECV_KIND_WIREGUARD":
-      return RecvKind.RECV_KIND_WIREGUARD;
-    case 2:
-    case "RECV_KIND_RUNE":
-      return RecvKind.RECV_KIND_RUNE;
-    case -1:
-    case "UNRECOGNIZED":
-    default:
-      return RecvKind.UNRECOGNIZED;
-  }
-}
-
-export function recvKindToJSON(object: RecvKind): string {
-  switch (object) {
-    case RecvKind.RECV_KIND_UNSPECIFIED:
-      return "RECV_KIND_UNSPECIFIED";
-    case RecvKind.RECV_KIND_WIREGUARD:
-      return "RECV_KIND_WIREGUARD";
-    case RecvKind.RECV_KIND_RUNE:
-      return "RECV_KIND_RUNE";
-    case RecvKind.UNRECOGNIZED:
-    default:
-      return "UNRECOGNIZED";
-  }
-}
-
-/** OrbitBatchRequest はクライアントから server へイベントをまとめて送るリクエストです。 */
+/** OrbitBatchRequest contains a batch of telemetry events from a client. */
 export interface OrbitBatchRequest {
-  /** runetale node id */
-  nodeId: number;
-  /** 1プロセス/1接続期間の識別子（クライアント側で生成） */
-  sessionId: string;
-  /** client build/version 情報（任意） */
+  /** version is the client version string (e.g. "1.2.3"). */
   version: string;
-  /** イベント本体 */
+  /** session_id is a unique identifier for the client session. */
+  sessionId: string;
+  /** node_id is the node ID (optional, for backward compatibility). */
+  nodeId: number;
+  /** events is the list of telemetry events to upload. */
   events: OrbitEvent[];
 }
 
+/** OrbitBatchResponse is returned after processing a batch. */
 export interface OrbitBatchResponse {
-  /** server が受理したイベント数 */
+  /** accepted is the number of events successfully stored. */
   accepted: number;
-  /** server 側で破棄したイベント数（サイズ/レート/検証失敗など） */
+  /** dropped is the number of events dropped (rate limit, size limit, etc.). */
   dropped: number;
-  /** 代表的な理由（任意） */
+  /** reason is set if any events were dropped. */
   reason: string;
 }
 
-/**
- * OrbitEvent は1レコードのイベントです。
- * 共通フィールド + oneof(種類別ペイロード) で表現します。
- */
+/** OrbitEvent is a single telemetry event. */
 export interface OrbitEvent {
-  /** イベント発生時刻（クライアント側） */
+  /** at is the client-side timestamp when the event occurred. */
   at:
     | Date
     | undefined;
-  /** peer識別子（生鍵を送らない）。HMAC等で匿名化した固定長のハッシュを想定。 */
+  /**
+   * peer_hash is the first 8 bytes of SHA256(peer_public_key).
+   * Used for correlation without exposing full keys.
+   */
   peerHash: Uint8Array;
-  /** CERF のリージョンID（該当する場合のみ）。unknown は 0。 */
+  /** region_id is the CERF region ID (if applicable). */
   regionId: number;
-  /** このイベントに紐づくトランスポート（該当する場合のみ） */
+  /** transport is the transport type used. */
   transport: Transport;
-  pathTransition?: PathTransition | undefined;
-  sendResult?: SendResult | undefined;
-  recvResult?: RecvResult | undefined;
+  sendResult?: SendResultEvent | undefined;
+  recvResult?: RecvResultEvent | undefined;
   cerfConn?: CerfConnEvent | undefined;
   ice?: IceEvent | undefined;
-  filter?: FilterDecision | undefined;
+  filter?: FilterEvent | undefined;
+  pathTransition?: PathTransitionEvent | undefined;
 }
 
-/** PathTransition は経路の選択/切替を表します。 */
-export interface PathTransition {
-  from: PathState;
-  to: PathState;
-  /**
-   * 切替理由（機械集計可能な短い文字列を推奨）
-   * 例: "force_cerf", "recv_confirmed", "no_recvwg_timeout", "trial_prefer_ice", "cerf_fail_fallback"
-   */
-  reason: string;
-  /** 追加情報（任意） */
-  detail: string;
-}
-
-/** SendResult は送信の結果（成功/失敗）を表します。 */
-export interface SendResult {
+/** SendResultEvent records the result of sending a packet. */
+export interface SendResultEvent {
   ok: boolean;
-  /** 送信したバイト数（payload長） */
-  bytes: number;
-  /** エラー分類（任意） */
-  errCode: string;
+  error: string;
 }
 
-/** RecvResult は受信処理の結果を表します。 */
-export interface RecvResult {
-  ok: boolean;
-  kind: RecvKind;
-  bytes: number;
-  errCode: string;
+/** RecvResultEvent records the result of receiving a packet. */
+export interface RecvResultEvent {
+  /** kind: 0=data, 1=keepalive, 2=handshake, etc. */
+  kind: number;
+  size: number;
 }
 
-/** CerfConnEvent は CERF の接続/再接続/エラー等の状態変化を表します。 */
+/** CerfConnEvent records CERF connection state changes. */
 export interface CerfConnEvent {
-  /** cerfhttp.Client の connGen（再接続ごとに増える） */
-  connGen: number;
-  state: CerfConnEvent_CerfConnState;
-  detail: string;
+  state: CerfConnEvent_State;
+  error: string;
 }
 
-export enum CerfConnEvent_CerfConnState {
-  CERF_CONN_STATE_UNSPECIFIED = 0,
-  CERF_CONN_STATE_CONNECTED = 1,
-  CERF_CONN_STATE_RECONNECTED = 2,
-  CERF_CONN_STATE_RECV_ERROR = 3,
-  CERF_CONN_STATE_SEND_ERROR = 4,
-  CERF_CONN_STATE_REGION_FAILOVER = 5,
+export enum CerfConnEvent_State {
+  CERF_CONN_STATE_UNKNOWN = 0,
+  CERF_CONN_STATE_CONNECTING = 1,
+  CERF_CONN_STATE_CONNECTED = 2,
+  CERF_CONN_STATE_DISCONNECTED = 3,
+  CERF_CONN_STATE_RECV_ERROR = 4,
   UNRECOGNIZED = -1,
 }
 
-export function cerfConnEvent_CerfConnStateFromJSON(object: any): CerfConnEvent_CerfConnState {
+export function cerfConnEvent_StateFromJSON(object: any): CerfConnEvent_State {
   switch (object) {
     case 0:
-    case "CERF_CONN_STATE_UNSPECIFIED":
-      return CerfConnEvent_CerfConnState.CERF_CONN_STATE_UNSPECIFIED;
+    case "CERF_CONN_STATE_UNKNOWN":
+      return CerfConnEvent_State.CERF_CONN_STATE_UNKNOWN;
     case 1:
+    case "CERF_CONN_STATE_CONNECTING":
+      return CerfConnEvent_State.CERF_CONN_STATE_CONNECTING;
+    case 2:
     case "CERF_CONN_STATE_CONNECTED":
-      return CerfConnEvent_CerfConnState.CERF_CONN_STATE_CONNECTED;
-    case 2:
-    case "CERF_CONN_STATE_RECONNECTED":
-      return CerfConnEvent_CerfConnState.CERF_CONN_STATE_RECONNECTED;
+      return CerfConnEvent_State.CERF_CONN_STATE_CONNECTED;
     case 3:
-    case "CERF_CONN_STATE_RECV_ERROR":
-      return CerfConnEvent_CerfConnState.CERF_CONN_STATE_RECV_ERROR;
+    case "CERF_CONN_STATE_DISCONNECTED":
+      return CerfConnEvent_State.CERF_CONN_STATE_DISCONNECTED;
     case 4:
-    case "CERF_CONN_STATE_SEND_ERROR":
-      return CerfConnEvent_CerfConnState.CERF_CONN_STATE_SEND_ERROR;
-    case 5:
-    case "CERF_CONN_STATE_REGION_FAILOVER":
-      return CerfConnEvent_CerfConnState.CERF_CONN_STATE_REGION_FAILOVER;
+    case "CERF_CONN_STATE_RECV_ERROR":
+      return CerfConnEvent_State.CERF_CONN_STATE_RECV_ERROR;
     case -1:
     case "UNRECOGNIZED":
     default:
-      return CerfConnEvent_CerfConnState.UNRECOGNIZED;
+      return CerfConnEvent_State.UNRECOGNIZED;
   }
 }
 
-export function cerfConnEvent_CerfConnStateToJSON(object: CerfConnEvent_CerfConnState): string {
+export function cerfConnEvent_StateToJSON(object: CerfConnEvent_State): string {
   switch (object) {
-    case CerfConnEvent_CerfConnState.CERF_CONN_STATE_UNSPECIFIED:
-      return "CERF_CONN_STATE_UNSPECIFIED";
-    case CerfConnEvent_CerfConnState.CERF_CONN_STATE_CONNECTED:
+    case CerfConnEvent_State.CERF_CONN_STATE_UNKNOWN:
+      return "CERF_CONN_STATE_UNKNOWN";
+    case CerfConnEvent_State.CERF_CONN_STATE_CONNECTING:
+      return "CERF_CONN_STATE_CONNECTING";
+    case CerfConnEvent_State.CERF_CONN_STATE_CONNECTED:
       return "CERF_CONN_STATE_CONNECTED";
-    case CerfConnEvent_CerfConnState.CERF_CONN_STATE_RECONNECTED:
-      return "CERF_CONN_STATE_RECONNECTED";
-    case CerfConnEvent_CerfConnState.CERF_CONN_STATE_RECV_ERROR:
+    case CerfConnEvent_State.CERF_CONN_STATE_DISCONNECTED:
+      return "CERF_CONN_STATE_DISCONNECTED";
+    case CerfConnEvent_State.CERF_CONN_STATE_RECV_ERROR:
       return "CERF_CONN_STATE_RECV_ERROR";
-    case CerfConnEvent_CerfConnState.CERF_CONN_STATE_SEND_ERROR:
-      return "CERF_CONN_STATE_SEND_ERROR";
-    case CerfConnEvent_CerfConnState.CERF_CONN_STATE_REGION_FAILOVER:
-      return "CERF_CONN_STATE_REGION_FAILOVER";
-    case CerfConnEvent_CerfConnState.UNRECOGNIZED:
+    case CerfConnEvent_State.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
 }
 
-/** IceEvent は ICE の状態変化（候補更新/接続確立/エラー等）を表します。 */
+/** IceEvent records ICE negotiation state changes. */
 export interface IceEvent {
-  state: IceEvent_IceState;
-  detail: string;
+  state: IceEvent_State;
+  /** e.g. "host", "srflx", "relay" */
+  candidateType: string;
 }
 
-export enum IceEvent_IceState {
-  ICE_STATE_UNSPECIFIED = 0,
-  ICE_STATE_AGENT_START = 1,
-  ICE_STATE_CONN_UP = 2,
-  ICE_STATE_CONN_DOWN = 3,
-  ICE_STATE_SEND_ERROR = 4,
-  ICE_STATE_ENDPOINT_UPDATE = 5,
+export enum IceEvent_State {
+  ICE_STATE_UNKNOWN = 0,
+  ICE_STATE_CHECKING = 1,
+  ICE_STATE_CONNECTED = 2,
+  ICE_STATE_COMPLETED = 3,
+  ICE_STATE_FAILED = 4,
+  ICE_STATE_DISCONNECTED = 5,
+  ICE_STATE_CLOSED = 6,
   UNRECOGNIZED = -1,
 }
 
-export function iceEvent_IceStateFromJSON(object: any): IceEvent_IceState {
+export function iceEvent_StateFromJSON(object: any): IceEvent_State {
   switch (object) {
     case 0:
-    case "ICE_STATE_UNSPECIFIED":
-      return IceEvent_IceState.ICE_STATE_UNSPECIFIED;
+    case "ICE_STATE_UNKNOWN":
+      return IceEvent_State.ICE_STATE_UNKNOWN;
     case 1:
-    case "ICE_STATE_AGENT_START":
-      return IceEvent_IceState.ICE_STATE_AGENT_START;
+    case "ICE_STATE_CHECKING":
+      return IceEvent_State.ICE_STATE_CHECKING;
     case 2:
-    case "ICE_STATE_CONN_UP":
-      return IceEvent_IceState.ICE_STATE_CONN_UP;
+    case "ICE_STATE_CONNECTED":
+      return IceEvent_State.ICE_STATE_CONNECTED;
     case 3:
-    case "ICE_STATE_CONN_DOWN":
-      return IceEvent_IceState.ICE_STATE_CONN_DOWN;
+    case "ICE_STATE_COMPLETED":
+      return IceEvent_State.ICE_STATE_COMPLETED;
     case 4:
-    case "ICE_STATE_SEND_ERROR":
-      return IceEvent_IceState.ICE_STATE_SEND_ERROR;
+    case "ICE_STATE_FAILED":
+      return IceEvent_State.ICE_STATE_FAILED;
     case 5:
-    case "ICE_STATE_ENDPOINT_UPDATE":
-      return IceEvent_IceState.ICE_STATE_ENDPOINT_UPDATE;
+    case "ICE_STATE_DISCONNECTED":
+      return IceEvent_State.ICE_STATE_DISCONNECTED;
+    case 6:
+    case "ICE_STATE_CLOSED":
+      return IceEvent_State.ICE_STATE_CLOSED;
     case -1:
     case "UNRECOGNIZED":
     default:
-      return IceEvent_IceState.UNRECOGNIZED;
+      return IceEvent_State.UNRECOGNIZED;
   }
 }
 
-export function iceEvent_IceStateToJSON(object: IceEvent_IceState): string {
+export function iceEvent_StateToJSON(object: IceEvent_State): string {
   switch (object) {
-    case IceEvent_IceState.ICE_STATE_UNSPECIFIED:
-      return "ICE_STATE_UNSPECIFIED";
-    case IceEvent_IceState.ICE_STATE_AGENT_START:
-      return "ICE_STATE_AGENT_START";
-    case IceEvent_IceState.ICE_STATE_CONN_UP:
-      return "ICE_STATE_CONN_UP";
-    case IceEvent_IceState.ICE_STATE_CONN_DOWN:
-      return "ICE_STATE_CONN_DOWN";
-    case IceEvent_IceState.ICE_STATE_SEND_ERROR:
-      return "ICE_STATE_SEND_ERROR";
-    case IceEvent_IceState.ICE_STATE_ENDPOINT_UPDATE:
-      return "ICE_STATE_ENDPOINT_UPDATE";
-    case IceEvent_IceState.UNRECOGNIZED:
+    case IceEvent_State.ICE_STATE_UNKNOWN:
+      return "ICE_STATE_UNKNOWN";
+    case IceEvent_State.ICE_STATE_CHECKING:
+      return "ICE_STATE_CHECKING";
+    case IceEvent_State.ICE_STATE_CONNECTED:
+      return "ICE_STATE_CONNECTED";
+    case IceEvent_State.ICE_STATE_COMPLETED:
+      return "ICE_STATE_COMPLETED";
+    case IceEvent_State.ICE_STATE_FAILED:
+      return "ICE_STATE_FAILED";
+    case IceEvent_State.ICE_STATE_DISCONNECTED:
+      return "ICE_STATE_DISCONNECTED";
+    case IceEvent_State.ICE_STATE_CLOSED:
+      return "ICE_STATE_CLOSED";
+    case IceEvent_State.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
 }
 
-/**
- * FilterDecision は packet filter の判定（accept/drop）を表します。
- * Phase A では最小情報のみ（ルール名/理由/方向）を想定。
- */
-export interface FilterDecision {
-  result: FilterDecision_FilterResult;
+/** FilterEvent records packet filter decisions. */
+export interface FilterEvent {
+  result: FilterEvent_Result;
+  /** e.g. "no_matching_rule", "jailed", etc. */
   reason: string;
 }
 
-export enum FilterDecision_FilterResult {
-  FILTER_RESULT_UNSPECIFIED = 0,
+export enum FilterEvent_Result {
+  FILTER_RESULT_UNKNOWN = 0,
   FILTER_RESULT_ACCEPT = 1,
   FILTER_RESULT_DROP = 2,
-  FILTER_RESULT_DROP_SILENT = 3,
   UNRECOGNIZED = -1,
 }
 
-export function filterDecision_FilterResultFromJSON(object: any): FilterDecision_FilterResult {
+export function filterEvent_ResultFromJSON(object: any): FilterEvent_Result {
   switch (object) {
     case 0:
-    case "FILTER_RESULT_UNSPECIFIED":
-      return FilterDecision_FilterResult.FILTER_RESULT_UNSPECIFIED;
+    case "FILTER_RESULT_UNKNOWN":
+      return FilterEvent_Result.FILTER_RESULT_UNKNOWN;
     case 1:
     case "FILTER_RESULT_ACCEPT":
-      return FilterDecision_FilterResult.FILTER_RESULT_ACCEPT;
+      return FilterEvent_Result.FILTER_RESULT_ACCEPT;
     case 2:
     case "FILTER_RESULT_DROP":
-      return FilterDecision_FilterResult.FILTER_RESULT_DROP;
-    case 3:
-    case "FILTER_RESULT_DROP_SILENT":
-      return FilterDecision_FilterResult.FILTER_RESULT_DROP_SILENT;
+      return FilterEvent_Result.FILTER_RESULT_DROP;
     case -1:
     case "UNRECOGNIZED":
     default:
-      return FilterDecision_FilterResult.UNRECOGNIZED;
+      return FilterEvent_Result.UNRECOGNIZED;
   }
 }
 
-export function filterDecision_FilterResultToJSON(object: FilterDecision_FilterResult): string {
+export function filterEvent_ResultToJSON(object: FilterEvent_Result): string {
   switch (object) {
-    case FilterDecision_FilterResult.FILTER_RESULT_UNSPECIFIED:
-      return "FILTER_RESULT_UNSPECIFIED";
-    case FilterDecision_FilterResult.FILTER_RESULT_ACCEPT:
+    case FilterEvent_Result.FILTER_RESULT_UNKNOWN:
+      return "FILTER_RESULT_UNKNOWN";
+    case FilterEvent_Result.FILTER_RESULT_ACCEPT:
       return "FILTER_RESULT_ACCEPT";
-    case FilterDecision_FilterResult.FILTER_RESULT_DROP:
+    case FilterEvent_Result.FILTER_RESULT_DROP:
       return "FILTER_RESULT_DROP";
-    case FilterDecision_FilterResult.FILTER_RESULT_DROP_SILENT:
-      return "FILTER_RESULT_DROP_SILENT";
-    case FilterDecision_FilterResult.UNRECOGNIZED:
+    case FilterEvent_Result.UNRECOGNIZED:
     default:
       return "UNRECOGNIZED";
   }
 }
 
-/** GetEventsRequest はOrbitイベントの取得リクエストです。 */
+/** PathTransitionEvent records when the active path changes. */
+export interface PathTransitionEvent {
+  from: Transport;
+  to: Transport;
+  /** e.g. "ice_connected", "cerf_fallback", etc. */
+  reason: string;
+}
+
+/** GetEventsRequest is used to retrieve stored events. */
 export interface GetEventsRequest {
-  /** node_id でフィルタ（0 の場合は全ノード） */
   nodeId: number;
-  /** session_id でフィルタ（空の場合は全セッション） */
   sessionId: string;
-  /** 期間フィルタ（from <= event_day <= to） */
   from: Date | undefined;
-  to:
-    | Date
-    | undefined;
-  /** ページネーション */
+  to: Date | undefined;
   limit: number;
   offset: number;
 }
 
-/** GetEventsResponse はOrbitイベントの取得レスポンスです。 */
+/** GetEventsResponse contains the retrieved events. */
 export interface GetEventsResponse {
   events: StoredOrbitEvent[];
   totalCount: number;
 }
 
-/**
- * StoredOrbitEvent はサーバーに保存されたOrbitイベントです。
- * OrbitEvent に加えて、サーバー側のメタデータを含みます。
- */
+/** StoredOrbitEvent is an event as stored in the database. */
 export interface StoredOrbitEvent {
   id: number;
   nodeId: number;
@@ -453,28 +332,25 @@ export interface StoredOrbitEvent {
   regionId: number;
   transport: Transport;
   payloadType: string;
-  /** JSON string */
+  /** JSON-encoded payload */
   payload: string;
   createdAt: Date | undefined;
 }
 
-/** GetDailyCountsRequest は日次集計の取得リクエストです。 */
+/** GetDailyCountsRequest is used to retrieve aggregated daily counts. */
 export interface GetDailyCountsRequest {
-  /** node_id でフィルタ（0 の場合は全ノード） */
   nodeId: number;
-  /** metric でフィルタ（空の場合は全メトリクス） */
   metric: string;
-  /** 期間フィルタ（from <= day <= to） */
   from: Date | undefined;
   to: Date | undefined;
 }
 
-/** GetDailyCountsResponse は日次集計の取得レスポンスです。 */
+/** GetDailyCountsResponse contains the aggregated counts. */
 export interface GetDailyCountsResponse {
   counts: DailyCount[];
 }
 
-/** DailyCount は1日分の集計データです。 */
+/** DailyCount represents an aggregated count for a day. */
 export interface DailyCount {
   day: Date | undefined;
   nodeId: number;
@@ -486,19 +362,19 @@ export interface DailyCount {
 }
 
 function createBaseOrbitBatchRequest(): OrbitBatchRequest {
-  return { nodeId: 0, sessionId: "", version: "", events: [] };
+  return { version: "", sessionId: "", nodeId: 0, events: [] };
 }
 
 export const OrbitBatchRequest: MessageFns<OrbitBatchRequest> = {
   encode(message: OrbitBatchRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.nodeId !== 0) {
-      writer.uint32(8).uint64(message.nodeId);
+    if (message.version !== "") {
+      writer.uint32(10).string(message.version);
     }
     if (message.sessionId !== "") {
       writer.uint32(18).string(message.sessionId);
     }
-    if (message.version !== "") {
-      writer.uint32(26).string(message.version);
+    if (message.nodeId !== 0) {
+      writer.uint32(24).uint64(message.nodeId);
     }
     for (const v of message.events) {
       OrbitEvent.encode(v!, writer.uint32(34).fork()).join();
@@ -514,11 +390,11 @@ export const OrbitBatchRequest: MessageFns<OrbitBatchRequest> = {
       const tag = reader.uint32();
       switch (tag >>> 3) {
         case 1: {
-          if (tag !== 8) {
+          if (tag !== 10) {
             break;
           }
 
-          message.nodeId = longToNumber(reader.uint64());
+          message.version = reader.string();
           continue;
         }
         case 2: {
@@ -530,11 +406,11 @@ export const OrbitBatchRequest: MessageFns<OrbitBatchRequest> = {
           continue;
         }
         case 3: {
-          if (tag !== 26) {
+          if (tag !== 24) {
             break;
           }
 
-          message.version = reader.string();
+          message.nodeId = longToNumber(reader.uint64());
           continue;
         }
         case 4: {
@@ -556,23 +432,23 @@ export const OrbitBatchRequest: MessageFns<OrbitBatchRequest> = {
 
   fromJSON(object: any): OrbitBatchRequest {
     return {
-      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
-      sessionId: isSet(object.sessionId) ? globalThis.String(object.sessionId) : "",
       version: isSet(object.version) ? globalThis.String(object.version) : "",
+      sessionId: isSet(object.sessionId) ? globalThis.String(object.sessionId) : "",
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => OrbitEvent.fromJSON(e)) : [],
     };
   },
 
   toJSON(message: OrbitBatchRequest): unknown {
     const obj: any = {};
-    if (message.nodeId !== 0) {
-      obj.nodeId = Math.round(message.nodeId);
+    if (message.version !== "") {
+      obj.version = message.version;
     }
     if (message.sessionId !== "") {
       obj.sessionId = message.sessionId;
     }
-    if (message.version !== "") {
-      obj.version = message.version;
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
     }
     if (message.events?.length) {
       obj.events = message.events.map((e) => OrbitEvent.toJSON(e));
@@ -585,9 +461,9 @@ export const OrbitBatchRequest: MessageFns<OrbitBatchRequest> = {
   },
   fromPartial<I extends Exact<DeepPartial<OrbitBatchRequest>, I>>(object: I): OrbitBatchRequest {
     const message = createBaseOrbitBatchRequest();
-    message.nodeId = object.nodeId ?? 0;
-    message.sessionId = object.sessionId ?? "";
     message.version = object.version ?? "";
+    message.sessionId = object.sessionId ?? "";
+    message.nodeId = object.nodeId ?? 0;
     message.events = object.events?.map((e) => OrbitEvent.fromPartial(e)) || [];
     return message;
   },
@@ -691,12 +567,12 @@ function createBaseOrbitEvent(): OrbitEvent {
     peerHash: new Uint8Array(0),
     regionId: 0,
     transport: 0,
-    pathTransition: undefined,
     sendResult: undefined,
     recvResult: undefined,
     cerfConn: undefined,
     ice: undefined,
     filter: undefined,
+    pathTransition: undefined,
   };
 }
 
@@ -714,23 +590,23 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
     if (message.transport !== 0) {
       writer.uint32(32).int32(message.transport);
     }
-    if (message.pathTransition !== undefined) {
-      PathTransition.encode(message.pathTransition, writer.uint32(82).fork()).join();
-    }
     if (message.sendResult !== undefined) {
-      SendResult.encode(message.sendResult, writer.uint32(90).fork()).join();
+      SendResultEvent.encode(message.sendResult, writer.uint32(82).fork()).join();
     }
     if (message.recvResult !== undefined) {
-      RecvResult.encode(message.recvResult, writer.uint32(98).fork()).join();
+      RecvResultEvent.encode(message.recvResult, writer.uint32(90).fork()).join();
     }
     if (message.cerfConn !== undefined) {
-      CerfConnEvent.encode(message.cerfConn, writer.uint32(106).fork()).join();
+      CerfConnEvent.encode(message.cerfConn, writer.uint32(98).fork()).join();
     }
     if (message.ice !== undefined) {
-      IceEvent.encode(message.ice, writer.uint32(114).fork()).join();
+      IceEvent.encode(message.ice, writer.uint32(106).fork()).join();
     }
     if (message.filter !== undefined) {
-      FilterDecision.encode(message.filter, writer.uint32(122).fork()).join();
+      FilterEvent.encode(message.filter, writer.uint32(114).fork()).join();
+    }
+    if (message.pathTransition !== undefined) {
+      PathTransitionEvent.encode(message.pathTransition, writer.uint32(122).fork()).join();
     }
     return writer;
   },
@@ -779,7 +655,7 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
             break;
           }
 
-          message.pathTransition = PathTransition.decode(reader, reader.uint32());
+          message.sendResult = SendResultEvent.decode(reader, reader.uint32());
           continue;
         }
         case 11: {
@@ -787,7 +663,7 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
             break;
           }
 
-          message.sendResult = SendResult.decode(reader, reader.uint32());
+          message.recvResult = RecvResultEvent.decode(reader, reader.uint32());
           continue;
         }
         case 12: {
@@ -795,7 +671,7 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
             break;
           }
 
-          message.recvResult = RecvResult.decode(reader, reader.uint32());
+          message.cerfConn = CerfConnEvent.decode(reader, reader.uint32());
           continue;
         }
         case 13: {
@@ -803,7 +679,7 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
             break;
           }
 
-          message.cerfConn = CerfConnEvent.decode(reader, reader.uint32());
+          message.ice = IceEvent.decode(reader, reader.uint32());
           continue;
         }
         case 14: {
@@ -811,7 +687,7 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
             break;
           }
 
-          message.ice = IceEvent.decode(reader, reader.uint32());
+          message.filter = FilterEvent.decode(reader, reader.uint32());
           continue;
         }
         case 15: {
@@ -819,7 +695,7 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
             break;
           }
 
-          message.filter = FilterDecision.decode(reader, reader.uint32());
+          message.pathTransition = PathTransitionEvent.decode(reader, reader.uint32());
           continue;
         }
       }
@@ -837,12 +713,12 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
       peerHash: isSet(object.peerHash) ? bytesFromBase64(object.peerHash) : new Uint8Array(0),
       regionId: isSet(object.regionId) ? globalThis.Number(object.regionId) : 0,
       transport: isSet(object.transport) ? transportFromJSON(object.transport) : 0,
-      pathTransition: isSet(object.pathTransition) ? PathTransition.fromJSON(object.pathTransition) : undefined,
-      sendResult: isSet(object.sendResult) ? SendResult.fromJSON(object.sendResult) : undefined,
-      recvResult: isSet(object.recvResult) ? RecvResult.fromJSON(object.recvResult) : undefined,
+      sendResult: isSet(object.sendResult) ? SendResultEvent.fromJSON(object.sendResult) : undefined,
+      recvResult: isSet(object.recvResult) ? RecvResultEvent.fromJSON(object.recvResult) : undefined,
       cerfConn: isSet(object.cerfConn) ? CerfConnEvent.fromJSON(object.cerfConn) : undefined,
       ice: isSet(object.ice) ? IceEvent.fromJSON(object.ice) : undefined,
-      filter: isSet(object.filter) ? FilterDecision.fromJSON(object.filter) : undefined,
+      filter: isSet(object.filter) ? FilterEvent.fromJSON(object.filter) : undefined,
+      pathTransition: isSet(object.pathTransition) ? PathTransitionEvent.fromJSON(object.pathTransition) : undefined,
     };
   },
 
@@ -860,14 +736,11 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
     if (message.transport !== 0) {
       obj.transport = transportToJSON(message.transport);
     }
-    if (message.pathTransition !== undefined) {
-      obj.pathTransition = PathTransition.toJSON(message.pathTransition);
-    }
     if (message.sendResult !== undefined) {
-      obj.sendResult = SendResult.toJSON(message.sendResult);
+      obj.sendResult = SendResultEvent.toJSON(message.sendResult);
     }
     if (message.recvResult !== undefined) {
-      obj.recvResult = RecvResult.toJSON(message.recvResult);
+      obj.recvResult = RecvResultEvent.toJSON(message.recvResult);
     }
     if (message.cerfConn !== undefined) {
       obj.cerfConn = CerfConnEvent.toJSON(message.cerfConn);
@@ -876,7 +749,10 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
       obj.ice = IceEvent.toJSON(message.ice);
     }
     if (message.filter !== undefined) {
-      obj.filter = FilterDecision.toJSON(message.filter);
+      obj.filter = FilterEvent.toJSON(message.filter);
+    }
+    if (message.pathTransition !== undefined) {
+      obj.pathTransition = PathTransitionEvent.toJSON(message.pathTransition);
     }
     return obj;
   },
@@ -890,156 +766,45 @@ export const OrbitEvent: MessageFns<OrbitEvent> = {
     message.peerHash = object.peerHash ?? new Uint8Array(0);
     message.regionId = object.regionId ?? 0;
     message.transport = object.transport ?? 0;
-    message.pathTransition = (object.pathTransition !== undefined && object.pathTransition !== null)
-      ? PathTransition.fromPartial(object.pathTransition)
-      : undefined;
     message.sendResult = (object.sendResult !== undefined && object.sendResult !== null)
-      ? SendResult.fromPartial(object.sendResult)
+      ? SendResultEvent.fromPartial(object.sendResult)
       : undefined;
     message.recvResult = (object.recvResult !== undefined && object.recvResult !== null)
-      ? RecvResult.fromPartial(object.recvResult)
+      ? RecvResultEvent.fromPartial(object.recvResult)
       : undefined;
     message.cerfConn = (object.cerfConn !== undefined && object.cerfConn !== null)
       ? CerfConnEvent.fromPartial(object.cerfConn)
       : undefined;
     message.ice = (object.ice !== undefined && object.ice !== null) ? IceEvent.fromPartial(object.ice) : undefined;
     message.filter = (object.filter !== undefined && object.filter !== null)
-      ? FilterDecision.fromPartial(object.filter)
+      ? FilterEvent.fromPartial(object.filter)
+      : undefined;
+    message.pathTransition = (object.pathTransition !== undefined && object.pathTransition !== null)
+      ? PathTransitionEvent.fromPartial(object.pathTransition)
       : undefined;
     return message;
   },
 };
 
-function createBasePathTransition(): PathTransition {
-  return { from: 0, to: 0, reason: "", detail: "" };
+function createBaseSendResultEvent(): SendResultEvent {
+  return { ok: false, error: "" };
 }
 
-export const PathTransition: MessageFns<PathTransition> = {
-  encode(message: PathTransition, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.from !== 0) {
-      writer.uint32(8).int32(message.from);
-    }
-    if (message.to !== 0) {
-      writer.uint32(16).int32(message.to);
-    }
-    if (message.reason !== "") {
-      writer.uint32(26).string(message.reason);
-    }
-    if (message.detail !== "") {
-      writer.uint32(34).string(message.detail);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): PathTransition {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBasePathTransition();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.from = reader.int32() as any;
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.to = reader.int32() as any;
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.reason = reader.string();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.detail = reader.string();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): PathTransition {
-    return {
-      from: isSet(object.from) ? pathStateFromJSON(object.from) : 0,
-      to: isSet(object.to) ? pathStateFromJSON(object.to) : 0,
-      reason: isSet(object.reason) ? globalThis.String(object.reason) : "",
-      detail: isSet(object.detail) ? globalThis.String(object.detail) : "",
-    };
-  },
-
-  toJSON(message: PathTransition): unknown {
-    const obj: any = {};
-    if (message.from !== 0) {
-      obj.from = pathStateToJSON(message.from);
-    }
-    if (message.to !== 0) {
-      obj.to = pathStateToJSON(message.to);
-    }
-    if (message.reason !== "") {
-      obj.reason = message.reason;
-    }
-    if (message.detail !== "") {
-      obj.detail = message.detail;
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<PathTransition>, I>>(base?: I): PathTransition {
-    return PathTransition.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<PathTransition>, I>>(object: I): PathTransition {
-    const message = createBasePathTransition();
-    message.from = object.from ?? 0;
-    message.to = object.to ?? 0;
-    message.reason = object.reason ?? "";
-    message.detail = object.detail ?? "";
-    return message;
-  },
-};
-
-function createBaseSendResult(): SendResult {
-  return { ok: false, bytes: 0, errCode: "" };
-}
-
-export const SendResult: MessageFns<SendResult> = {
-  encode(message: SendResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const SendResultEvent: MessageFns<SendResultEvent> = {
+  encode(message: SendResultEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.ok !== false) {
       writer.uint32(8).bool(message.ok);
     }
-    if (message.bytes !== 0) {
-      writer.uint32(16).uint32(message.bytes);
-    }
-    if (message.errCode !== "") {
-      writer.uint32(26).string(message.errCode);
+    if (message.error !== "") {
+      writer.uint32(18).string(message.error);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): SendResult {
+  decode(input: BinaryReader | Uint8Array, length?: number): SendResultEvent {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseSendResult();
+    const message = createBaseSendResultEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1052,19 +817,11 @@ export const SendResult: MessageFns<SendResult> = {
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.bytes = reader.uint32();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.errCode = reader.string();
+          message.error = reader.string();
           continue;
         }
       }
@@ -1076,65 +833,54 @@ export const SendResult: MessageFns<SendResult> = {
     return message;
   },
 
-  fromJSON(object: any): SendResult {
+  fromJSON(object: any): SendResultEvent {
     return {
       ok: isSet(object.ok) ? globalThis.Boolean(object.ok) : false,
-      bytes: isSet(object.bytes) ? globalThis.Number(object.bytes) : 0,
-      errCode: isSet(object.errCode) ? globalThis.String(object.errCode) : "",
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
     };
   },
 
-  toJSON(message: SendResult): unknown {
+  toJSON(message: SendResultEvent): unknown {
     const obj: any = {};
     if (message.ok !== false) {
       obj.ok = message.ok;
     }
-    if (message.bytes !== 0) {
-      obj.bytes = Math.round(message.bytes);
-    }
-    if (message.errCode !== "") {
-      obj.errCode = message.errCode;
+    if (message.error !== "") {
+      obj.error = message.error;
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<SendResult>, I>>(base?: I): SendResult {
-    return SendResult.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<SendResultEvent>, I>>(base?: I): SendResultEvent {
+    return SendResultEvent.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<SendResult>, I>>(object: I): SendResult {
-    const message = createBaseSendResult();
+  fromPartial<I extends Exact<DeepPartial<SendResultEvent>, I>>(object: I): SendResultEvent {
+    const message = createBaseSendResultEvent();
     message.ok = object.ok ?? false;
-    message.bytes = object.bytes ?? 0;
-    message.errCode = object.errCode ?? "";
+    message.error = object.error ?? "";
     return message;
   },
 };
 
-function createBaseRecvResult(): RecvResult {
-  return { ok: false, kind: 0, bytes: 0, errCode: "" };
+function createBaseRecvResultEvent(): RecvResultEvent {
+  return { kind: 0, size: 0 };
 }
 
-export const RecvResult: MessageFns<RecvResult> = {
-  encode(message: RecvResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.ok !== false) {
-      writer.uint32(8).bool(message.ok);
-    }
+export const RecvResultEvent: MessageFns<RecvResultEvent> = {
+  encode(message: RecvResultEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.kind !== 0) {
-      writer.uint32(16).int32(message.kind);
+      writer.uint32(8).int32(message.kind);
     }
-    if (message.bytes !== 0) {
-      writer.uint32(24).uint32(message.bytes);
-    }
-    if (message.errCode !== "") {
-      writer.uint32(34).string(message.errCode);
+    if (message.size !== 0) {
+      writer.uint32(16).uint32(message.size);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): RecvResult {
+  decode(input: BinaryReader | Uint8Array, length?: number): RecvResultEvent {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseRecvResult();
+    const message = createBaseRecvResultEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1143,7 +889,7 @@ export const RecvResult: MessageFns<RecvResult> = {
             break;
           }
 
-          message.ok = reader.bool();
+          message.kind = reader.int32();
           continue;
         }
         case 2: {
@@ -1151,23 +897,7 @@ export const RecvResult: MessageFns<RecvResult> = {
             break;
           }
 
-          message.kind = reader.int32() as any;
-          continue;
-        }
-        case 3: {
-          if (tag !== 24) {
-            break;
-          }
-
-          message.bytes = reader.uint32();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.errCode = reader.string();
+          message.size = reader.uint32();
           continue;
         }
       }
@@ -1179,59 +909,46 @@ export const RecvResult: MessageFns<RecvResult> = {
     return message;
   },
 
-  fromJSON(object: any): RecvResult {
+  fromJSON(object: any): RecvResultEvent {
     return {
-      ok: isSet(object.ok) ? globalThis.Boolean(object.ok) : false,
-      kind: isSet(object.kind) ? recvKindFromJSON(object.kind) : 0,
-      bytes: isSet(object.bytes) ? globalThis.Number(object.bytes) : 0,
-      errCode: isSet(object.errCode) ? globalThis.String(object.errCode) : "",
+      kind: isSet(object.kind) ? globalThis.Number(object.kind) : 0,
+      size: isSet(object.size) ? globalThis.Number(object.size) : 0,
     };
   },
 
-  toJSON(message: RecvResult): unknown {
+  toJSON(message: RecvResultEvent): unknown {
     const obj: any = {};
-    if (message.ok !== false) {
-      obj.ok = message.ok;
-    }
     if (message.kind !== 0) {
-      obj.kind = recvKindToJSON(message.kind);
+      obj.kind = Math.round(message.kind);
     }
-    if (message.bytes !== 0) {
-      obj.bytes = Math.round(message.bytes);
-    }
-    if (message.errCode !== "") {
-      obj.errCode = message.errCode;
+    if (message.size !== 0) {
+      obj.size = Math.round(message.size);
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<RecvResult>, I>>(base?: I): RecvResult {
-    return RecvResult.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<RecvResultEvent>, I>>(base?: I): RecvResultEvent {
+    return RecvResultEvent.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<RecvResult>, I>>(object: I): RecvResult {
-    const message = createBaseRecvResult();
-    message.ok = object.ok ?? false;
+  fromPartial<I extends Exact<DeepPartial<RecvResultEvent>, I>>(object: I): RecvResultEvent {
+    const message = createBaseRecvResultEvent();
     message.kind = object.kind ?? 0;
-    message.bytes = object.bytes ?? 0;
-    message.errCode = object.errCode ?? "";
+    message.size = object.size ?? 0;
     return message;
   },
 };
 
 function createBaseCerfConnEvent(): CerfConnEvent {
-  return { connGen: 0, state: 0, detail: "" };
+  return { state: 0, error: "" };
 }
 
 export const CerfConnEvent: MessageFns<CerfConnEvent> = {
   encode(message: CerfConnEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.connGen !== 0) {
-      writer.uint32(8).int32(message.connGen);
-    }
     if (message.state !== 0) {
-      writer.uint32(16).int32(message.state);
+      writer.uint32(8).int32(message.state);
     }
-    if (message.detail !== "") {
-      writer.uint32(26).string(message.detail);
+    if (message.error !== "") {
+      writer.uint32(18).string(message.error);
     }
     return writer;
   },
@@ -1248,23 +965,15 @@ export const CerfConnEvent: MessageFns<CerfConnEvent> = {
             break;
           }
 
-          message.connGen = reader.int32();
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
           message.state = reader.int32() as any;
           continue;
         }
-        case 3: {
-          if (tag !== 26) {
+        case 2: {
+          if (tag !== 18) {
             break;
           }
 
-          message.detail = reader.string();
+          message.error = reader.string();
           continue;
         }
       }
@@ -1278,22 +987,18 @@ export const CerfConnEvent: MessageFns<CerfConnEvent> = {
 
   fromJSON(object: any): CerfConnEvent {
     return {
-      connGen: isSet(object.connGen) ? globalThis.Number(object.connGen) : 0,
-      state: isSet(object.state) ? cerfConnEvent_CerfConnStateFromJSON(object.state) : 0,
-      detail: isSet(object.detail) ? globalThis.String(object.detail) : "",
+      state: isSet(object.state) ? cerfConnEvent_StateFromJSON(object.state) : 0,
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
     };
   },
 
   toJSON(message: CerfConnEvent): unknown {
     const obj: any = {};
-    if (message.connGen !== 0) {
-      obj.connGen = Math.round(message.connGen);
-    }
     if (message.state !== 0) {
-      obj.state = cerfConnEvent_CerfConnStateToJSON(message.state);
+      obj.state = cerfConnEvent_StateToJSON(message.state);
     }
-    if (message.detail !== "") {
-      obj.detail = message.detail;
+    if (message.error !== "") {
+      obj.error = message.error;
     }
     return obj;
   },
@@ -1303,15 +1008,14 @@ export const CerfConnEvent: MessageFns<CerfConnEvent> = {
   },
   fromPartial<I extends Exact<DeepPartial<CerfConnEvent>, I>>(object: I): CerfConnEvent {
     const message = createBaseCerfConnEvent();
-    message.connGen = object.connGen ?? 0;
     message.state = object.state ?? 0;
-    message.detail = object.detail ?? "";
+    message.error = object.error ?? "";
     return message;
   },
 };
 
 function createBaseIceEvent(): IceEvent {
-  return { state: 0, detail: "" };
+  return { state: 0, candidateType: "" };
 }
 
 export const IceEvent: MessageFns<IceEvent> = {
@@ -1319,8 +1023,8 @@ export const IceEvent: MessageFns<IceEvent> = {
     if (message.state !== 0) {
       writer.uint32(8).int32(message.state);
     }
-    if (message.detail !== "") {
-      writer.uint32(18).string(message.detail);
+    if (message.candidateType !== "") {
+      writer.uint32(18).string(message.candidateType);
     }
     return writer;
   },
@@ -1345,7 +1049,7 @@ export const IceEvent: MessageFns<IceEvent> = {
             break;
           }
 
-          message.detail = reader.string();
+          message.candidateType = reader.string();
           continue;
         }
       }
@@ -1359,18 +1063,18 @@ export const IceEvent: MessageFns<IceEvent> = {
 
   fromJSON(object: any): IceEvent {
     return {
-      state: isSet(object.state) ? iceEvent_IceStateFromJSON(object.state) : 0,
-      detail: isSet(object.detail) ? globalThis.String(object.detail) : "",
+      state: isSet(object.state) ? iceEvent_StateFromJSON(object.state) : 0,
+      candidateType: isSet(object.candidateType) ? globalThis.String(object.candidateType) : "",
     };
   },
 
   toJSON(message: IceEvent): unknown {
     const obj: any = {};
     if (message.state !== 0) {
-      obj.state = iceEvent_IceStateToJSON(message.state);
+      obj.state = iceEvent_StateToJSON(message.state);
     }
-    if (message.detail !== "") {
-      obj.detail = message.detail;
+    if (message.candidateType !== "") {
+      obj.candidateType = message.candidateType;
     }
     return obj;
   },
@@ -1381,17 +1085,17 @@ export const IceEvent: MessageFns<IceEvent> = {
   fromPartial<I extends Exact<DeepPartial<IceEvent>, I>>(object: I): IceEvent {
     const message = createBaseIceEvent();
     message.state = object.state ?? 0;
-    message.detail = object.detail ?? "";
+    message.candidateType = object.candidateType ?? "";
     return message;
   },
 };
 
-function createBaseFilterDecision(): FilterDecision {
+function createBaseFilterEvent(): FilterEvent {
   return { result: 0, reason: "" };
 }
 
-export const FilterDecision: MessageFns<FilterDecision> = {
-  encode(message: FilterDecision, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const FilterEvent: MessageFns<FilterEvent> = {
+  encode(message: FilterEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.result !== 0) {
       writer.uint32(8).int32(message.result);
     }
@@ -1401,10 +1105,10 @@ export const FilterDecision: MessageFns<FilterDecision> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): FilterDecision {
+  decode(input: BinaryReader | Uint8Array, length?: number): FilterEvent {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseFilterDecision();
+    const message = createBaseFilterEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1433,17 +1137,17 @@ export const FilterDecision: MessageFns<FilterDecision> = {
     return message;
   },
 
-  fromJSON(object: any): FilterDecision {
+  fromJSON(object: any): FilterEvent {
     return {
-      result: isSet(object.result) ? filterDecision_FilterResultFromJSON(object.result) : 0,
+      result: isSet(object.result) ? filterEvent_ResultFromJSON(object.result) : 0,
       reason: isSet(object.reason) ? globalThis.String(object.reason) : "",
     };
   },
 
-  toJSON(message: FilterDecision): unknown {
+  toJSON(message: FilterEvent): unknown {
     const obj: any = {};
     if (message.result !== 0) {
-      obj.result = filterDecision_FilterResultToJSON(message.result);
+      obj.result = filterEvent_ResultToJSON(message.result);
     }
     if (message.reason !== "") {
       obj.reason = message.reason;
@@ -1451,12 +1155,104 @@ export const FilterDecision: MessageFns<FilterDecision> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<FilterDecision>, I>>(base?: I): FilterDecision {
-    return FilterDecision.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<FilterEvent>, I>>(base?: I): FilterEvent {
+    return FilterEvent.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<FilterDecision>, I>>(object: I): FilterDecision {
-    const message = createBaseFilterDecision();
+  fromPartial<I extends Exact<DeepPartial<FilterEvent>, I>>(object: I): FilterEvent {
+    const message = createBaseFilterEvent();
     message.result = object.result ?? 0;
+    message.reason = object.reason ?? "";
+    return message;
+  },
+};
+
+function createBasePathTransitionEvent(): PathTransitionEvent {
+  return { from: 0, to: 0, reason: "" };
+}
+
+export const PathTransitionEvent: MessageFns<PathTransitionEvent> = {
+  encode(message: PathTransitionEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.from !== 0) {
+      writer.uint32(8).int32(message.from);
+    }
+    if (message.to !== 0) {
+      writer.uint32(16).int32(message.to);
+    }
+    if (message.reason !== "") {
+      writer.uint32(26).string(message.reason);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PathTransitionEvent {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePathTransitionEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.from = reader.int32() as any;
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.to = reader.int32() as any;
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.reason = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PathTransitionEvent {
+    return {
+      from: isSet(object.from) ? transportFromJSON(object.from) : 0,
+      to: isSet(object.to) ? transportFromJSON(object.to) : 0,
+      reason: isSet(object.reason) ? globalThis.String(object.reason) : "",
+    };
+  },
+
+  toJSON(message: PathTransitionEvent): unknown {
+    const obj: any = {};
+    if (message.from !== 0) {
+      obj.from = transportToJSON(message.from);
+    }
+    if (message.to !== 0) {
+      obj.to = transportToJSON(message.to);
+    }
+    if (message.reason !== "") {
+      obj.reason = message.reason;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PathTransitionEvent>, I>>(base?: I): PathTransitionEvent {
+    return PathTransitionEvent.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PathTransitionEvent>, I>>(object: I): PathTransitionEvent {
+    const message = createBasePathTransitionEvent();
+    message.from = object.from ?? 0;
+    message.to = object.to ?? 0;
     message.reason = object.reason ?? "";
     return message;
   },
@@ -2271,17 +2067,19 @@ export const DailyCount: MessageFns<DailyCount> = {
 };
 
 /**
- * OrbitService ingests low-cardinality client orbit batches.
- *
- * Auth is performed out-of-band (e.g. gRPC metadata headers like node-key/wg-pub-key/rune-key),
- * consistent with other node/daemon RPCs.
+ * OrbitService ingests low-cardinality client telemetry batches.
+ * This service is used for operational metrics like path transitions,
+ * send/receive results, CERF connection events, and filter decisions.
  */
 export interface OrbitService {
-  /** UploadOrbitBatch receives orbit events from clients. */
+  /**
+   * UploadOrbitBatch receives a batch of telemetry events from a client node.
+   * Authentication is done via node identity headers (node-key/wg-pub-key/rune-key).
+   */
   UploadOrbitBatch(request: DeepPartial<OrbitBatchRequest>, metadata?: grpc.Metadata): Promise<OrbitBatchResponse>;
-  /** GetEvents retrieves stored orbit events for analysis/debugging. */
+  /** GetEvents retrieves stored events for a node or session (admin/debug use). */
   GetEvents(request: DeepPartial<GetEventsRequest>, metadata?: grpc.Metadata): Promise<GetEventsResponse>;
-  /** GetDailyCounts retrieves aggregated daily counts for dashboards/trends. */
+  /** GetDailyCounts retrieves aggregated daily counts for metrics. */
   GetDailyCounts(
     request: DeepPartial<GetDailyCountsRequest>,
     metadata?: grpc.Metadata,
