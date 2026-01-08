@@ -2,7 +2,7 @@
 // versions:
 //   protoc-gen-ts_proto  v2.10.1
 //   protoc               v3.20.3
-// source: runetale/runetale/v1/telemetry.proto
+// source: runetale/runetale/v1/orbit.proto
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
@@ -13,9 +13,9 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
 export const protobufPackage = "protos";
 
 /**
- * telemetry.proto
+ * orbit.proto
  *
- * Runetale Telemetry (v1)
+ * Runetale Orbit (v1)
  *
  * 目的:
  * - Wonderwall/CERF/ICE/packet filter/userspace の挙動を「理由付き」で数値化するためのイベントを定義します。
@@ -159,8 +159,8 @@ export function recvKindToJSON(object: RecvKind): string {
   }
 }
 
-/** TelemetryBatchRequest はクライアントから server へイベントをまとめて送るリクエストです。 */
-export interface TelemetryBatchRequest {
+/** OrbitBatchRequest はクライアントから server へイベントをまとめて送るリクエストです。 */
+export interface OrbitBatchRequest {
   /** runetale node id */
   nodeId: number;
   /** 1プロセス/1接続期間の識別子（クライアント側で生成） */
@@ -168,10 +168,10 @@ export interface TelemetryBatchRequest {
   /** client build/version 情報（任意） */
   version: string;
   /** イベント本体 */
-  events: TelemetryEvent[];
+  events: OrbitEvent[];
 }
 
-export interface TelemetryBatchResponse {
+export interface OrbitBatchResponse {
   /** server が受理したイベント数 */
   accepted: number;
   /** server 側で破棄したイベント数（サイズ/レート/検証失敗など） */
@@ -181,10 +181,10 @@ export interface TelemetryBatchResponse {
 }
 
 /**
- * TelemetryEvent は1レコードのイベントです。
+ * OrbitEvent は1レコードのイベントです。
  * 共通フィールド + oneof(種類別ペイロード) で表現します。
  */
-export interface TelemetryEvent {
+export interface OrbitEvent {
   /** イベント発生時刻（クライアント側） */
   at:
     | Date
@@ -415,7 +415,7 @@ export function filterDecision_FilterResultToJSON(object: FilterDecision_FilterR
   }
 }
 
-/** GetEventsRequest はテレメトリイベントの取得リクエストです。 */
+/** GetEventsRequest はOrbitイベントの取得リクエストです。 */
 export interface GetEventsRequest {
   /** node_id でフィルタ（0 の場合は全ノード） */
   nodeId: number;
@@ -431,17 +431,17 @@ export interface GetEventsRequest {
   offset: number;
 }
 
-/** GetEventsResponse はテレメトリイベントの取得レスポンスです。 */
+/** GetEventsResponse はOrbitイベントの取得レスポンスです。 */
 export interface GetEventsResponse {
-  events: StoredTelemetryEvent[];
+  events: StoredOrbitEvent[];
   totalCount: number;
 }
 
 /**
- * StoredTelemetryEvent はサーバーに保存されたテレメトリイベントです。
- * TelemetryEvent に加えて、サーバー側のメタデータを含みます。
+ * StoredOrbitEvent はサーバーに保存されたOrbitイベントです。
+ * OrbitEvent に加えて、サーバー側のメタデータを含みます。
  */
-export interface StoredTelemetryEvent {
+export interface StoredOrbitEvent {
   id: number;
   nodeId: number;
   sessionId: string;
@@ -485,12 +485,12 @@ export interface DailyCount {
   updatedAt: Date | undefined;
 }
 
-function createBaseTelemetryBatchRequest(): TelemetryBatchRequest {
+function createBaseOrbitBatchRequest(): OrbitBatchRequest {
   return { nodeId: 0, sessionId: "", version: "", events: [] };
 }
 
-export const TelemetryBatchRequest: MessageFns<TelemetryBatchRequest> = {
-  encode(message: TelemetryBatchRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const OrbitBatchRequest: MessageFns<OrbitBatchRequest> = {
+  encode(message: OrbitBatchRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.nodeId !== 0) {
       writer.uint32(8).uint64(message.nodeId);
     }
@@ -501,15 +501,15 @@ export const TelemetryBatchRequest: MessageFns<TelemetryBatchRequest> = {
       writer.uint32(26).string(message.version);
     }
     for (const v of message.events) {
-      TelemetryEvent.encode(v!, writer.uint32(34).fork()).join();
+      OrbitEvent.encode(v!, writer.uint32(34).fork()).join();
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): TelemetryBatchRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): OrbitBatchRequest {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseTelemetryBatchRequest();
+    const message = createBaseOrbitBatchRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -542,7 +542,7 @@ export const TelemetryBatchRequest: MessageFns<TelemetryBatchRequest> = {
             break;
           }
 
-          message.events.push(TelemetryEvent.decode(reader, reader.uint32()));
+          message.events.push(OrbitEvent.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -554,16 +554,16 @@ export const TelemetryBatchRequest: MessageFns<TelemetryBatchRequest> = {
     return message;
   },
 
-  fromJSON(object: any): TelemetryBatchRequest {
+  fromJSON(object: any): OrbitBatchRequest {
     return {
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
       sessionId: isSet(object.sessionId) ? globalThis.String(object.sessionId) : "",
       version: isSet(object.version) ? globalThis.String(object.version) : "",
-      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => TelemetryEvent.fromJSON(e)) : [],
+      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => OrbitEvent.fromJSON(e)) : [],
     };
   },
 
-  toJSON(message: TelemetryBatchRequest): unknown {
+  toJSON(message: OrbitBatchRequest): unknown {
     const obj: any = {};
     if (message.nodeId !== 0) {
       obj.nodeId = Math.round(message.nodeId);
@@ -575,30 +575,30 @@ export const TelemetryBatchRequest: MessageFns<TelemetryBatchRequest> = {
       obj.version = message.version;
     }
     if (message.events?.length) {
-      obj.events = message.events.map((e) => TelemetryEvent.toJSON(e));
+      obj.events = message.events.map((e) => OrbitEvent.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<TelemetryBatchRequest>, I>>(base?: I): TelemetryBatchRequest {
-    return TelemetryBatchRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<OrbitBatchRequest>, I>>(base?: I): OrbitBatchRequest {
+    return OrbitBatchRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<TelemetryBatchRequest>, I>>(object: I): TelemetryBatchRequest {
-    const message = createBaseTelemetryBatchRequest();
+  fromPartial<I extends Exact<DeepPartial<OrbitBatchRequest>, I>>(object: I): OrbitBatchRequest {
+    const message = createBaseOrbitBatchRequest();
     message.nodeId = object.nodeId ?? 0;
     message.sessionId = object.sessionId ?? "";
     message.version = object.version ?? "";
-    message.events = object.events?.map((e) => TelemetryEvent.fromPartial(e)) || [];
+    message.events = object.events?.map((e) => OrbitEvent.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseTelemetryBatchResponse(): TelemetryBatchResponse {
+function createBaseOrbitBatchResponse(): OrbitBatchResponse {
   return { accepted: 0, dropped: 0, reason: "" };
 }
 
-export const TelemetryBatchResponse: MessageFns<TelemetryBatchResponse> = {
-  encode(message: TelemetryBatchResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const OrbitBatchResponse: MessageFns<OrbitBatchResponse> = {
+  encode(message: OrbitBatchResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.accepted !== 0) {
       writer.uint32(8).uint32(message.accepted);
     }
@@ -611,10 +611,10 @@ export const TelemetryBatchResponse: MessageFns<TelemetryBatchResponse> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): TelemetryBatchResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): OrbitBatchResponse {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseTelemetryBatchResponse();
+    const message = createBaseOrbitBatchResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -651,7 +651,7 @@ export const TelemetryBatchResponse: MessageFns<TelemetryBatchResponse> = {
     return message;
   },
 
-  fromJSON(object: any): TelemetryBatchResponse {
+  fromJSON(object: any): OrbitBatchResponse {
     return {
       accepted: isSet(object.accepted) ? globalThis.Number(object.accepted) : 0,
       dropped: isSet(object.dropped) ? globalThis.Number(object.dropped) : 0,
@@ -659,7 +659,7 @@ export const TelemetryBatchResponse: MessageFns<TelemetryBatchResponse> = {
     };
   },
 
-  toJSON(message: TelemetryBatchResponse): unknown {
+  toJSON(message: OrbitBatchResponse): unknown {
     const obj: any = {};
     if (message.accepted !== 0) {
       obj.accepted = Math.round(message.accepted);
@@ -673,11 +673,11 @@ export const TelemetryBatchResponse: MessageFns<TelemetryBatchResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<TelemetryBatchResponse>, I>>(base?: I): TelemetryBatchResponse {
-    return TelemetryBatchResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<OrbitBatchResponse>, I>>(base?: I): OrbitBatchResponse {
+    return OrbitBatchResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<TelemetryBatchResponse>, I>>(object: I): TelemetryBatchResponse {
-    const message = createBaseTelemetryBatchResponse();
+  fromPartial<I extends Exact<DeepPartial<OrbitBatchResponse>, I>>(object: I): OrbitBatchResponse {
+    const message = createBaseOrbitBatchResponse();
     message.accepted = object.accepted ?? 0;
     message.dropped = object.dropped ?? 0;
     message.reason = object.reason ?? "";
@@ -685,7 +685,7 @@ export const TelemetryBatchResponse: MessageFns<TelemetryBatchResponse> = {
   },
 };
 
-function createBaseTelemetryEvent(): TelemetryEvent {
+function createBaseOrbitEvent(): OrbitEvent {
   return {
     at: undefined,
     peerHash: new Uint8Array(0),
@@ -700,8 +700,8 @@ function createBaseTelemetryEvent(): TelemetryEvent {
   };
 }
 
-export const TelemetryEvent: MessageFns<TelemetryEvent> = {
-  encode(message: TelemetryEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const OrbitEvent: MessageFns<OrbitEvent> = {
+  encode(message: OrbitEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.at !== undefined) {
       Timestamp.encode(toTimestamp(message.at), writer.uint32(10).fork()).join();
     }
@@ -735,10 +735,10 @@ export const TelemetryEvent: MessageFns<TelemetryEvent> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): TelemetryEvent {
+  decode(input: BinaryReader | Uint8Array, length?: number): OrbitEvent {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseTelemetryEvent();
+    const message = createBaseOrbitEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -831,7 +831,7 @@ export const TelemetryEvent: MessageFns<TelemetryEvent> = {
     return message;
   },
 
-  fromJSON(object: any): TelemetryEvent {
+  fromJSON(object: any): OrbitEvent {
     return {
       at: isSet(object.at) ? fromJsonTimestamp(object.at) : undefined,
       peerHash: isSet(object.peerHash) ? bytesFromBase64(object.peerHash) : new Uint8Array(0),
@@ -846,7 +846,7 @@ export const TelemetryEvent: MessageFns<TelemetryEvent> = {
     };
   },
 
-  toJSON(message: TelemetryEvent): unknown {
+  toJSON(message: OrbitEvent): unknown {
     const obj: any = {};
     if (message.at !== undefined) {
       obj.at = message.at.toISOString();
@@ -881,11 +881,11 @@ export const TelemetryEvent: MessageFns<TelemetryEvent> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<TelemetryEvent>, I>>(base?: I): TelemetryEvent {
-    return TelemetryEvent.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<OrbitEvent>, I>>(base?: I): OrbitEvent {
+    return OrbitEvent.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<TelemetryEvent>, I>>(object: I): TelemetryEvent {
-    const message = createBaseTelemetryEvent();
+  fromPartial<I extends Exact<DeepPartial<OrbitEvent>, I>>(object: I): OrbitEvent {
+    const message = createBaseOrbitEvent();
     message.at = object.at ?? undefined;
     message.peerHash = object.peerHash ?? new Uint8Array(0);
     message.regionId = object.regionId ?? 0;
@@ -1609,7 +1609,7 @@ function createBaseGetEventsResponse(): GetEventsResponse {
 export const GetEventsResponse: MessageFns<GetEventsResponse> = {
   encode(message: GetEventsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.events) {
-      StoredTelemetryEvent.encode(v!, writer.uint32(10).fork()).join();
+      StoredOrbitEvent.encode(v!, writer.uint32(10).fork()).join();
     }
     if (message.totalCount !== 0) {
       writer.uint32(16).int64(message.totalCount);
@@ -1629,7 +1629,7 @@ export const GetEventsResponse: MessageFns<GetEventsResponse> = {
             break;
           }
 
-          message.events.push(StoredTelemetryEvent.decode(reader, reader.uint32()));
+          message.events.push(StoredOrbitEvent.decode(reader, reader.uint32()));
           continue;
         }
         case 2: {
@@ -1652,7 +1652,7 @@ export const GetEventsResponse: MessageFns<GetEventsResponse> = {
   fromJSON(object: any): GetEventsResponse {
     return {
       events: globalThis.Array.isArray(object?.events)
-        ? object.events.map((e: any) => StoredTelemetryEvent.fromJSON(e))
+        ? object.events.map((e: any) => StoredOrbitEvent.fromJSON(e))
         : [],
       totalCount: isSet(object.totalCount) ? globalThis.Number(object.totalCount) : 0,
     };
@@ -1661,7 +1661,7 @@ export const GetEventsResponse: MessageFns<GetEventsResponse> = {
   toJSON(message: GetEventsResponse): unknown {
     const obj: any = {};
     if (message.events?.length) {
-      obj.events = message.events.map((e) => StoredTelemetryEvent.toJSON(e));
+      obj.events = message.events.map((e) => StoredOrbitEvent.toJSON(e));
     }
     if (message.totalCount !== 0) {
       obj.totalCount = Math.round(message.totalCount);
@@ -1674,13 +1674,13 @@ export const GetEventsResponse: MessageFns<GetEventsResponse> = {
   },
   fromPartial<I extends Exact<DeepPartial<GetEventsResponse>, I>>(object: I): GetEventsResponse {
     const message = createBaseGetEventsResponse();
-    message.events = object.events?.map((e) => StoredTelemetryEvent.fromPartial(e)) || [];
+    message.events = object.events?.map((e) => StoredOrbitEvent.fromPartial(e)) || [];
     message.totalCount = object.totalCount ?? 0;
     return message;
   },
 };
 
-function createBaseStoredTelemetryEvent(): StoredTelemetryEvent {
+function createBaseStoredOrbitEvent(): StoredOrbitEvent {
   return {
     id: 0,
     nodeId: 0,
@@ -1698,8 +1698,8 @@ function createBaseStoredTelemetryEvent(): StoredTelemetryEvent {
   };
 }
 
-export const StoredTelemetryEvent: MessageFns<StoredTelemetryEvent> = {
-  encode(message: StoredTelemetryEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
+  encode(message: StoredOrbitEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.id !== 0) {
       writer.uint32(8).uint64(message.id);
     }
@@ -1742,10 +1742,10 @@ export const StoredTelemetryEvent: MessageFns<StoredTelemetryEvent> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): StoredTelemetryEvent {
+  decode(input: BinaryReader | Uint8Array, length?: number): StoredOrbitEvent {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseStoredTelemetryEvent();
+    const message = createBaseStoredOrbitEvent();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1862,7 +1862,7 @@ export const StoredTelemetryEvent: MessageFns<StoredTelemetryEvent> = {
     return message;
   },
 
-  fromJSON(object: any): StoredTelemetryEvent {
+  fromJSON(object: any): StoredOrbitEvent {
     return {
       id: isSet(object.id) ? globalThis.Number(object.id) : 0,
       nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
@@ -1880,7 +1880,7 @@ export const StoredTelemetryEvent: MessageFns<StoredTelemetryEvent> = {
     };
   },
 
-  toJSON(message: StoredTelemetryEvent): unknown {
+  toJSON(message: StoredOrbitEvent): unknown {
     const obj: any = {};
     if (message.id !== 0) {
       obj.id = Math.round(message.id);
@@ -1924,11 +1924,11 @@ export const StoredTelemetryEvent: MessageFns<StoredTelemetryEvent> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<StoredTelemetryEvent>, I>>(base?: I): StoredTelemetryEvent {
-    return StoredTelemetryEvent.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<StoredOrbitEvent>, I>>(base?: I): StoredOrbitEvent {
+    return StoredOrbitEvent.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<StoredTelemetryEvent>, I>>(object: I): StoredTelemetryEvent {
-    const message = createBaseStoredTelemetryEvent();
+  fromPartial<I extends Exact<DeepPartial<StoredOrbitEvent>, I>>(object: I): StoredOrbitEvent {
+    const message = createBaseStoredOrbitEvent();
     message.id = object.id ?? 0;
     message.nodeId = object.nodeId ?? 0;
     message.sessionId = object.sessionId ?? "";
@@ -2271,18 +2271,15 @@ export const DailyCount: MessageFns<DailyCount> = {
 };
 
 /**
- * TelemetryService ingests low-cardinality client telemetry batches.
+ * OrbitService ingests low-cardinality client orbit batches.
  *
  * Auth is performed out-of-band (e.g. gRPC metadata headers like node-key/wg-pub-key/rune-key),
  * consistent with other node/daemon RPCs.
  */
-export interface TelemetryService {
-  /** UploadTelemetryBatch receives telemetry events from clients. */
-  UploadTelemetryBatch(
-    request: DeepPartial<TelemetryBatchRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<TelemetryBatchResponse>;
-  /** GetEvents retrieves stored telemetry events for analysis/debugging. */
+export interface OrbitService {
+  /** UploadOrbitBatch receives orbit events from clients. */
+  UploadOrbitBatch(request: DeepPartial<OrbitBatchRequest>, metadata?: grpc.Metadata): Promise<OrbitBatchResponse>;
+  /** GetEvents retrieves stored orbit events for analysis/debugging. */
   GetEvents(request: DeepPartial<GetEventsRequest>, metadata?: grpc.Metadata): Promise<GetEventsResponse>;
   /** GetDailyCounts retrieves aggregated daily counts for dashboards/trends. */
   GetDailyCounts(
@@ -2291,54 +2288,47 @@ export interface TelemetryService {
   ): Promise<GetDailyCountsResponse>;
 }
 
-export class TelemetryServiceClientImpl implements TelemetryService {
+export class OrbitServiceClientImpl implements OrbitService {
   private readonly rpc: Rpc;
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.UploadTelemetryBatch = this.UploadTelemetryBatch.bind(this);
+    this.UploadOrbitBatch = this.UploadOrbitBatch.bind(this);
     this.GetEvents = this.GetEvents.bind(this);
     this.GetDailyCounts = this.GetDailyCounts.bind(this);
   }
 
-  UploadTelemetryBatch(
-    request: DeepPartial<TelemetryBatchRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<TelemetryBatchResponse> {
-    return this.rpc.unary(
-      TelemetryServiceUploadTelemetryBatchDesc,
-      TelemetryBatchRequest.fromPartial(request),
-      metadata,
-    );
+  UploadOrbitBatch(request: DeepPartial<OrbitBatchRequest>, metadata?: grpc.Metadata): Promise<OrbitBatchResponse> {
+    return this.rpc.unary(OrbitServiceUploadOrbitBatchDesc, OrbitBatchRequest.fromPartial(request), metadata);
   }
 
   GetEvents(request: DeepPartial<GetEventsRequest>, metadata?: grpc.Metadata): Promise<GetEventsResponse> {
-    return this.rpc.unary(TelemetryServiceGetEventsDesc, GetEventsRequest.fromPartial(request), metadata);
+    return this.rpc.unary(OrbitServiceGetEventsDesc, GetEventsRequest.fromPartial(request), metadata);
   }
 
   GetDailyCounts(
     request: DeepPartial<GetDailyCountsRequest>,
     metadata?: grpc.Metadata,
   ): Promise<GetDailyCountsResponse> {
-    return this.rpc.unary(TelemetryServiceGetDailyCountsDesc, GetDailyCountsRequest.fromPartial(request), metadata);
+    return this.rpc.unary(OrbitServiceGetDailyCountsDesc, GetDailyCountsRequest.fromPartial(request), metadata);
   }
 }
 
-export const TelemetryServiceDesc = { serviceName: "protos.TelemetryService" };
+export const OrbitServiceDesc = { serviceName: "protos.OrbitService" };
 
-export const TelemetryServiceUploadTelemetryBatchDesc: UnaryMethodDefinitionish = {
-  methodName: "UploadTelemetryBatch",
-  service: TelemetryServiceDesc,
+export const OrbitServiceUploadOrbitBatchDesc: UnaryMethodDefinitionish = {
+  methodName: "UploadOrbitBatch",
+  service: OrbitServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return TelemetryBatchRequest.encode(this).finish();
+      return OrbitBatchRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = TelemetryBatchResponse.decode(data);
+      const value = OrbitBatchResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -2349,9 +2339,9 @@ export const TelemetryServiceUploadTelemetryBatchDesc: UnaryMethodDefinitionish 
   } as any,
 };
 
-export const TelemetryServiceGetEventsDesc: UnaryMethodDefinitionish = {
+export const OrbitServiceGetEventsDesc: UnaryMethodDefinitionish = {
   methodName: "GetEvents",
-  service: TelemetryServiceDesc,
+  service: OrbitServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
@@ -2372,9 +2362,9 @@ export const TelemetryServiceGetEventsDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const TelemetryServiceGetDailyCountsDesc: UnaryMethodDefinitionish = {
+export const OrbitServiceGetDailyCountsDesc: UnaryMethodDefinitionish = {
   methodName: "GetDailyCounts",
-  service: TelemetryServiceDesc,
+  service: OrbitServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
