@@ -159,7 +159,24 @@ export interface NetworkMapResponse {
     | undefined;
   /** defaultCerfRegionId is the default region to use when a peer's Node.cerfHomeRegionId is unset. */
   defaultCerfRegionId: number;
+  /**
+   * telemetry_log_id is a server-generated ID for Orbit telemetry logging (per-node).
+   * If empty, the client should not collect or upload Orbit telemetry.
+   * This is used to control telemetry collection based on the user's plan.
+   */
   telemetryLogId: string;
+  /**
+   * domain_telemetry_log_id is a server-generated ID for NetworkFlowLogs (per-tenant).
+   * If empty, the client should not collect or upload NetworkFlowLogs.
+   * All nodes in the same tenant share this ID for unified log streaming.
+   */
+  domainTelemetryLogId: string;
+  /**
+   * capabilities is a list of server-granted capabilities that control feature availability.
+   * Examples: "runetale:telemetry", "runetale:network-logs", "runetale:log-exit-flows"
+   * The client checks these capabilities to enable/disable features.
+   */
+  capabilities: string[];
 }
 
 export interface CerfMap {
@@ -1305,6 +1322,8 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     cerfMap: undefined,
     defaultCerfRegionId: 0,
     telemetryLogId: "",
+    domainTelemetryLogId: "",
+    capabilities: [],
   };
 }
 
@@ -1353,6 +1372,12 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     }
     if (message.telemetryLogId !== "") {
       writer.uint32(178).string(message.telemetryLogId);
+    }
+    if (message.domainTelemetryLogId !== "") {
+      writer.uint32(186).string(message.domainTelemetryLogId);
+    }
+    for (const v of message.capabilities) {
+      writer.uint32(194).string(v!);
     }
     return writer;
   },
@@ -1486,6 +1511,22 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
           message.telemetryLogId = reader.string();
           continue;
         }
+        case 23: {
+          if (tag !== 186) {
+            break;
+          }
+
+          message.domainTelemetryLogId = reader.string();
+          continue;
+        }
+        case 24: {
+          if (tag !== 194) {
+            break;
+          }
+
+          message.capabilities.push(reader.string());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1523,6 +1564,14 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
         : isSet(object.telemetry_log_id)
         ? globalThis.String(object.telemetry_log_id)
         : "",
+      domainTelemetryLogId: isSet(object.domainTelemetryLogId)
+        ? globalThis.String(object.domainTelemetryLogId)
+        : isSet(object.domain_telemetry_log_id)
+        ? globalThis.String(object.domain_telemetry_log_id)
+        : "",
+      capabilities: globalThis.Array.isArray(object?.capabilities)
+        ? object.capabilities.map((e: any) => globalThis.String(e))
+        : [],
     };
   },
 
@@ -1570,6 +1619,12 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.telemetryLogId !== "") {
       obj.telemetryLogId = message.telemetryLogId;
     }
+    if (message.domainTelemetryLogId !== "") {
+      obj.domainTelemetryLogId = message.domainTelemetryLogId;
+    }
+    if (message.capabilities?.length) {
+      obj.capabilities = message.capabilities;
+    }
     return obj;
   },
 
@@ -1594,6 +1649,8 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
       : undefined;
     message.defaultCerfRegionId = object.defaultCerfRegionId ?? 0;
     message.telemetryLogId = object.telemetryLogId ?? "";
+    message.domainTelemetryLogId = object.domainTelemetryLogId ?? "";
+    message.capabilities = object.capabilities?.map((e) => e) || [];
     return message;
   },
 };
