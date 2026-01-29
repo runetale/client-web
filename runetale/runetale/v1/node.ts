@@ -11,6 +11,7 @@ import { BrowserHeaders } from "browser-headers";
 import { Observable } from "rxjs";
 import { share } from "rxjs/operators";
 import { Empty } from "../../../google/protobuf/empty";
+import { Timestamp } from "../../../google/protobuf/timestamp";
 
 export const protobufPackage = "protos";
 
@@ -61,6 +62,10 @@ export interface Node {
    * The server must always set this (defaulting to NetworkMapResponse.defaultCerfRegionId).
    */
   cerfHomeRegionId: number;
+  /** online indicates whether the node is connected to the server */
+  online: boolean;
+  /** lastSeen is when the node was last online (only set when offline) */
+  lastSeen: Date | undefined;
 }
 
 export interface ComposeNodeResponse {
@@ -637,6 +642,8 @@ function createBaseNode(): Node {
     hostOS: "",
     runeKey: "",
     cerfHomeRegionId: 0,
+    online: false,
+    lastSeen: undefined,
   };
 }
 
@@ -680,6 +687,12 @@ export const Node: MessageFns<Node> = {
     }
     if (message.cerfHomeRegionId !== 0) {
       writer.uint32(104).uint32(message.cerfHomeRegionId);
+    }
+    if (message.online !== false) {
+      writer.uint32(112).bool(message.online);
+    }
+    if (message.lastSeen !== undefined) {
+      Timestamp.encode(toTimestamp(message.lastSeen), writer.uint32(122).fork()).join();
     }
     return writer;
   },
@@ -795,6 +808,22 @@ export const Node: MessageFns<Node> = {
           message.cerfHomeRegionId = reader.uint32();
           continue;
         }
+        case 14: {
+          if (tag !== 112) {
+            break;
+          }
+
+          message.online = reader.bool();
+          continue;
+        }
+        case 15: {
+          if (tag !== 122) {
+            break;
+          }
+
+          message.lastSeen = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -823,6 +852,8 @@ export const Node: MessageFns<Node> = {
       hostOS: isSet(object.hostOS) ? globalThis.String(object.hostOS) : "",
       runeKey: isSet(object.runeKey) ? globalThis.String(object.runeKey) : "",
       cerfHomeRegionId: isSet(object.cerfHomeRegionId) ? globalThis.Number(object.cerfHomeRegionId) : 0,
+      online: isSet(object.online) ? globalThis.Boolean(object.online) : false,
+      lastSeen: isSet(object.lastSeen) ? fromJsonTimestamp(object.lastSeen) : undefined,
     };
   },
 
@@ -867,6 +898,12 @@ export const Node: MessageFns<Node> = {
     if (message.cerfHomeRegionId !== 0) {
       obj.cerfHomeRegionId = Math.round(message.cerfHomeRegionId);
     }
+    if (message.online !== false) {
+      obj.online = message.online;
+    }
+    if (message.lastSeen !== undefined) {
+      obj.lastSeen = message.lastSeen.toISOString();
+    }
     return obj;
   },
 
@@ -888,6 +925,8 @@ export const Node: MessageFns<Node> = {
     message.hostOS = object.hostOS ?? "";
     message.runeKey = object.runeKey ?? "";
     message.cerfHomeRegionId = object.cerfHomeRegionId ?? 0;
+    message.online = object.online ?? false;
+    message.lastSeen = object.lastSeen ?? undefined;
     return message;
   },
 };
@@ -2644,6 +2683,28 @@ export type DeepPartial<T> = T extends Builtin ? T
 type KeysOfUnion<T> = T extends T ? keyof T : never;
 export type Exact<P, I extends P> = P extends Builtin ? P
   : P & { [K in keyof P]: Exact<P[K], I[K]> } & { [K in Exclude<keyof I, KeysOfUnion<P>>]: never };
+
+function toTimestamp(date: Date): Timestamp {
+  const seconds = Math.trunc(date.getTime() / 1_000);
+  const nanos = (date.getTime() % 1_000) * 1_000_000;
+  return { seconds, nanos };
+}
+
+function fromTimestamp(t: Timestamp): Date {
+  let millis = (t.seconds || 0) * 1_000;
+  millis += (t.nanos || 0) / 1_000_000;
+  return new globalThis.Date(millis);
+}
+
+function fromJsonTimestamp(o: any): Date {
+  if (o instanceof globalThis.Date) {
+    return o;
+  } else if (typeof o === "string") {
+    return new globalThis.Date(o);
+  } else {
+    return fromTimestamp(Timestamp.fromJSON(o));
+  }
+}
 
 function longToNumber(int64: { toString(): string }): number {
   const num = globalThis.Number(int64.toString());
