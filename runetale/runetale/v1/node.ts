@@ -77,6 +77,26 @@ export interface ComposeNodeResponse {
   loginName: string;
 }
 
+/**
+ * NetworkMapRequest is sent from client to server in the ConnectNetworkMapTable stream.
+ * It contains the client's VPN state and is used for keepalive.
+ */
+export interface NetworkMapRequest {
+  /**
+   * vpn_running indicates whether the VPN is currently active (up=true, down=false).
+   * This is different from the stream connection status - the stream stays connected
+   * even when VPN is down, allowing for faster reconnection.
+   */
+  vpnRunning?:
+    | boolean
+    | undefined;
+  /**
+   * is_keepalive indicates if this is a periodic keepalive message.
+   * When false, it's a state change notification.
+   */
+  isKeepalive?: boolean | undefined;
+}
+
 export interface NetPortRange {
   /**
    * 以下のような形式
@@ -1067,6 +1087,90 @@ export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
     message.email = object.email ?? "";
     message.displayName = object.displayName ?? "";
     message.loginName = object.loginName ?? "";
+    return message;
+  },
+};
+
+function createBaseNetworkMapRequest(): NetworkMapRequest {
+  return { vpnRunning: undefined, isKeepalive: undefined };
+}
+
+export const NetworkMapRequest: MessageFns<NetworkMapRequest> = {
+  encode(message: NetworkMapRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.vpnRunning !== undefined) {
+      writer.uint32(8).bool(message.vpnRunning);
+    }
+    if (message.isKeepalive !== undefined) {
+      writer.uint32(16).bool(message.isKeepalive);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetworkMapRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetworkMapRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.vpnRunning = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.isKeepalive = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetworkMapRequest {
+    return {
+      vpnRunning: isSet(object.vpnRunning)
+        ? globalThis.Boolean(object.vpnRunning)
+        : isSet(object.vpn_running)
+        ? globalThis.Boolean(object.vpn_running)
+        : undefined,
+      isKeepalive: isSet(object.isKeepalive)
+        ? globalThis.Boolean(object.isKeepalive)
+        : isSet(object.is_keepalive)
+        ? globalThis.Boolean(object.is_keepalive)
+        : undefined,
+    };
+  },
+
+  toJSON(message: NetworkMapRequest): unknown {
+    const obj: any = {};
+    if (message.vpnRunning !== undefined) {
+      obj.vpnRunning = message.vpnRunning;
+    }
+    if (message.isKeepalive !== undefined) {
+      obj.isKeepalive = message.isKeepalive;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetworkMapRequest>, I>>(base?: I): NetworkMapRequest {
+    return NetworkMapRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetworkMapRequest>, I>>(object: I): NetworkMapRequest {
+    const message = createBaseNetworkMapRequest();
+    message.vpnRunning = object.vpnRunning ?? undefined;
+    message.isKeepalive = object.isKeepalive ?? undefined;
     return message;
   },
 };
@@ -2451,7 +2555,7 @@ export interface NodeService {
   ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse>;
   GetNetworkMap(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkMapResponse>;
   ConnectNetworkMapTable(
-    request: Observable<DeepPartial<NetworkMapResponse>>,
+    request: Observable<DeepPartial<NetworkMapRequest>>,
     metadata?: grpc.Metadata,
   ): Observable<NetworkMapResponse>;
   UploadPacketFlowLog(request: DeepPartial<PacketFlowLogRequest>, metadata?: grpc.Metadata): Promise<Empty>;
@@ -2477,7 +2581,7 @@ export class NodeServiceClientImpl implements NodeService {
   }
 
   ConnectNetworkMapTable(
-    request: Observable<DeepPartial<NetworkMapResponse>>,
+    request: Observable<DeepPartial<NetworkMapRequest>>,
     metadata?: grpc.Metadata,
   ): Observable<NetworkMapResponse> {
     throw new Error("ts-proto does not yet support client streaming!");
