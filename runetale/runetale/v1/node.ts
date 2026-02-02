@@ -15,22 +15,6 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
 
 export const protobufPackage = "protos";
 
-export interface NetworkMapRequest {
-  /**
-   * backend_state represents the client's current state.
-   * Values correspond to hashistatus.State:
-   *   0 = NoState
-   *   1 = NeedsLogin
-   *   2 = Stopped
-   *   3 = Starting
-   *   4 = Running
-   * The server uses this to track online/offline status:
-   *   - Running (4): node is online (Connect)
-   *   - Starting (3), Stopped (2): node is offline (Disconnect)
-   */
-  backendState: number;
-}
-
 export interface PacketFlowLogRequest {
   nodeId: number;
   /** 特定のノードからネットワークログメッセージを記録した時刻のタイムスタンプ */
@@ -297,70 +281,6 @@ export interface DNSConfig_RoutesEntry {
   key: string;
   value: Resolvers | undefined;
 }
-
-function createBaseNetworkMapRequest(): NetworkMapRequest {
-  return { backendState: 0 };
-}
-
-export const NetworkMapRequest: MessageFns<NetworkMapRequest> = {
-  encode(message: NetworkMapRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.backendState !== 0) {
-      writer.uint32(8).int32(message.backendState);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): NetworkMapRequest {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseNetworkMapRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.backendState = reader.int32();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): NetworkMapRequest {
-    return {
-      backendState: isSet(object.backendState)
-        ? globalThis.Number(object.backendState)
-        : isSet(object.backend_state)
-        ? globalThis.Number(object.backend_state)
-        : 0,
-    };
-  },
-
-  toJSON(message: NetworkMapRequest): unknown {
-    const obj: any = {};
-    if (message.backendState !== 0) {
-      obj.backendState = Math.round(message.backendState);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<NetworkMapRequest>, I>>(base?: I): NetworkMapRequest {
-    return NetworkMapRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<NetworkMapRequest>, I>>(object: I): NetworkMapRequest {
-    const message = createBaseNetworkMapRequest();
-    message.backendState = object.backendState ?? 0;
-    return message;
-  },
-};
 
 function createBasePacketFlowLogRequest(): PacketFlowLogRequest {
   return {
@@ -2531,7 +2451,7 @@ export interface NodeService {
   ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse>;
   GetNetworkMap(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkMapResponse>;
   ConnectNetworkMapTable(
-    request: Observable<DeepPartial<NetworkMapRequest>>,
+    request: Observable<DeepPartial<NetworkMapResponse>>,
     metadata?: grpc.Metadata,
   ): Observable<NetworkMapResponse>;
   UploadPacketFlowLog(request: DeepPartial<PacketFlowLogRequest>, metadata?: grpc.Metadata): Promise<Empty>;
@@ -2557,7 +2477,7 @@ export class NodeServiceClientImpl implements NodeService {
   }
 
   ConnectNetworkMapTable(
-    request: Observable<DeepPartial<NetworkMapRequest>>,
+    request: Observable<DeepPartial<NetworkMapResponse>>,
     metadata?: grpc.Metadata,
   ): Observable<NetworkMapResponse> {
     throw new Error("ts-proto does not yet support client streaming!");
