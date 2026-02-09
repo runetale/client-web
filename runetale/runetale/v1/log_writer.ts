@@ -2,7 +2,7 @@
 // versions:
 //   protoc-gen-ts_proto  v2.11.2
 //   protoc               v3.20.3
-// source: runetale/runetale/v1/orbit.proto
+// source: runetale/runetale/v1/log_writer.proto
 
 /* eslint-disable */
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
@@ -10,7 +10,7 @@ import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 
-export const protobufPackage = "protos";
+export const protobufPackage = "logserver";
 
 /** Transport describes how a packet was sent/received. */
 export enum Transport {
@@ -64,20 +64,62 @@ export function transportToJSON(object: Transport): string {
   }
 }
 
-/** OrbitBatchRequest contains a batch of telemetry events from a client. */
-export interface OrbitBatchRequest {
+/** LoglyphUploadRequest contains a batch of client debug log entries. */
+export interface LoglyphUploadRequest {
+  /** session_id is the ephemeral session identifier. */
+  sessionId: string;
+  /** client_version is the client version string. */
+  clientVersion: string;
+  /** entries is a list of structured log entries. */
+  entries: LoglyphEntry[];
+}
+
+/** LoglyphEntry is a single client debug log entry. */
+export interface LoglyphEntry {
+  /** client_time is when the log was generated on the client (RFC3339Nano). */
+  clientTime:
+    | Date
+    | undefined;
+  /** level is the log level (e.g., "info", "debug", "warn", "error"). */
+  level: string;
+  /** text is the log message text. */
+  text: string;
+  /** payload is optional structured data (JSON-encoded). */
+  payload: string;
+  /** proc_id is the process identifier (optional). */
+  procId: number;
+  /** proc_seq is the process-level sequence number (optional). */
+  procSeq: number;
+  /** v is the verbosity level (0 = normal, 1+ = verbose). */
+  v: number;
+}
+
+/** LoglyphUploadResponse is returned after processing a loglyph upload. */
+export interface LoglyphUploadResponse {
+  /** accepted is the number of entries successfully stored. */
+  accepted: number;
+  /** dropped is the number of entries dropped. */
+  dropped: number;
+  /** reason is set if any entries were dropped. */
+  reason: string;
+}
+
+/**
+ * OrbitBatchUploadRequest contains a batch of telemetry events from a client.
+ * Unlike the legacy OrbitBatchRequest, this does not include node_id;
+ * the log server identifies the stream via log_stream_id (derived from private-id).
+ */
+export interface OrbitBatchUploadRequest {
   /** version is the client version string (e.g. "1.2.3"). */
   version: string;
   /** session_id is a unique identifier for the client session. */
   sessionId: string;
-  /** node_id is the node ID (optional, for backward compatibility). */
-  nodeId: number;
   /** events is the list of telemetry events to upload. */
   events: OrbitEvent[];
 }
 
-/** OrbitBatchResponse is returned after processing a batch. */
-export interface OrbitBatchResponse {
+/** OrbitBatchUploadResponse is returned after processing a batch. */
+export interface OrbitBatchUploadResponse {
   /** accepted is the number of events successfully stored. */
   accepted: number;
   /** dropped is the number of events dropped (rate limit, size limit, etc.). */
@@ -303,89 +345,77 @@ export interface PathTransitionEvent {
   reason: string;
 }
 
-/** GetEventsRequest is used to retrieve stored events. */
-export interface GetEventsRequest {
-  nodeId: number;
-  sessionId: string;
-  from: Date | undefined;
-  to: Date | undefined;
-  limit: number;
-  offset: number;
+/**
+ * PacketFlowLogUploadRequest contains network flow statistics from a client.
+ * Unlike the legacy PacketFlowLogRequest, this does not include nodeId;
+ * the log server identifies the stream via log_stream_id (derived from private-id).
+ */
+export interface PacketFlowLogUploadRequest {
+  /** logged_at is the timestamp when the stats were collected. */
+  loggedAt: string;
+  /** started_at is when the measurement period started. */
+  startedAt: string;
+  /** ended_at is when the measurement period ended. */
+  endedAt: string;
+  /** peer_traffic records traffic between Runetale IPs (100.x.y.z <-> 100.x.y.z). */
+  peerTraffic: PacketFlowEntry[];
+  /** lan_traffic records traffic on explicitly advertised subnet routes. */
+  lanTraffic: PacketFlowEntry[];
+  /**
+   * exit_node_traffic records exit node traffic (src is Runetale IP,
+   * protocol/port/dst may be anonymized).
+   */
+  exitNodeTraffic: PacketFlowEntry[];
+  /** transport_traffic records physical WireGuard layer traffic. */
+  transportTraffic: PacketFlowEntry[];
 }
 
-/** GetEventsResponse contains the retrieved events. */
-export interface GetEventsResponse {
-  events: StoredOrbitEvent[];
-  totalCount: number;
+/** PacketFlowEntry is a single 5-tuple flow record. */
+export interface PacketFlowEntry {
+  /** proto is the IP protocol number (6=TCP, 17=UDP, 1=ICMPv4, 58=ICMPv6). */
+  proto: number;
+  /** src is the source IP address. */
+  src: string;
+  /** dst is the destination IP address. */
+  dst: string;
+  /** tx_packets is the number of transmitted packets. */
+  txPackets: number;
+  /** tx_bytes is the number of transmitted bytes. */
+  txBytes: number;
+  /** rx_packets is the number of received packets. */
+  rxPackets: number;
+  /** rx_bytes is the number of received bytes. */
+  rxBytes: number;
 }
 
-/** StoredOrbitEvent is an event as stored in the database. */
-export interface StoredOrbitEvent {
-  id: number;
-  nodeId: number;
-  sessionId: string;
-  clientVersion: string;
-  receivedAt: Date | undefined;
-  eventAt: Date | undefined;
-  eventDay: Date | undefined;
-  peerHash: Uint8Array;
-  regionId: number;
-  transport: Transport;
-  payloadType: string;
-  /** JSON-encoded payload */
-  payload: string;
-  createdAt: Date | undefined;
+/** PacketFlowLogUploadResponse is returned after processing flow logs. */
+export interface PacketFlowLogUploadResponse {
+  /** accepted is the number of flow entries successfully stored. */
+  accepted: number;
 }
 
-/** GetDailyCountsRequest is used to retrieve aggregated daily counts. */
-export interface GetDailyCountsRequest {
-  nodeId: number;
-  metric: string;
-  from: Date | undefined;
-  to: Date | undefined;
+function createBaseLoglyphUploadRequest(): LoglyphUploadRequest {
+  return { sessionId: "", clientVersion: "", entries: [] };
 }
 
-/** GetDailyCountsResponse contains the aggregated counts. */
-export interface GetDailyCountsResponse {
-  counts: DailyCount[];
-}
-
-/** DailyCount represents an aggregated count for a day. */
-export interface DailyCount {
-  day: Date | undefined;
-  nodeId: number;
-  metric: string;
-  labelKey: string;
-  count: number;
-  createdAt: Date | undefined;
-  updatedAt: Date | undefined;
-}
-
-function createBaseOrbitBatchRequest(): OrbitBatchRequest {
-  return { version: "", sessionId: "", nodeId: 0, events: [] };
-}
-
-export const OrbitBatchRequest: MessageFns<OrbitBatchRequest> = {
-  encode(message: OrbitBatchRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.version !== "") {
-      writer.uint32(10).string(message.version);
-    }
+export const LoglyphUploadRequest: MessageFns<LoglyphUploadRequest> = {
+  encode(message: LoglyphUploadRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.sessionId !== "") {
-      writer.uint32(18).string(message.sessionId);
+      writer.uint32(10).string(message.sessionId);
     }
-    if (message.nodeId !== 0) {
-      writer.uint32(24).uint64(message.nodeId);
+    if (message.clientVersion !== "") {
+      writer.uint32(18).string(message.clientVersion);
     }
-    for (const v of message.events) {
-      OrbitEvent.encode(v!, writer.uint32(34).fork()).join();
+    for (const v of message.entries) {
+      LoglyphEntry.encode(v!, writer.uint32(26).fork()).join();
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): OrbitBatchRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): LoglyphUploadRequest {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseOrbitBatchRequest();
+    const message = createBaseLoglyphUploadRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -394,7 +424,7 @@ export const OrbitBatchRequest: MessageFns<OrbitBatchRequest> = {
             break;
           }
 
-          message.version = reader.string();
+          message.sessionId = reader.string();
           continue;
         }
         case 2: {
@@ -402,23 +432,15 @@ export const OrbitBatchRequest: MessageFns<OrbitBatchRequest> = {
             break;
           }
 
-          message.sessionId = reader.string();
+          message.clientVersion = reader.string();
           continue;
         }
         case 3: {
-          if (tag !== 24) {
+          if (tag !== 26) {
             break;
           }
 
-          message.nodeId = longToNumber(reader.uint64());
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.events.push(OrbitEvent.decode(reader, reader.uint32()));
+          message.entries.push(LoglyphEntry.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -430,59 +452,224 @@ export const OrbitBatchRequest: MessageFns<OrbitBatchRequest> = {
     return message;
   },
 
-  fromJSON(object: any): OrbitBatchRequest {
+  fromJSON(object: any): LoglyphUploadRequest {
     return {
-      version: isSet(object.version) ? globalThis.String(object.version) : "",
       sessionId: isSet(object.sessionId)
         ? globalThis.String(object.sessionId)
         : isSet(object.session_id)
         ? globalThis.String(object.session_id)
         : "",
-      nodeId: isSet(object.nodeId)
-        ? globalThis.Number(object.nodeId)
-        : isSet(object.node_id)
-        ? globalThis.Number(object.node_id)
-        : 0,
-      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => OrbitEvent.fromJSON(e)) : [],
+      clientVersion: isSet(object.clientVersion)
+        ? globalThis.String(object.clientVersion)
+        : isSet(object.client_version)
+        ? globalThis.String(object.client_version)
+        : "",
+      entries: globalThis.Array.isArray(object?.entries)
+        ? object.entries.map((e: any) => LoglyphEntry.fromJSON(e))
+        : [],
     };
   },
 
-  toJSON(message: OrbitBatchRequest): unknown {
+  toJSON(message: LoglyphUploadRequest): unknown {
     const obj: any = {};
-    if (message.version !== "") {
-      obj.version = message.version;
-    }
     if (message.sessionId !== "") {
       obj.sessionId = message.sessionId;
     }
-    if (message.nodeId !== 0) {
-      obj.nodeId = Math.round(message.nodeId);
+    if (message.clientVersion !== "") {
+      obj.clientVersion = message.clientVersion;
     }
-    if (message.events?.length) {
-      obj.events = message.events.map((e) => OrbitEvent.toJSON(e));
+    if (message.entries?.length) {
+      obj.entries = message.entries.map((e) => LoglyphEntry.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<OrbitBatchRequest>, I>>(base?: I): OrbitBatchRequest {
-    return OrbitBatchRequest.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<LoglyphUploadRequest>, I>>(base?: I): LoglyphUploadRequest {
+    return LoglyphUploadRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<OrbitBatchRequest>, I>>(object: I): OrbitBatchRequest {
-    const message = createBaseOrbitBatchRequest();
-    message.version = object.version ?? "";
+  fromPartial<I extends Exact<DeepPartial<LoglyphUploadRequest>, I>>(object: I): LoglyphUploadRequest {
+    const message = createBaseLoglyphUploadRequest();
     message.sessionId = object.sessionId ?? "";
-    message.nodeId = object.nodeId ?? 0;
-    message.events = object.events?.map((e) => OrbitEvent.fromPartial(e)) || [];
+    message.clientVersion = object.clientVersion ?? "";
+    message.entries = object.entries?.map((e) => LoglyphEntry.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseOrbitBatchResponse(): OrbitBatchResponse {
+function createBaseLoglyphEntry(): LoglyphEntry {
+  return { clientTime: undefined, level: "", text: "", payload: "", procId: 0, procSeq: 0, v: 0 };
+}
+
+export const LoglyphEntry: MessageFns<LoglyphEntry> = {
+  encode(message: LoglyphEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.clientTime !== undefined) {
+      Timestamp.encode(toTimestamp(message.clientTime), writer.uint32(10).fork()).join();
+    }
+    if (message.level !== "") {
+      writer.uint32(18).string(message.level);
+    }
+    if (message.text !== "") {
+      writer.uint32(26).string(message.text);
+    }
+    if (message.payload !== "") {
+      writer.uint32(34).string(message.payload);
+    }
+    if (message.procId !== 0) {
+      writer.uint32(40).uint32(message.procId);
+    }
+    if (message.procSeq !== 0) {
+      writer.uint32(48).uint64(message.procSeq);
+    }
+    if (message.v !== 0) {
+      writer.uint32(56).int32(message.v);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): LoglyphEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLoglyphEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.clientTime = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.level = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.text = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.payload = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.procId = reader.uint32();
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.procSeq = longToNumber(reader.uint64());
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.v = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LoglyphEntry {
+    return {
+      clientTime: isSet(object.clientTime)
+        ? fromJsonTimestamp(object.clientTime)
+        : isSet(object.client_time)
+        ? fromJsonTimestamp(object.client_time)
+        : undefined,
+      level: isSet(object.level) ? globalThis.String(object.level) : "",
+      text: isSet(object.text) ? globalThis.String(object.text) : "",
+      payload: isSet(object.payload) ? globalThis.String(object.payload) : "",
+      procId: isSet(object.procId)
+        ? globalThis.Number(object.procId)
+        : isSet(object.proc_id)
+        ? globalThis.Number(object.proc_id)
+        : 0,
+      procSeq: isSet(object.procSeq)
+        ? globalThis.Number(object.procSeq)
+        : isSet(object.proc_seq)
+        ? globalThis.Number(object.proc_seq)
+        : 0,
+      v: isSet(object.v) ? globalThis.Number(object.v) : 0,
+    };
+  },
+
+  toJSON(message: LoglyphEntry): unknown {
+    const obj: any = {};
+    if (message.clientTime !== undefined) {
+      obj.clientTime = message.clientTime.toISOString();
+    }
+    if (message.level !== "") {
+      obj.level = message.level;
+    }
+    if (message.text !== "") {
+      obj.text = message.text;
+    }
+    if (message.payload !== "") {
+      obj.payload = message.payload;
+    }
+    if (message.procId !== 0) {
+      obj.procId = Math.round(message.procId);
+    }
+    if (message.procSeq !== 0) {
+      obj.procSeq = Math.round(message.procSeq);
+    }
+    if (message.v !== 0) {
+      obj.v = Math.round(message.v);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LoglyphEntry>, I>>(base?: I): LoglyphEntry {
+    return LoglyphEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<LoglyphEntry>, I>>(object: I): LoglyphEntry {
+    const message = createBaseLoglyphEntry();
+    message.clientTime = object.clientTime ?? undefined;
+    message.level = object.level ?? "";
+    message.text = object.text ?? "";
+    message.payload = object.payload ?? "";
+    message.procId = object.procId ?? 0;
+    message.procSeq = object.procSeq ?? 0;
+    message.v = object.v ?? 0;
+    return message;
+  },
+};
+
+function createBaseLoglyphUploadResponse(): LoglyphUploadResponse {
   return { accepted: 0, dropped: 0, reason: "" };
 }
 
-export const OrbitBatchResponse: MessageFns<OrbitBatchResponse> = {
-  encode(message: OrbitBatchResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+export const LoglyphUploadResponse: MessageFns<LoglyphUploadResponse> = {
+  encode(message: LoglyphUploadResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     if (message.accepted !== 0) {
       writer.uint32(8).uint32(message.accepted);
     }
@@ -495,10 +682,10 @@ export const OrbitBatchResponse: MessageFns<OrbitBatchResponse> = {
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): OrbitBatchResponse {
+  decode(input: BinaryReader | Uint8Array, length?: number): LoglyphUploadResponse {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseOrbitBatchResponse();
+    const message = createBaseLoglyphUploadResponse();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -535,7 +722,7 @@ export const OrbitBatchResponse: MessageFns<OrbitBatchResponse> = {
     return message;
   },
 
-  fromJSON(object: any): OrbitBatchResponse {
+  fromJSON(object: any): LoglyphUploadResponse {
     return {
       accepted: isSet(object.accepted) ? globalThis.Number(object.accepted) : 0,
       dropped: isSet(object.dropped) ? globalThis.Number(object.dropped) : 0,
@@ -543,7 +730,7 @@ export const OrbitBatchResponse: MessageFns<OrbitBatchResponse> = {
     };
   },
 
-  toJSON(message: OrbitBatchResponse): unknown {
+  toJSON(message: LoglyphUploadResponse): unknown {
     const obj: any = {};
     if (message.accepted !== 0) {
       obj.accepted = Math.round(message.accepted);
@@ -557,11 +744,199 @@ export const OrbitBatchResponse: MessageFns<OrbitBatchResponse> = {
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<OrbitBatchResponse>, I>>(base?: I): OrbitBatchResponse {
-    return OrbitBatchResponse.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<LoglyphUploadResponse>, I>>(base?: I): LoglyphUploadResponse {
+    return LoglyphUploadResponse.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<OrbitBatchResponse>, I>>(object: I): OrbitBatchResponse {
-    const message = createBaseOrbitBatchResponse();
+  fromPartial<I extends Exact<DeepPartial<LoglyphUploadResponse>, I>>(object: I): LoglyphUploadResponse {
+    const message = createBaseLoglyphUploadResponse();
+    message.accepted = object.accepted ?? 0;
+    message.dropped = object.dropped ?? 0;
+    message.reason = object.reason ?? "";
+    return message;
+  },
+};
+
+function createBaseOrbitBatchUploadRequest(): OrbitBatchUploadRequest {
+  return { version: "", sessionId: "", events: [] };
+}
+
+export const OrbitBatchUploadRequest: MessageFns<OrbitBatchUploadRequest> = {
+  encode(message: OrbitBatchUploadRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.version !== "") {
+      writer.uint32(10).string(message.version);
+    }
+    if (message.sessionId !== "") {
+      writer.uint32(18).string(message.sessionId);
+    }
+    for (const v of message.events) {
+      OrbitEvent.encode(v!, writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): OrbitBatchUploadRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseOrbitBatchUploadRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.version = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.events.push(OrbitEvent.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): OrbitBatchUploadRequest {
+    return {
+      version: isSet(object.version) ? globalThis.String(object.version) : "",
+      sessionId: isSet(object.sessionId)
+        ? globalThis.String(object.sessionId)
+        : isSet(object.session_id)
+        ? globalThis.String(object.session_id)
+        : "",
+      events: globalThis.Array.isArray(object?.events) ? object.events.map((e: any) => OrbitEvent.fromJSON(e)) : [],
+    };
+  },
+
+  toJSON(message: OrbitBatchUploadRequest): unknown {
+    const obj: any = {};
+    if (message.version !== "") {
+      obj.version = message.version;
+    }
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    if (message.events?.length) {
+      obj.events = message.events.map((e) => OrbitEvent.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<OrbitBatchUploadRequest>, I>>(base?: I): OrbitBatchUploadRequest {
+    return OrbitBatchUploadRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<OrbitBatchUploadRequest>, I>>(object: I): OrbitBatchUploadRequest {
+    const message = createBaseOrbitBatchUploadRequest();
+    message.version = object.version ?? "";
+    message.sessionId = object.sessionId ?? "";
+    message.events = object.events?.map((e) => OrbitEvent.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseOrbitBatchUploadResponse(): OrbitBatchUploadResponse {
+  return { accepted: 0, dropped: 0, reason: "" };
+}
+
+export const OrbitBatchUploadResponse: MessageFns<OrbitBatchUploadResponse> = {
+  encode(message: OrbitBatchUploadResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.accepted !== 0) {
+      writer.uint32(8).uint32(message.accepted);
+    }
+    if (message.dropped !== 0) {
+      writer.uint32(16).uint32(message.dropped);
+    }
+    if (message.reason !== "") {
+      writer.uint32(26).string(message.reason);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): OrbitBatchUploadResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseOrbitBatchUploadResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.accepted = reader.uint32();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.dropped = reader.uint32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.reason = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): OrbitBatchUploadResponse {
+    return {
+      accepted: isSet(object.accepted) ? globalThis.Number(object.accepted) : 0,
+      dropped: isSet(object.dropped) ? globalThis.Number(object.dropped) : 0,
+      reason: isSet(object.reason) ? globalThis.String(object.reason) : "",
+    };
+  },
+
+  toJSON(message: OrbitBatchUploadResponse): unknown {
+    const obj: any = {};
+    if (message.accepted !== 0) {
+      obj.accepted = Math.round(message.accepted);
+    }
+    if (message.dropped !== 0) {
+      obj.dropped = Math.round(message.dropped);
+    }
+    if (message.reason !== "") {
+      obj.reason = message.reason;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<OrbitBatchUploadResponse>, I>>(base?: I): OrbitBatchUploadResponse {
+    return OrbitBatchUploadResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<OrbitBatchUploadResponse>, I>>(object: I): OrbitBatchUploadResponse {
+    const message = createBaseOrbitBatchUploadResponse();
     message.accepted = object.accepted ?? 0;
     message.dropped = object.dropped ?? 0;
     message.reason = object.reason ?? "";
@@ -1294,173 +1669,48 @@ export const PathTransitionEvent: MessageFns<PathTransitionEvent> = {
   },
 };
 
-function createBaseGetEventsRequest(): GetEventsRequest {
-  return { nodeId: 0, sessionId: "", from: undefined, to: undefined, limit: 0, offset: 0 };
+function createBasePacketFlowLogUploadRequest(): PacketFlowLogUploadRequest {
+  return {
+    loggedAt: "",
+    startedAt: "",
+    endedAt: "",
+    peerTraffic: [],
+    lanTraffic: [],
+    exitNodeTraffic: [],
+    transportTraffic: [],
+  };
 }
 
-export const GetEventsRequest: MessageFns<GetEventsRequest> = {
-  encode(message: GetEventsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.nodeId !== 0) {
-      writer.uint32(8).uint64(message.nodeId);
+export const PacketFlowLogUploadRequest: MessageFns<PacketFlowLogUploadRequest> = {
+  encode(message: PacketFlowLogUploadRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.loggedAt !== "") {
+      writer.uint32(10).string(message.loggedAt);
     }
-    if (message.sessionId !== "") {
-      writer.uint32(18).string(message.sessionId);
+    if (message.startedAt !== "") {
+      writer.uint32(18).string(message.startedAt);
     }
-    if (message.from !== undefined) {
-      Timestamp.encode(toTimestamp(message.from), writer.uint32(26).fork()).join();
+    if (message.endedAt !== "") {
+      writer.uint32(26).string(message.endedAt);
     }
-    if (message.to !== undefined) {
-      Timestamp.encode(toTimestamp(message.to), writer.uint32(34).fork()).join();
+    for (const v of message.peerTraffic) {
+      PacketFlowEntry.encode(v!, writer.uint32(34).fork()).join();
     }
-    if (message.limit !== 0) {
-      writer.uint32(40).int32(message.limit);
+    for (const v of message.lanTraffic) {
+      PacketFlowEntry.encode(v!, writer.uint32(42).fork()).join();
     }
-    if (message.offset !== 0) {
-      writer.uint32(48).int32(message.offset);
+    for (const v of message.exitNodeTraffic) {
+      PacketFlowEntry.encode(v!, writer.uint32(50).fork()).join();
+    }
+    for (const v of message.transportTraffic) {
+      PacketFlowEntry.encode(v!, writer.uint32(58).fork()).join();
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GetEventsRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): PacketFlowLogUploadRequest {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetEventsRequest();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.nodeId = longToNumber(reader.uint64());
-          continue;
-        }
-        case 2: {
-          if (tag !== 18) {
-            break;
-          }
-
-          message.sessionId = reader.string();
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.from = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.to = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 5: {
-          if (tag !== 40) {
-            break;
-          }
-
-          message.limit = reader.int32();
-          continue;
-        }
-        case 6: {
-          if (tag !== 48) {
-            break;
-          }
-
-          message.offset = reader.int32();
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GetEventsRequest {
-    return {
-      nodeId: isSet(object.nodeId)
-        ? globalThis.Number(object.nodeId)
-        : isSet(object.node_id)
-        ? globalThis.Number(object.node_id)
-        : 0,
-      sessionId: isSet(object.sessionId)
-        ? globalThis.String(object.sessionId)
-        : isSet(object.session_id)
-        ? globalThis.String(object.session_id)
-        : "",
-      from: isSet(object.from) ? fromJsonTimestamp(object.from) : undefined,
-      to: isSet(object.to) ? fromJsonTimestamp(object.to) : undefined,
-      limit: isSet(object.limit) ? globalThis.Number(object.limit) : 0,
-      offset: isSet(object.offset) ? globalThis.Number(object.offset) : 0,
-    };
-  },
-
-  toJSON(message: GetEventsRequest): unknown {
-    const obj: any = {};
-    if (message.nodeId !== 0) {
-      obj.nodeId = Math.round(message.nodeId);
-    }
-    if (message.sessionId !== "") {
-      obj.sessionId = message.sessionId;
-    }
-    if (message.from !== undefined) {
-      obj.from = message.from.toISOString();
-    }
-    if (message.to !== undefined) {
-      obj.to = message.to.toISOString();
-    }
-    if (message.limit !== 0) {
-      obj.limit = Math.round(message.limit);
-    }
-    if (message.offset !== 0) {
-      obj.offset = Math.round(message.offset);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetEventsRequest>, I>>(base?: I): GetEventsRequest {
-    return GetEventsRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetEventsRequest>, I>>(object: I): GetEventsRequest {
-    const message = createBaseGetEventsRequest();
-    message.nodeId = object.nodeId ?? 0;
-    message.sessionId = object.sessionId ?? "";
-    message.from = object.from ?? undefined;
-    message.to = object.to ?? undefined;
-    message.limit = object.limit ?? 0;
-    message.offset = object.offset ?? 0;
-    return message;
-  },
-};
-
-function createBaseGetEventsResponse(): GetEventsResponse {
-  return { events: [], totalCount: 0 };
-}
-
-export const GetEventsResponse: MessageFns<GetEventsResponse> = {
-  encode(message: GetEventsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    for (const v of message.events) {
-      StoredOrbitEvent.encode(v!, writer.uint32(10).fork()).join();
-    }
-    if (message.totalCount !== 0) {
-      writer.uint32(16).int64(message.totalCount);
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): GetEventsResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetEventsResponse();
+    const message = createBasePacketFlowLogUploadRequest();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1469,144 +1719,15 @@ export const GetEventsResponse: MessageFns<GetEventsResponse> = {
             break;
           }
 
-          message.events.push(StoredOrbitEvent.decode(reader, reader.uint32()));
+          message.loggedAt = reader.string();
           continue;
         }
         case 2: {
-          if (tag !== 16) {
+          if (tag !== 18) {
             break;
           }
 
-          message.totalCount = longToNumber(reader.int64());
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GetEventsResponse {
-    return {
-      events: globalThis.Array.isArray(object?.events)
-        ? object.events.map((e: any) => StoredOrbitEvent.fromJSON(e))
-        : [],
-      totalCount: isSet(object.totalCount)
-        ? globalThis.Number(object.totalCount)
-        : isSet(object.total_count)
-        ? globalThis.Number(object.total_count)
-        : 0,
-    };
-  },
-
-  toJSON(message: GetEventsResponse): unknown {
-    const obj: any = {};
-    if (message.events?.length) {
-      obj.events = message.events.map((e) => StoredOrbitEvent.toJSON(e));
-    }
-    if (message.totalCount !== 0) {
-      obj.totalCount = Math.round(message.totalCount);
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetEventsResponse>, I>>(base?: I): GetEventsResponse {
-    return GetEventsResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetEventsResponse>, I>>(object: I): GetEventsResponse {
-    const message = createBaseGetEventsResponse();
-    message.events = object.events?.map((e) => StoredOrbitEvent.fromPartial(e)) || [];
-    message.totalCount = object.totalCount ?? 0;
-    return message;
-  },
-};
-
-function createBaseStoredOrbitEvent(): StoredOrbitEvent {
-  return {
-    id: 0,
-    nodeId: 0,
-    sessionId: "",
-    clientVersion: "",
-    receivedAt: undefined,
-    eventAt: undefined,
-    eventDay: undefined,
-    peerHash: new Uint8Array(0),
-    regionId: 0,
-    transport: 0,
-    payloadType: "",
-    payload: "",
-    createdAt: undefined,
-  };
-}
-
-export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
-  encode(message: StoredOrbitEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.id !== 0) {
-      writer.uint32(8).uint64(message.id);
-    }
-    if (message.nodeId !== 0) {
-      writer.uint32(16).uint64(message.nodeId);
-    }
-    if (message.sessionId !== "") {
-      writer.uint32(26).string(message.sessionId);
-    }
-    if (message.clientVersion !== "") {
-      writer.uint32(34).string(message.clientVersion);
-    }
-    if (message.receivedAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.receivedAt), writer.uint32(42).fork()).join();
-    }
-    if (message.eventAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.eventAt), writer.uint32(50).fork()).join();
-    }
-    if (message.eventDay !== undefined) {
-      Timestamp.encode(toTimestamp(message.eventDay), writer.uint32(58).fork()).join();
-    }
-    if (message.peerHash.length !== 0) {
-      writer.uint32(66).bytes(message.peerHash);
-    }
-    if (message.regionId !== 0) {
-      writer.uint32(72).uint32(message.regionId);
-    }
-    if (message.transport !== 0) {
-      writer.uint32(80).int32(message.transport);
-    }
-    if (message.payloadType !== "") {
-      writer.uint32(90).string(message.payloadType);
-    }
-    if (message.payload !== "") {
-      writer.uint32(98).string(message.payload);
-    }
-    if (message.createdAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(106).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): StoredOrbitEvent {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseStoredOrbitEvent();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 8) {
-            break;
-          }
-
-          message.id = longToNumber(reader.uint64());
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.nodeId = longToNumber(reader.uint64());
+          message.startedAt = reader.string();
           continue;
         }
         case 3: {
@@ -1614,7 +1735,7 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
             break;
           }
 
-          message.sessionId = reader.string();
+          message.endedAt = reader.string();
           continue;
         }
         case 4: {
@@ -1622,7 +1743,7 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
             break;
           }
 
-          message.clientVersion = reader.string();
+          message.peerTraffic.push(PacketFlowEntry.decode(reader, reader.uint32()));
           continue;
         }
         case 5: {
@@ -1630,7 +1751,7 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
             break;
           }
 
-          message.receivedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.lanTraffic.push(PacketFlowEntry.decode(reader, reader.uint32()));
           continue;
         }
         case 6: {
@@ -1638,7 +1759,7 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
             break;
           }
 
-          message.eventAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.exitNodeTraffic.push(PacketFlowEntry.decode(reader, reader.uint32()));
           continue;
         }
         case 7: {
@@ -1646,55 +1767,7 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
             break;
           }
 
-          message.eventDay = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 8: {
-          if (tag !== 66) {
-            break;
-          }
-
-          message.peerHash = reader.bytes();
-          continue;
-        }
-        case 9: {
-          if (tag !== 72) {
-            break;
-          }
-
-          message.regionId = reader.uint32();
-          continue;
-        }
-        case 10: {
-          if (tag !== 80) {
-            break;
-          }
-
-          message.transport = reader.int32() as any;
-          continue;
-        }
-        case 11: {
-          if (tag !== 90) {
-            break;
-          }
-
-          message.payloadType = reader.string();
-          continue;
-        }
-        case 12: {
-          if (tag !== 98) {
-            break;
-          }
-
-          message.payload = reader.string();
-          continue;
-        }
-        case 13: {
-          if (tag !== 106) {
-            break;
-          }
-
-          message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.transportTraffic.push(PacketFlowEntry.decode(reader, reader.uint32()));
           continue;
         }
       }
@@ -1706,155 +1779,122 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
     return message;
   },
 
-  fromJSON(object: any): StoredOrbitEvent {
+  fromJSON(object: any): PacketFlowLogUploadRequest {
     return {
-      id: isSet(object.id) ? globalThis.Number(object.id) : 0,
-      nodeId: isSet(object.nodeId)
-        ? globalThis.Number(object.nodeId)
-        : isSet(object.node_id)
-        ? globalThis.Number(object.node_id)
-        : 0,
-      sessionId: isSet(object.sessionId)
-        ? globalThis.String(object.sessionId)
-        : isSet(object.session_id)
-        ? globalThis.String(object.session_id)
+      loggedAt: isSet(object.loggedAt)
+        ? globalThis.String(object.loggedAt)
+        : isSet(object.logged_at)
+        ? globalThis.String(object.logged_at)
         : "",
-      clientVersion: isSet(object.clientVersion)
-        ? globalThis.String(object.clientVersion)
-        : isSet(object.client_version)
-        ? globalThis.String(object.client_version)
+      startedAt: isSet(object.startedAt)
+        ? globalThis.String(object.startedAt)
+        : isSet(object.started_at)
+        ? globalThis.String(object.started_at)
         : "",
-      receivedAt: isSet(object.receivedAt)
-        ? fromJsonTimestamp(object.receivedAt)
-        : isSet(object.received_at)
-        ? fromJsonTimestamp(object.received_at)
-        : undefined,
-      eventAt: isSet(object.eventAt)
-        ? fromJsonTimestamp(object.eventAt)
-        : isSet(object.event_at)
-        ? fromJsonTimestamp(object.event_at)
-        : undefined,
-      eventDay: isSet(object.eventDay)
-        ? fromJsonTimestamp(object.eventDay)
-        : isSet(object.event_day)
-        ? fromJsonTimestamp(object.event_day)
-        : undefined,
-      peerHash: isSet(object.peerHash)
-        ? bytesFromBase64(object.peerHash)
-        : isSet(object.peer_hash)
-        ? bytesFromBase64(object.peer_hash)
-        : new Uint8Array(0),
-      regionId: isSet(object.regionId)
-        ? globalThis.Number(object.regionId)
-        : isSet(object.region_id)
-        ? globalThis.Number(object.region_id)
-        : 0,
-      transport: isSet(object.transport) ? transportFromJSON(object.transport) : 0,
-      payloadType: isSet(object.payloadType)
-        ? globalThis.String(object.payloadType)
-        : isSet(object.payload_type)
-        ? globalThis.String(object.payload_type)
+      endedAt: isSet(object.endedAt)
+        ? globalThis.String(object.endedAt)
+        : isSet(object.ended_at)
+        ? globalThis.String(object.ended_at)
         : "",
-      payload: isSet(object.payload) ? globalThis.String(object.payload) : "",
-      createdAt: isSet(object.createdAt)
-        ? fromJsonTimestamp(object.createdAt)
-        : isSet(object.created_at)
-        ? fromJsonTimestamp(object.created_at)
-        : undefined,
+      peerTraffic: globalThis.Array.isArray(object?.peerTraffic)
+        ? object.peerTraffic.map((e: any) => PacketFlowEntry.fromJSON(e))
+        : globalThis.Array.isArray(object?.peer_traffic)
+        ? object.peer_traffic.map((e: any) => PacketFlowEntry.fromJSON(e))
+        : [],
+      lanTraffic: globalThis.Array.isArray(object?.lanTraffic)
+        ? object.lanTraffic.map((e: any) => PacketFlowEntry.fromJSON(e))
+        : globalThis.Array.isArray(object?.lan_traffic)
+        ? object.lan_traffic.map((e: any) => PacketFlowEntry.fromJSON(e))
+        : [],
+      exitNodeTraffic: globalThis.Array.isArray(object?.exitNodeTraffic)
+        ? object.exitNodeTraffic.map((e: any) => PacketFlowEntry.fromJSON(e))
+        : globalThis.Array.isArray(object?.exit_node_traffic)
+        ? object.exit_node_traffic.map((e: any) => PacketFlowEntry.fromJSON(e))
+        : [],
+      transportTraffic: globalThis.Array.isArray(object?.transportTraffic)
+        ? object.transportTraffic.map((e: any) => PacketFlowEntry.fromJSON(e))
+        : globalThis.Array.isArray(object?.transport_traffic)
+        ? object.transport_traffic.map((e: any) => PacketFlowEntry.fromJSON(e))
+        : [],
     };
   },
 
-  toJSON(message: StoredOrbitEvent): unknown {
+  toJSON(message: PacketFlowLogUploadRequest): unknown {
     const obj: any = {};
-    if (message.id !== 0) {
-      obj.id = Math.round(message.id);
+    if (message.loggedAt !== "") {
+      obj.loggedAt = message.loggedAt;
     }
-    if (message.nodeId !== 0) {
-      obj.nodeId = Math.round(message.nodeId);
+    if (message.startedAt !== "") {
+      obj.startedAt = message.startedAt;
     }
-    if (message.sessionId !== "") {
-      obj.sessionId = message.sessionId;
+    if (message.endedAt !== "") {
+      obj.endedAt = message.endedAt;
     }
-    if (message.clientVersion !== "") {
-      obj.clientVersion = message.clientVersion;
+    if (message.peerTraffic?.length) {
+      obj.peerTraffic = message.peerTraffic.map((e) => PacketFlowEntry.toJSON(e));
     }
-    if (message.receivedAt !== undefined) {
-      obj.receivedAt = message.receivedAt.toISOString();
+    if (message.lanTraffic?.length) {
+      obj.lanTraffic = message.lanTraffic.map((e) => PacketFlowEntry.toJSON(e));
     }
-    if (message.eventAt !== undefined) {
-      obj.eventAt = message.eventAt.toISOString();
+    if (message.exitNodeTraffic?.length) {
+      obj.exitNodeTraffic = message.exitNodeTraffic.map((e) => PacketFlowEntry.toJSON(e));
     }
-    if (message.eventDay !== undefined) {
-      obj.eventDay = message.eventDay.toISOString();
-    }
-    if (message.peerHash.length !== 0) {
-      obj.peerHash = base64FromBytes(message.peerHash);
-    }
-    if (message.regionId !== 0) {
-      obj.regionId = Math.round(message.regionId);
-    }
-    if (message.transport !== 0) {
-      obj.transport = transportToJSON(message.transport);
-    }
-    if (message.payloadType !== "") {
-      obj.payloadType = message.payloadType;
-    }
-    if (message.payload !== "") {
-      obj.payload = message.payload;
-    }
-    if (message.createdAt !== undefined) {
-      obj.createdAt = message.createdAt.toISOString();
+    if (message.transportTraffic?.length) {
+      obj.transportTraffic = message.transportTraffic.map((e) => PacketFlowEntry.toJSON(e));
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<StoredOrbitEvent>, I>>(base?: I): StoredOrbitEvent {
-    return StoredOrbitEvent.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<PacketFlowLogUploadRequest>, I>>(base?: I): PacketFlowLogUploadRequest {
+    return PacketFlowLogUploadRequest.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<StoredOrbitEvent>, I>>(object: I): StoredOrbitEvent {
-    const message = createBaseStoredOrbitEvent();
-    message.id = object.id ?? 0;
-    message.nodeId = object.nodeId ?? 0;
-    message.sessionId = object.sessionId ?? "";
-    message.clientVersion = object.clientVersion ?? "";
-    message.receivedAt = object.receivedAt ?? undefined;
-    message.eventAt = object.eventAt ?? undefined;
-    message.eventDay = object.eventDay ?? undefined;
-    message.peerHash = object.peerHash ?? new Uint8Array(0);
-    message.regionId = object.regionId ?? 0;
-    message.transport = object.transport ?? 0;
-    message.payloadType = object.payloadType ?? "";
-    message.payload = object.payload ?? "";
-    message.createdAt = object.createdAt ?? undefined;
+  fromPartial<I extends Exact<DeepPartial<PacketFlowLogUploadRequest>, I>>(object: I): PacketFlowLogUploadRequest {
+    const message = createBasePacketFlowLogUploadRequest();
+    message.loggedAt = object.loggedAt ?? "";
+    message.startedAt = object.startedAt ?? "";
+    message.endedAt = object.endedAt ?? "";
+    message.peerTraffic = object.peerTraffic?.map((e) => PacketFlowEntry.fromPartial(e)) || [];
+    message.lanTraffic = object.lanTraffic?.map((e) => PacketFlowEntry.fromPartial(e)) || [];
+    message.exitNodeTraffic = object.exitNodeTraffic?.map((e) => PacketFlowEntry.fromPartial(e)) || [];
+    message.transportTraffic = object.transportTraffic?.map((e) => PacketFlowEntry.fromPartial(e)) || [];
     return message;
   },
 };
 
-function createBaseGetDailyCountsRequest(): GetDailyCountsRequest {
-  return { nodeId: 0, metric: "", from: undefined, to: undefined };
+function createBasePacketFlowEntry(): PacketFlowEntry {
+  return { proto: 0, src: "", dst: "", txPackets: 0, txBytes: 0, rxPackets: 0, rxBytes: 0 };
 }
 
-export const GetDailyCountsRequest: MessageFns<GetDailyCountsRequest> = {
-  encode(message: GetDailyCountsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.nodeId !== 0) {
-      writer.uint32(8).uint64(message.nodeId);
+export const PacketFlowEntry: MessageFns<PacketFlowEntry> = {
+  encode(message: PacketFlowEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.proto !== 0) {
+      writer.uint32(8).uint32(message.proto);
     }
-    if (message.metric !== "") {
-      writer.uint32(18).string(message.metric);
+    if (message.src !== "") {
+      writer.uint32(18).string(message.src);
     }
-    if (message.from !== undefined) {
-      Timestamp.encode(toTimestamp(message.from), writer.uint32(26).fork()).join();
+    if (message.dst !== "") {
+      writer.uint32(26).string(message.dst);
     }
-    if (message.to !== undefined) {
-      Timestamp.encode(toTimestamp(message.to), writer.uint32(34).fork()).join();
+    if (message.txPackets !== 0) {
+      writer.uint32(32).uint64(message.txPackets);
+    }
+    if (message.txBytes !== 0) {
+      writer.uint32(40).uint64(message.txBytes);
+    }
+    if (message.rxPackets !== 0) {
+      writer.uint32(48).uint64(message.rxPackets);
+    }
+    if (message.rxBytes !== 0) {
+      writer.uint32(56).uint64(message.rxBytes);
     }
     return writer;
   },
 
-  decode(input: BinaryReader | Uint8Array, length?: number): GetDailyCountsRequest {
+  decode(input: BinaryReader | Uint8Array, length?: number): PacketFlowEntry {
     const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
     const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetDailyCountsRequest();
+    const message = createBasePacketFlowEntry();
     while (reader.pos < end) {
       const tag = reader.uint32();
       switch (tag >>> 3) {
@@ -1863,7 +1903,7 @@ export const GetDailyCountsRequest: MessageFns<GetDailyCountsRequest> = {
             break;
           }
 
-          message.nodeId = longToNumber(reader.uint64());
+          message.proto = reader.uint32();
           continue;
         }
         case 2: {
@@ -1871,7 +1911,7 @@ export const GetDailyCountsRequest: MessageFns<GetDailyCountsRequest> = {
             break;
           }
 
-          message.metric = reader.string();
+          message.src = reader.string();
           continue;
         }
         case 3: {
@@ -1879,196 +1919,15 @@ export const GetDailyCountsRequest: MessageFns<GetDailyCountsRequest> = {
             break;
           }
 
-          message.from = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.dst = reader.string();
           continue;
         }
         case 4: {
-          if (tag !== 34) {
+          if (tag !== 32) {
             break;
           }
 
-          message.to = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GetDailyCountsRequest {
-    return {
-      nodeId: isSet(object.nodeId)
-        ? globalThis.Number(object.nodeId)
-        : isSet(object.node_id)
-        ? globalThis.Number(object.node_id)
-        : 0,
-      metric: isSet(object.metric) ? globalThis.String(object.metric) : "",
-      from: isSet(object.from) ? fromJsonTimestamp(object.from) : undefined,
-      to: isSet(object.to) ? fromJsonTimestamp(object.to) : undefined,
-    };
-  },
-
-  toJSON(message: GetDailyCountsRequest): unknown {
-    const obj: any = {};
-    if (message.nodeId !== 0) {
-      obj.nodeId = Math.round(message.nodeId);
-    }
-    if (message.metric !== "") {
-      obj.metric = message.metric;
-    }
-    if (message.from !== undefined) {
-      obj.from = message.from.toISOString();
-    }
-    if (message.to !== undefined) {
-      obj.to = message.to.toISOString();
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetDailyCountsRequest>, I>>(base?: I): GetDailyCountsRequest {
-    return GetDailyCountsRequest.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetDailyCountsRequest>, I>>(object: I): GetDailyCountsRequest {
-    const message = createBaseGetDailyCountsRequest();
-    message.nodeId = object.nodeId ?? 0;
-    message.metric = object.metric ?? "";
-    message.from = object.from ?? undefined;
-    message.to = object.to ?? undefined;
-    return message;
-  },
-};
-
-function createBaseGetDailyCountsResponse(): GetDailyCountsResponse {
-  return { counts: [] };
-}
-
-export const GetDailyCountsResponse: MessageFns<GetDailyCountsResponse> = {
-  encode(message: GetDailyCountsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    for (const v of message.counts) {
-      DailyCount.encode(v!, writer.uint32(10).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): GetDailyCountsResponse {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseGetDailyCountsResponse();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.counts.push(DailyCount.decode(reader, reader.uint32()));
-          continue;
-        }
-      }
-      if ((tag & 7) === 4 || tag === 0) {
-        break;
-      }
-      reader.skip(tag & 7);
-    }
-    return message;
-  },
-
-  fromJSON(object: any): GetDailyCountsResponse {
-    return {
-      counts: globalThis.Array.isArray(object?.counts) ? object.counts.map((e: any) => DailyCount.fromJSON(e)) : [],
-    };
-  },
-
-  toJSON(message: GetDailyCountsResponse): unknown {
-    const obj: any = {};
-    if (message.counts?.length) {
-      obj.counts = message.counts.map((e) => DailyCount.toJSON(e));
-    }
-    return obj;
-  },
-
-  create<I extends Exact<DeepPartial<GetDailyCountsResponse>, I>>(base?: I): GetDailyCountsResponse {
-    return GetDailyCountsResponse.fromPartial(base ?? ({} as any));
-  },
-  fromPartial<I extends Exact<DeepPartial<GetDailyCountsResponse>, I>>(object: I): GetDailyCountsResponse {
-    const message = createBaseGetDailyCountsResponse();
-    message.counts = object.counts?.map((e) => DailyCount.fromPartial(e)) || [];
-    return message;
-  },
-};
-
-function createBaseDailyCount(): DailyCount {
-  return { day: undefined, nodeId: 0, metric: "", labelKey: "", count: 0, createdAt: undefined, updatedAt: undefined };
-}
-
-export const DailyCount: MessageFns<DailyCount> = {
-  encode(message: DailyCount, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
-    if (message.day !== undefined) {
-      Timestamp.encode(toTimestamp(message.day), writer.uint32(10).fork()).join();
-    }
-    if (message.nodeId !== 0) {
-      writer.uint32(16).uint64(message.nodeId);
-    }
-    if (message.metric !== "") {
-      writer.uint32(26).string(message.metric);
-    }
-    if (message.labelKey !== "") {
-      writer.uint32(34).string(message.labelKey);
-    }
-    if (message.count !== 0) {
-      writer.uint32(40).int64(message.count);
-    }
-    if (message.createdAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(50).fork()).join();
-    }
-    if (message.updatedAt !== undefined) {
-      Timestamp.encode(toTimestamp(message.updatedAt), writer.uint32(58).fork()).join();
-    }
-    return writer;
-  },
-
-  decode(input: BinaryReader | Uint8Array, length?: number): DailyCount {
-    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
-    const end = length === undefined ? reader.len : reader.pos + length;
-    const message = createBaseDailyCount();
-    while (reader.pos < end) {
-      const tag = reader.uint32();
-      switch (tag >>> 3) {
-        case 1: {
-          if (tag !== 10) {
-            break;
-          }
-
-          message.day = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
-          continue;
-        }
-        case 2: {
-          if (tag !== 16) {
-            break;
-          }
-
-          message.nodeId = longToNumber(reader.uint64());
-          continue;
-        }
-        case 3: {
-          if (tag !== 26) {
-            break;
-          }
-
-          message.metric = reader.string();
-          continue;
-        }
-        case 4: {
-          if (tag !== 34) {
-            break;
-          }
-
-          message.labelKey = reader.string();
+          message.txPackets = longToNumber(reader.uint64());
           continue;
         }
         case 5: {
@@ -2076,23 +1935,23 @@ export const DailyCount: MessageFns<DailyCount> = {
             break;
           }
 
-          message.count = longToNumber(reader.int64());
+          message.txBytes = longToNumber(reader.uint64());
           continue;
         }
         case 6: {
-          if (tag !== 50) {
+          if (tag !== 48) {
             break;
           }
 
-          message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.rxPackets = longToNumber(reader.uint64());
           continue;
         }
         case 7: {
-          if (tag !== 58) {
+          if (tag !== 56) {
             break;
           }
 
-          message.updatedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          message.rxBytes = longToNumber(reader.uint64());
           continue;
         }
       }
@@ -2104,137 +1963,236 @@ export const DailyCount: MessageFns<DailyCount> = {
     return message;
   },
 
-  fromJSON(object: any): DailyCount {
+  fromJSON(object: any): PacketFlowEntry {
     return {
-      day: isSet(object.day) ? fromJsonTimestamp(object.day) : undefined,
-      nodeId: isSet(object.nodeId)
-        ? globalThis.Number(object.nodeId)
-        : isSet(object.node_id)
-        ? globalThis.Number(object.node_id)
+      proto: isSet(object.proto) ? globalThis.Number(object.proto) : 0,
+      src: isSet(object.src) ? globalThis.String(object.src) : "",
+      dst: isSet(object.dst) ? globalThis.String(object.dst) : "",
+      txPackets: isSet(object.txPackets)
+        ? globalThis.Number(object.txPackets)
+        : isSet(object.tx_packets)
+        ? globalThis.Number(object.tx_packets)
         : 0,
-      metric: isSet(object.metric) ? globalThis.String(object.metric) : "",
-      labelKey: isSet(object.labelKey)
-        ? globalThis.String(object.labelKey)
-        : isSet(object.label_key)
-        ? globalThis.String(object.label_key)
-        : "",
-      count: isSet(object.count) ? globalThis.Number(object.count) : 0,
-      createdAt: isSet(object.createdAt)
-        ? fromJsonTimestamp(object.createdAt)
-        : isSet(object.created_at)
-        ? fromJsonTimestamp(object.created_at)
-        : undefined,
-      updatedAt: isSet(object.updatedAt)
-        ? fromJsonTimestamp(object.updatedAt)
-        : isSet(object.updated_at)
-        ? fromJsonTimestamp(object.updated_at)
-        : undefined,
+      txBytes: isSet(object.txBytes)
+        ? globalThis.Number(object.txBytes)
+        : isSet(object.tx_bytes)
+        ? globalThis.Number(object.tx_bytes)
+        : 0,
+      rxPackets: isSet(object.rxPackets)
+        ? globalThis.Number(object.rxPackets)
+        : isSet(object.rx_packets)
+        ? globalThis.Number(object.rx_packets)
+        : 0,
+      rxBytes: isSet(object.rxBytes)
+        ? globalThis.Number(object.rxBytes)
+        : isSet(object.rx_bytes)
+        ? globalThis.Number(object.rx_bytes)
+        : 0,
     };
   },
 
-  toJSON(message: DailyCount): unknown {
+  toJSON(message: PacketFlowEntry): unknown {
     const obj: any = {};
-    if (message.day !== undefined) {
-      obj.day = message.day.toISOString();
+    if (message.proto !== 0) {
+      obj.proto = Math.round(message.proto);
     }
-    if (message.nodeId !== 0) {
-      obj.nodeId = Math.round(message.nodeId);
+    if (message.src !== "") {
+      obj.src = message.src;
     }
-    if (message.metric !== "") {
-      obj.metric = message.metric;
+    if (message.dst !== "") {
+      obj.dst = message.dst;
     }
-    if (message.labelKey !== "") {
-      obj.labelKey = message.labelKey;
+    if (message.txPackets !== 0) {
+      obj.txPackets = Math.round(message.txPackets);
     }
-    if (message.count !== 0) {
-      obj.count = Math.round(message.count);
+    if (message.txBytes !== 0) {
+      obj.txBytes = Math.round(message.txBytes);
     }
-    if (message.createdAt !== undefined) {
-      obj.createdAt = message.createdAt.toISOString();
+    if (message.rxPackets !== 0) {
+      obj.rxPackets = Math.round(message.rxPackets);
     }
-    if (message.updatedAt !== undefined) {
-      obj.updatedAt = message.updatedAt.toISOString();
+    if (message.rxBytes !== 0) {
+      obj.rxBytes = Math.round(message.rxBytes);
     }
     return obj;
   },
 
-  create<I extends Exact<DeepPartial<DailyCount>, I>>(base?: I): DailyCount {
-    return DailyCount.fromPartial(base ?? ({} as any));
+  create<I extends Exact<DeepPartial<PacketFlowEntry>, I>>(base?: I): PacketFlowEntry {
+    return PacketFlowEntry.fromPartial(base ?? ({} as any));
   },
-  fromPartial<I extends Exact<DeepPartial<DailyCount>, I>>(object: I): DailyCount {
-    const message = createBaseDailyCount();
-    message.day = object.day ?? undefined;
-    message.nodeId = object.nodeId ?? 0;
-    message.metric = object.metric ?? "";
-    message.labelKey = object.labelKey ?? "";
-    message.count = object.count ?? 0;
-    message.createdAt = object.createdAt ?? undefined;
-    message.updatedAt = object.updatedAt ?? undefined;
+  fromPartial<I extends Exact<DeepPartial<PacketFlowEntry>, I>>(object: I): PacketFlowEntry {
+    const message = createBasePacketFlowEntry();
+    message.proto = object.proto ?? 0;
+    message.src = object.src ?? "";
+    message.dst = object.dst ?? "";
+    message.txPackets = object.txPackets ?? 0;
+    message.txBytes = object.txBytes ?? 0;
+    message.rxPackets = object.rxPackets ?? 0;
+    message.rxBytes = object.rxBytes ?? 0;
+    return message;
+  },
+};
+
+function createBasePacketFlowLogUploadResponse(): PacketFlowLogUploadResponse {
+  return { accepted: 0 };
+}
+
+export const PacketFlowLogUploadResponse: MessageFns<PacketFlowLogUploadResponse> = {
+  encode(message: PacketFlowLogUploadResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.accepted !== 0) {
+      writer.uint32(8).uint32(message.accepted);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PacketFlowLogUploadResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePacketFlowLogUploadResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.accepted = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PacketFlowLogUploadResponse {
+    return { accepted: isSet(object.accepted) ? globalThis.Number(object.accepted) : 0 };
+  },
+
+  toJSON(message: PacketFlowLogUploadResponse): unknown {
+    const obj: any = {};
+    if (message.accepted !== 0) {
+      obj.accepted = Math.round(message.accepted);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PacketFlowLogUploadResponse>, I>>(base?: I): PacketFlowLogUploadResponse {
+    return PacketFlowLogUploadResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PacketFlowLogUploadResponse>, I>>(object: I): PacketFlowLogUploadResponse {
+    const message = createBasePacketFlowLogUploadResponse();
+    message.accepted = object.accepted ?? 0;
     return message;
   },
 };
 
 /**
- * OrbitService ingests low-cardinality client telemetry batches.
- * This service is used for operational metrics like path transitions,
- * send/receive results, CERF connection events, and filter decisions.
+ * LogWriterService receives log uploads from client nodes.
+ * Authentication: gRPC metadata "private-id" + "log-token" headers.
+ * The log server validates the token signature, checks expiration,
+ * and verifies that SHA-256(private-id) matches the token's public_id.
  */
-export interface OrbitService {
-  /**
-   * UploadOrbitBatch receives a batch of telemetry events from a client node.
-   * Authentication is done via node identity headers (node-key/wg-pub-key/rune-key).
-   */
-  UploadOrbitBatch(request: DeepPartial<OrbitBatchRequest>, metadata?: grpc.Metadata): Promise<OrbitBatchResponse>;
-  /** GetEvents retrieves stored events for a node or session (admin/debug use). */
-  GetEvents(request: DeepPartial<GetEventsRequest>, metadata?: grpc.Metadata): Promise<GetEventsResponse>;
-  /** GetDailyCounts retrieves aggregated daily counts for metrics. */
-  GetDailyCounts(
-    request: DeepPartial<GetDailyCountsRequest>,
+export interface LogWriterService {
+  /** UploadLoglyphEntries uploads client debug log entries. */
+  UploadLoglyphEntries(
+    request: DeepPartial<LoglyphUploadRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<GetDailyCountsResponse>;
+  ): Promise<LoglyphUploadResponse>;
+  /** UploadOrbitBatch uploads a batch of telemetry events. */
+  UploadOrbitBatch(
+    request: DeepPartial<OrbitBatchUploadRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<OrbitBatchUploadResponse>;
+  /** UploadPacketFlowLogs uploads network flow statistics. */
+  UploadPacketFlowLogs(
+    request: DeepPartial<PacketFlowLogUploadRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<PacketFlowLogUploadResponse>;
 }
 
-export class OrbitServiceClientImpl implements OrbitService {
+export class LogWriterServiceClientImpl implements LogWriterService {
   private readonly rpc: Rpc;
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
+    this.UploadLoglyphEntries = this.UploadLoglyphEntries.bind(this);
     this.UploadOrbitBatch = this.UploadOrbitBatch.bind(this);
-    this.GetEvents = this.GetEvents.bind(this);
-    this.GetDailyCounts = this.GetDailyCounts.bind(this);
+    this.UploadPacketFlowLogs = this.UploadPacketFlowLogs.bind(this);
   }
 
-  UploadOrbitBatch(request: DeepPartial<OrbitBatchRequest>, metadata?: grpc.Metadata): Promise<OrbitBatchResponse> {
-    return this.rpc.unary(OrbitServiceUploadOrbitBatchDesc, OrbitBatchRequest.fromPartial(request), metadata);
-  }
-
-  GetEvents(request: DeepPartial<GetEventsRequest>, metadata?: grpc.Metadata): Promise<GetEventsResponse> {
-    return this.rpc.unary(OrbitServiceGetEventsDesc, GetEventsRequest.fromPartial(request), metadata);
-  }
-
-  GetDailyCounts(
-    request: DeepPartial<GetDailyCountsRequest>,
+  UploadLoglyphEntries(
+    request: DeepPartial<LoglyphUploadRequest>,
     metadata?: grpc.Metadata,
-  ): Promise<GetDailyCountsResponse> {
-    return this.rpc.unary(OrbitServiceGetDailyCountsDesc, GetDailyCountsRequest.fromPartial(request), metadata);
+  ): Promise<LoglyphUploadResponse> {
+    return this.rpc.unary(
+      LogWriterServiceUploadLoglyphEntriesDesc,
+      LoglyphUploadRequest.fromPartial(request),
+      metadata,
+    );
+  }
+
+  UploadOrbitBatch(
+    request: DeepPartial<OrbitBatchUploadRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<OrbitBatchUploadResponse> {
+    return this.rpc.unary(LogWriterServiceUploadOrbitBatchDesc, OrbitBatchUploadRequest.fromPartial(request), metadata);
+  }
+
+  UploadPacketFlowLogs(
+    request: DeepPartial<PacketFlowLogUploadRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<PacketFlowLogUploadResponse> {
+    return this.rpc.unary(
+      LogWriterServiceUploadPacketFlowLogsDesc,
+      PacketFlowLogUploadRequest.fromPartial(request),
+      metadata,
+    );
   }
 }
 
-export const OrbitServiceDesc = { serviceName: "protos.OrbitService" };
+export const LogWriterServiceDesc = { serviceName: "logserver.LogWriterService" };
 
-export const OrbitServiceUploadOrbitBatchDesc: UnaryMethodDefinitionish = {
+export const LogWriterServiceUploadLoglyphEntriesDesc: UnaryMethodDefinitionish = {
+  methodName: "UploadLoglyphEntries",
+  service: LogWriterServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return LoglyphUploadRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = LoglyphUploadResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const LogWriterServiceUploadOrbitBatchDesc: UnaryMethodDefinitionish = {
   methodName: "UploadOrbitBatch",
-  service: OrbitServiceDesc,
+  service: LogWriterServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return OrbitBatchRequest.encode(this).finish();
+      return OrbitBatchUploadRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = OrbitBatchResponse.decode(data);
+      const value = OrbitBatchUploadResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -2245,42 +2203,19 @@ export const OrbitServiceUploadOrbitBatchDesc: UnaryMethodDefinitionish = {
   } as any,
 };
 
-export const OrbitServiceGetEventsDesc: UnaryMethodDefinitionish = {
-  methodName: "GetEvents",
-  service: OrbitServiceDesc,
+export const LogWriterServiceUploadPacketFlowLogsDesc: UnaryMethodDefinitionish = {
+  methodName: "UploadPacketFlowLogs",
+  service: LogWriterServiceDesc,
   requestStream: false,
   responseStream: false,
   requestType: {
     serializeBinary() {
-      return GetEventsRequest.encode(this).finish();
+      return PacketFlowLogUploadRequest.encode(this).finish();
     },
   } as any,
   responseType: {
     deserializeBinary(data: Uint8Array) {
-      const value = GetEventsResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const OrbitServiceGetDailyCountsDesc: UnaryMethodDefinitionish = {
-  methodName: "GetDailyCounts",
-  service: OrbitServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return GetDailyCountsRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = GetDailyCountsResponse.decode(data);
+      const value = PacketFlowLogUploadResponse.decode(data);
       return {
         ...value,
         toObject() {
