@@ -32,6 +32,11 @@ export interface GetLoglyphRequest {
   sessionId: string;
   /** level is an optional filter for log level (e.g., "error", "warn"). */
   level: string;
+  /**
+   * telemetry_log_id is the server-provided node-level telemetry ID for admin queries.
+   * If set, queries entries by this ID instead of log_stream_id.
+   */
+  telemetryLogId: string;
 }
 
 /** GetLoglyphResponse contains the queried log entries. */
@@ -53,7 +58,11 @@ export interface StoredLoglyphEntry {
   level: string;
   text: string;
   payload: string;
-  createdAt: Date | undefined;
+  createdAt:
+    | Date
+    | undefined;
+  /** telemetry_log_id is the server-provided node-level ID for admin correlation. */
+  telemetryLogId: string;
 }
 
 /** GetOrbitEventsRequest queries stored telemetry events. */
@@ -76,6 +85,11 @@ export interface GetOrbitEventsRequest {
   offset: number;
   /** payload_type is an optional filter (e.g., "send_result", "path_transition"). */
   payloadType: string;
+  /**
+   * telemetry_log_id is the server-provided node-level telemetry ID for admin queries.
+   * If set, queries events by this ID instead of log_stream_id.
+   */
+  telemetryLogId: string;
 }
 
 /** GetOrbitEventsResponse contains the queried events. */
@@ -101,7 +115,11 @@ export interface StoredOrbitEvent {
   payloadType: string;
   /** JSON-encoded payload */
   payload: string;
-  createdAt: Date | undefined;
+  createdAt:
+    | Date
+    | undefined;
+  /** telemetry_log_id is the server-provided node-level ID for admin correlation. */
+  telemetryLogId: string;
 }
 
 /** GetOrbitDailyCountsRequest queries aggregated daily telemetry counts. */
@@ -153,6 +171,11 @@ export interface GetPacketFlowLogsRequest {
   offset: number;
   /** node_type is an optional filter (e.g., "peer", "lan", "exit", "transport"). */
   nodeType: string;
+  /**
+   * domain_telemetry_log_id is the server-provided tenant-level telemetry ID for admin queries.
+   * If set, queries logs by this ID instead of log_stream_id.
+   */
+  domainTelemetryLogId: string;
 }
 
 /** GetPacketFlowLogsResponse contains the queried flow logs. */
@@ -180,11 +203,24 @@ export interface StoredPacketFlowLog {
   startedAt: Date | undefined;
   endedAt: Date | undefined;
   loggedAt: Date | undefined;
-  createdAt: Date | undefined;
+  createdAt:
+    | Date
+    | undefined;
+  /** domain_telemetry_log_id is the server-provided tenant-level ID for admin correlation. */
+  domainTelemetryLogId: string;
 }
 
 function createBaseGetLoglyphRequest(): GetLoglyphRequest {
-  return { logStreamId: "", from: undefined, to: undefined, limit: 0, offset: 0, sessionId: "", level: "" };
+  return {
+    logStreamId: "",
+    from: undefined,
+    to: undefined,
+    limit: 0,
+    offset: 0,
+    sessionId: "",
+    level: "",
+    telemetryLogId: "",
+  };
 }
 
 export const GetLoglyphRequest: MessageFns<GetLoglyphRequest> = {
@@ -209,6 +245,9 @@ export const GetLoglyphRequest: MessageFns<GetLoglyphRequest> = {
     }
     if (message.level !== "") {
       writer.uint32(58).string(message.level);
+    }
+    if (message.telemetryLogId !== "") {
+      writer.uint32(66).string(message.telemetryLogId);
     }
     return writer;
   },
@@ -276,6 +315,14 @@ export const GetLoglyphRequest: MessageFns<GetLoglyphRequest> = {
           message.level = reader.string();
           continue;
         }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.telemetryLogId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -302,6 +349,11 @@ export const GetLoglyphRequest: MessageFns<GetLoglyphRequest> = {
         ? globalThis.String(object.session_id)
         : "",
       level: isSet(object.level) ? globalThis.String(object.level) : "",
+      telemetryLogId: isSet(object.telemetryLogId)
+        ? globalThis.String(object.telemetryLogId)
+        : isSet(object.telemetry_log_id)
+        ? globalThis.String(object.telemetry_log_id)
+        : "",
     };
   },
 
@@ -328,6 +380,9 @@ export const GetLoglyphRequest: MessageFns<GetLoglyphRequest> = {
     if (message.level !== "") {
       obj.level = message.level;
     }
+    if (message.telemetryLogId !== "") {
+      obj.telemetryLogId = message.telemetryLogId;
+    }
     return obj;
   },
 
@@ -343,6 +398,7 @@ export const GetLoglyphRequest: MessageFns<GetLoglyphRequest> = {
     message.offset = object.offset ?? 0;
     message.sessionId = object.sessionId ?? "";
     message.level = object.level ?? "";
+    message.telemetryLogId = object.telemetryLogId ?? "";
     return message;
   },
 };
@@ -441,6 +497,7 @@ function createBaseStoredLoglyphEntry(): StoredLoglyphEntry {
     text: "",
     payload: "",
     createdAt: undefined,
+    telemetryLogId: "",
   };
 }
 
@@ -475,6 +532,9 @@ export const StoredLoglyphEntry: MessageFns<StoredLoglyphEntry> = {
     }
     if (message.createdAt !== undefined) {
       Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(82).fork()).join();
+    }
+    if (message.telemetryLogId !== "") {
+      writer.uint32(90).string(message.telemetryLogId);
     }
     return writer;
   },
@@ -566,6 +626,14 @@ export const StoredLoglyphEntry: MessageFns<StoredLoglyphEntry> = {
           message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.telemetryLogId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -611,6 +679,11 @@ export const StoredLoglyphEntry: MessageFns<StoredLoglyphEntry> = {
         : isSet(object.created_at)
         ? fromJsonTimestamp(object.created_at)
         : undefined,
+      telemetryLogId: isSet(object.telemetryLogId)
+        ? globalThis.String(object.telemetryLogId)
+        : isSet(object.telemetry_log_id)
+        ? globalThis.String(object.telemetry_log_id)
+        : "",
     };
   },
 
@@ -646,6 +719,9 @@ export const StoredLoglyphEntry: MessageFns<StoredLoglyphEntry> = {
     if (message.createdAt !== undefined) {
       obj.createdAt = message.createdAt.toISOString();
     }
+    if (message.telemetryLogId !== "") {
+      obj.telemetryLogId = message.telemetryLogId;
+    }
     return obj;
   },
 
@@ -664,12 +740,22 @@ export const StoredLoglyphEntry: MessageFns<StoredLoglyphEntry> = {
     message.text = object.text ?? "";
     message.payload = object.payload ?? "";
     message.createdAt = object.createdAt ?? undefined;
+    message.telemetryLogId = object.telemetryLogId ?? "";
     return message;
   },
 };
 
 function createBaseGetOrbitEventsRequest(): GetOrbitEventsRequest {
-  return { logStreamId: "", sessionId: "", from: undefined, to: undefined, limit: 0, offset: 0, payloadType: "" };
+  return {
+    logStreamId: "",
+    sessionId: "",
+    from: undefined,
+    to: undefined,
+    limit: 0,
+    offset: 0,
+    payloadType: "",
+    telemetryLogId: "",
+  };
 }
 
 export const GetOrbitEventsRequest: MessageFns<GetOrbitEventsRequest> = {
@@ -694,6 +780,9 @@ export const GetOrbitEventsRequest: MessageFns<GetOrbitEventsRequest> = {
     }
     if (message.payloadType !== "") {
       writer.uint32(58).string(message.payloadType);
+    }
+    if (message.telemetryLogId !== "") {
+      writer.uint32(66).string(message.telemetryLogId);
     }
     return writer;
   },
@@ -761,6 +850,14 @@ export const GetOrbitEventsRequest: MessageFns<GetOrbitEventsRequest> = {
           message.payloadType = reader.string();
           continue;
         }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.telemetryLogId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -791,6 +888,11 @@ export const GetOrbitEventsRequest: MessageFns<GetOrbitEventsRequest> = {
         : isSet(object.payload_type)
         ? globalThis.String(object.payload_type)
         : "",
+      telemetryLogId: isSet(object.telemetryLogId)
+        ? globalThis.String(object.telemetryLogId)
+        : isSet(object.telemetry_log_id)
+        ? globalThis.String(object.telemetry_log_id)
+        : "",
     };
   },
 
@@ -817,6 +919,9 @@ export const GetOrbitEventsRequest: MessageFns<GetOrbitEventsRequest> = {
     if (message.payloadType !== "") {
       obj.payloadType = message.payloadType;
     }
+    if (message.telemetryLogId !== "") {
+      obj.telemetryLogId = message.telemetryLogId;
+    }
     return obj;
   },
 
@@ -832,6 +937,7 @@ export const GetOrbitEventsRequest: MessageFns<GetOrbitEventsRequest> = {
     message.limit = object.limit ?? 0;
     message.offset = object.offset ?? 0;
     message.payloadType = object.payloadType ?? "";
+    message.telemetryLogId = object.telemetryLogId ?? "";
     return message;
   },
 };
@@ -933,6 +1039,7 @@ function createBaseStoredOrbitEvent(): StoredOrbitEvent {
     payloadType: "",
     payload: "",
     createdAt: undefined,
+    telemetryLogId: "",
   };
 }
 
@@ -976,6 +1083,9 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
     }
     if (message.createdAt !== undefined) {
       Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(106).fork()).join();
+    }
+    if (message.telemetryLogId !== "") {
+      writer.uint32(114).string(message.telemetryLogId);
     }
     return writer;
   },
@@ -1091,6 +1201,14 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
           message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
+        case 14: {
+          if (tag !== 114) {
+            break;
+          }
+
+          message.telemetryLogId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1155,6 +1273,11 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
         : isSet(object.created_at)
         ? fromJsonTimestamp(object.created_at)
         : undefined,
+      telemetryLogId: isSet(object.telemetryLogId)
+        ? globalThis.String(object.telemetryLogId)
+        : isSet(object.telemetry_log_id)
+        ? globalThis.String(object.telemetry_log_id)
+        : "",
     };
   },
 
@@ -1199,6 +1322,9 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
     if (message.createdAt !== undefined) {
       obj.createdAt = message.createdAt.toISOString();
     }
+    if (message.telemetryLogId !== "") {
+      obj.telemetryLogId = message.telemetryLogId;
+    }
     return obj;
   },
 
@@ -1220,6 +1346,7 @@ export const StoredOrbitEvent: MessageFns<StoredOrbitEvent> = {
     message.payloadType = object.payloadType ?? "";
     message.payload = object.payload ?? "";
     message.createdAt = object.createdAt ?? undefined;
+    message.telemetryLogId = object.telemetryLogId ?? "";
     return message;
   },
 };
@@ -1577,7 +1704,15 @@ export const DailyCount: MessageFns<DailyCount> = {
 };
 
 function createBaseGetPacketFlowLogsRequest(): GetPacketFlowLogsRequest {
-  return { logStreamId: "", from: undefined, to: undefined, limit: 0, offset: 0, nodeType: "" };
+  return {
+    logStreamId: "",
+    from: undefined,
+    to: undefined,
+    limit: 0,
+    offset: 0,
+    nodeType: "",
+    domainTelemetryLogId: "",
+  };
 }
 
 export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
@@ -1599,6 +1734,9 @@ export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
     }
     if (message.nodeType !== "") {
       writer.uint32(50).string(message.nodeType);
+    }
+    if (message.domainTelemetryLogId !== "") {
+      writer.uint32(58).string(message.domainTelemetryLogId);
     }
     return writer;
   },
@@ -1658,6 +1796,14 @@ export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
           message.nodeType = reader.string();
           continue;
         }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.domainTelemetryLogId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1683,6 +1829,11 @@ export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
         : isSet(object.node_type)
         ? globalThis.String(object.node_type)
         : "",
+      domainTelemetryLogId: isSet(object.domainTelemetryLogId)
+        ? globalThis.String(object.domainTelemetryLogId)
+        : isSet(object.domain_telemetry_log_id)
+        ? globalThis.String(object.domain_telemetry_log_id)
+        : "",
     };
   },
 
@@ -1706,6 +1857,9 @@ export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
     if (message.nodeType !== "") {
       obj.nodeType = message.nodeType;
     }
+    if (message.domainTelemetryLogId !== "") {
+      obj.domainTelemetryLogId = message.domainTelemetryLogId;
+    }
     return obj;
   },
 
@@ -1720,6 +1874,7 @@ export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
     message.limit = object.limit ?? 0;
     message.offset = object.offset ?? 0;
     message.nodeType = object.nodeType ?? "";
+    message.domainTelemetryLogId = object.domainTelemetryLogId ?? "";
     return message;
   },
 };
@@ -1820,6 +1975,7 @@ function createBaseStoredPacketFlowLog(): StoredPacketFlowLog {
     endedAt: undefined,
     loggedAt: undefined,
     createdAt: undefined,
+    domainTelemetryLogId: "",
   };
 }
 
@@ -1866,6 +2022,9 @@ export const StoredPacketFlowLog: MessageFns<StoredPacketFlowLog> = {
     }
     if (message.createdAt !== undefined) {
       Timestamp.encode(toTimestamp(message.createdAt), writer.uint32(114).fork()).join();
+    }
+    if (message.domainTelemetryLogId !== "") {
+      writer.uint32(122).string(message.domainTelemetryLogId);
     }
     return writer;
   },
@@ -1989,6 +2148,14 @@ export const StoredPacketFlowLog: MessageFns<StoredPacketFlowLog> = {
           message.createdAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
+        case 15: {
+          if (tag !== 122) {
+            break;
+          }
+
+          message.domainTelemetryLogId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2062,6 +2229,11 @@ export const StoredPacketFlowLog: MessageFns<StoredPacketFlowLog> = {
         : isSet(object.created_at)
         ? fromJsonTimestamp(object.created_at)
         : undefined,
+      domainTelemetryLogId: isSet(object.domainTelemetryLogId)
+        ? globalThis.String(object.domainTelemetryLogId)
+        : isSet(object.domain_telemetry_log_id)
+        ? globalThis.String(object.domain_telemetry_log_id)
+        : "",
     };
   },
 
@@ -2109,6 +2281,9 @@ export const StoredPacketFlowLog: MessageFns<StoredPacketFlowLog> = {
     if (message.createdAt !== undefined) {
       obj.createdAt = message.createdAt.toISOString();
     }
+    if (message.domainTelemetryLogId !== "") {
+      obj.domainTelemetryLogId = message.domainTelemetryLogId;
+    }
     return obj;
   },
 
@@ -2131,6 +2306,7 @@ export const StoredPacketFlowLog: MessageFns<StoredPacketFlowLog> = {
     message.endedAt = object.endedAt ?? undefined;
     message.loggedAt = object.loggedAt ?? undefined;
     message.createdAt = object.createdAt ?? undefined;
+    message.domainTelemetryLogId = object.domainTelemetryLogId ?? "";
     return message;
   },
 };
