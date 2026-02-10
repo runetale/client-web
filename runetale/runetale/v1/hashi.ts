@@ -131,6 +131,15 @@ export interface NetCheckReport {
   turnLatency: { [key: string]: number };
   /** errors encountered during the check */
   errors: string[];
+  /**
+   * CERF relay latency per region. Key is "regionCode" (e.g. "tokyo"), value is latency in milliseconds.
+   * Until client-go is regenerated, CERF data is encoded into stun_latency with "cerf:<regionCode>" keys.
+   */
+  cerfLatency: { [key: string]: number };
+  /** preferred_cerf_region is the region code of the nearest (lowest latency) CERF relay. */
+  preferredCerfRegion: string;
+  /** preferred_cerf_region_id is the region ID of the nearest CERF relay. */
+  preferredCerfRegionId: number;
 }
 
 export interface NetCheckReport_StunLatencyEntry {
@@ -139,6 +148,11 @@ export interface NetCheckReport_StunLatencyEntry {
 }
 
 export interface NetCheckReport_TurnLatencyEntry {
+  key: string;
+  value: number;
+}
+
+export interface NetCheckReport_CerfLatencyEntry {
   key: string;
   value: number;
 }
@@ -1554,6 +1568,9 @@ function createBaseNetCheckReport(): NetCheckReport {
     stunLatency: {},
     turnLatency: {},
     errors: [],
+    cerfLatency: {},
+    preferredCerfRegion: "",
+    preferredCerfRegionId: 0,
   };
 }
 
@@ -1594,6 +1611,15 @@ export const NetCheckReport: MessageFns<NetCheckReport> = {
     });
     for (const v of message.errors) {
       writer.uint32(98).string(v!);
+    }
+    globalThis.Object.entries(message.cerfLatency).forEach(([key, value]: [string, number]) => {
+      NetCheckReport_CerfLatencyEntry.encode({ key: key as any, value }, writer.uint32(106).fork()).join();
+    });
+    if (message.preferredCerfRegion !== "") {
+      writer.uint32(114).string(message.preferredCerfRegion);
+    }
+    if (message.preferredCerfRegionId !== 0) {
+      writer.uint32(120).uint32(message.preferredCerfRegionId);
     }
     return writer;
   },
@@ -1707,6 +1733,33 @@ export const NetCheckReport: MessageFns<NetCheckReport> = {
           message.errors.push(reader.string());
           continue;
         }
+        case 13: {
+          if (tag !== 106) {
+            break;
+          }
+
+          const entry13 = NetCheckReport_CerfLatencyEntry.decode(reader, reader.uint32());
+          if (entry13.value !== undefined) {
+            message.cerfLatency[entry13.key] = entry13.value;
+          }
+          continue;
+        }
+        case 14: {
+          if (tag !== 114) {
+            break;
+          }
+
+          message.preferredCerfRegion = reader.string();
+          continue;
+        }
+        case 15: {
+          if (tag !== 120) {
+            break;
+          }
+
+          message.preferredCerfRegionId = reader.uint32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1784,6 +1837,33 @@ export const NetCheckReport: MessageFns<NetCheckReport> = {
       errors: globalThis.Array.isArray(object?.errors)
         ? object.errors.map((e: any) => globalThis.String(e))
         : [],
+      cerfLatency: isObject(object.cerfLatency)
+        ? (globalThis.Object.entries(object.cerfLatency) as [string, any][]).reduce(
+          (acc: { [key: string]: number }, [key, value]: [string, any]) => {
+            acc[key] = globalThis.Number(value);
+            return acc;
+          },
+          {},
+        )
+        : isObject(object.cerf_latency)
+        ? (globalThis.Object.entries(object.cerf_latency) as [string, any][]).reduce(
+          (acc: { [key: string]: number }, [key, value]: [string, any]) => {
+            acc[key] = globalThis.Number(value);
+            return acc;
+          },
+          {},
+        )
+        : {},
+      preferredCerfRegion: isSet(object.preferredCerfRegion)
+        ? globalThis.String(object.preferredCerfRegion)
+        : isSet(object.preferred_cerf_region)
+        ? globalThis.String(object.preferred_cerf_region)
+        : "",
+      preferredCerfRegionId: isSet(object.preferredCerfRegionId)
+        ? globalThis.Number(object.preferredCerfRegionId)
+        : isSet(object.preferred_cerf_region_id)
+        ? globalThis.Number(object.preferred_cerf_region_id)
+        : 0,
     };
   },
 
@@ -1837,6 +1917,21 @@ export const NetCheckReport: MessageFns<NetCheckReport> = {
     if (message.errors?.length) {
       obj.errors = message.errors;
     }
+    if (message.cerfLatency) {
+      const entries = globalThis.Object.entries(message.cerfLatency) as [string, number][];
+      if (entries.length > 0) {
+        obj.cerfLatency = {};
+        entries.forEach(([k, v]) => {
+          obj.cerfLatency[k] = Math.round(v);
+        });
+      }
+    }
+    if (message.preferredCerfRegion !== "") {
+      obj.preferredCerfRegion = message.preferredCerfRegion;
+    }
+    if (message.preferredCerfRegionId !== 0) {
+      obj.preferredCerfRegionId = Math.round(message.preferredCerfRegionId);
+    }
     return obj;
   },
 
@@ -1873,6 +1968,17 @@ export const NetCheckReport: MessageFns<NetCheckReport> = {
       {},
     );
     message.errors = object.errors?.map((e) => e) || [];
+    message.cerfLatency = (globalThis.Object.entries(object.cerfLatency ?? {}) as [string, number][]).reduce(
+      (acc: { [key: string]: number }, [key, value]: [string, number]) => {
+        if (value !== undefined) {
+          acc[key] = globalThis.Number(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    message.preferredCerfRegion = object.preferredCerfRegion ?? "";
+    message.preferredCerfRegionId = object.preferredCerfRegionId ?? 0;
     return message;
   },
 };
@@ -2027,6 +2133,84 @@ export const NetCheckReport_TurnLatencyEntry: MessageFns<NetCheckReport_TurnLate
     object: I,
   ): NetCheckReport_TurnLatencyEntry {
     const message = createBaseNetCheckReport_TurnLatencyEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? 0;
+    return message;
+  },
+};
+
+function createBaseNetCheckReport_CerfLatencyEntry(): NetCheckReport_CerfLatencyEntry {
+  return { key: "", value: 0 };
+}
+
+export const NetCheckReport_CerfLatencyEntry: MessageFns<NetCheckReport_CerfLatencyEntry> = {
+  encode(message: NetCheckReport_CerfLatencyEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== 0) {
+      writer.uint32(16).int64(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetCheckReport_CerfLatencyEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetCheckReport_CerfLatencyEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.value = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetCheckReport_CerfLatencyEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.Number(object.value) : 0,
+    };
+  },
+
+  toJSON(message: NetCheckReport_CerfLatencyEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== 0) {
+      obj.value = Math.round(message.value);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetCheckReport_CerfLatencyEntry>, I>>(base?: I): NetCheckReport_CerfLatencyEntry {
+    return NetCheckReport_CerfLatencyEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetCheckReport_CerfLatencyEntry>, I>>(
+    object: I,
+  ): NetCheckReport_CerfLatencyEntry {
+    const message = createBaseNetCheckReport_CerfLatencyEntry();
     message.key = object.key ?? "";
     message.value = object.value ?? 0;
     return message;
