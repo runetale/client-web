@@ -131,10 +131,7 @@ export interface NetCheckReport {
   turnLatency: { [key: string]: number };
   /** errors encountered during the check */
   errors: string[];
-  /**
-   * CERF relay latency per region. Key is "regionCode" (e.g. "tokyo"), value is latency in milliseconds.
-   * Until client-go is regenerated, CERF data is encoded into stun_latency with "cerf:<regionCode>" keys.
-   */
+  /** CERF relay latency per region. Key is "regionCode" (e.g. "tokyo"), value is latency in milliseconds. */
   cerfLatency: { [key: string]: number };
   /** preferred_cerf_region is the region code of the nearest (lowest latency) CERF relay. */
   preferredCerfRegion: string;
