@@ -349,6 +349,13 @@ export interface PathTransitionEvent {
  * PacketFlowLogUploadRequest contains network flow statistics from a client.
  * Unlike the legacy PacketFlowLogRequest, this does not include nodeId;
  * the log server identifies the stream via log_stream_id (derived from private-id).
+ *
+ * Fields 8-11 embed node/tenant identity directly in the payload (A-plan).
+ * This makes each log self-contained for SIEM export without requiring
+ * server-side JOIN to resolve IPs to node names.
+ * These values are sourced from NetworkMapResponse on the client side.
+ * Older clients that don't send these fields are backward-compatible
+ * (fields default to empty string, log-server stores them as-is).
  */
 export interface PacketFlowLogUploadRequest {
   /** logged_at is the timestamp when the stats were collected. */
@@ -368,6 +375,49 @@ export interface PacketFlowLogUploadRequest {
   exitNodeTraffic: PacketFlowEntry[];
   /** transport_traffic records physical WireGuard layer traffic. */
   transportTraffic: PacketFlowEntry[];
+  /**
+   * telemetry_log_id is the per-node UUID assigned by runetale-server
+   * (stored in nodes.telemetry_log_id, delivered via NetworkMapResponse).
+   */
+  telemetryLogId: string;
+  /**
+   * domain_telemetry_log_id is the per-tenant UUID assigned by runeauth
+   * (stored in tenant_specs.domain_telemetry_log_id, delivered via NetworkMapResponse).
+   */
+  domainTelemetryLogId: string;
+  /** node_name is the hostname of the reporting node (e.g. "alice-macbook"). */
+  nodeName: string;
+  /** user_email is the email of the user who owns the reporting node. */
+  userEmail: string;
+  /**
+   * One entry per unique destination Runetale IP seen in peer_traffic entries.
+   * Traffic entries reference these by matching PacketFlowEntry.dst IP prefix
+   * against FlowPeerInfo.runetale_ip. This avoids duplicating node info
+   * across multiple traffic entries to the same destination.
+   * Only populated for peer_traffic (Runetale IP <-> Runetale IP).
+   * The client resolves this from NetworkMap.PeerByRunetaleIP(dst_ip).
+   */
+  dstPeers: FlowPeerInfo[];
+}
+
+/**
+ * FlowPeerInfo describes a peer node involved in traffic.
+ * Used in PacketFlowLogUploadRequest.dst_peers:
+ * node info appears once per unique destination, and PacketFlowEntry.dst IP
+ * references into this list. This keeps payload size ~8% larger instead of ~57%.
+ */
+export interface FlowPeerInfo {
+  /**
+   * runetale_ip is the Runetale CGNAT IP (e.g. "100.112.0.7").
+   * Used as the join key with PacketFlowEntry.dst (strip port to match).
+   */
+  runetaleIp: string;
+  /** node_name is the hostname (e.g. "db-server.rune54494.rt.net."). */
+  nodeName: string;
+  /** user_email is the email of the user who owns this node. */
+  userEmail: string;
+  /** node_id is the telemetry_log_id UUID of the destination node. */
+  nodeId: string;
 }
 
 /** PacketFlowEntry is a single 5-tuple flow record. */
@@ -1678,6 +1728,11 @@ function createBasePacketFlowLogUploadRequest(): PacketFlowLogUploadRequest {
     lanTraffic: [],
     exitNodeTraffic: [],
     transportTraffic: [],
+    telemetryLogId: "",
+    domainTelemetryLogId: "",
+    nodeName: "",
+    userEmail: "",
+    dstPeers: [],
   };
 }
 
@@ -1703,6 +1758,21 @@ export const PacketFlowLogUploadRequest: MessageFns<PacketFlowLogUploadRequest> 
     }
     for (const v of message.transportTraffic) {
       PacketFlowEntry.encode(v!, writer.uint32(58).fork()).join();
+    }
+    if (message.telemetryLogId !== "") {
+      writer.uint32(66).string(message.telemetryLogId);
+    }
+    if (message.domainTelemetryLogId !== "") {
+      writer.uint32(74).string(message.domainTelemetryLogId);
+    }
+    if (message.nodeName !== "") {
+      writer.uint32(82).string(message.nodeName);
+    }
+    if (message.userEmail !== "") {
+      writer.uint32(90).string(message.userEmail);
+    }
+    for (const v of message.dstPeers) {
+      FlowPeerInfo.encode(v!, writer.uint32(98).fork()).join();
     }
     return writer;
   },
@@ -1770,6 +1840,46 @@ export const PacketFlowLogUploadRequest: MessageFns<PacketFlowLogUploadRequest> 
           message.transportTraffic.push(PacketFlowEntry.decode(reader, reader.uint32()));
           continue;
         }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.telemetryLogId = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.domainTelemetryLogId = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.nodeName = reader.string();
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.userEmail = reader.string();
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.dstPeers.push(FlowPeerInfo.decode(reader, reader.uint32()));
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1816,6 +1926,31 @@ export const PacketFlowLogUploadRequest: MessageFns<PacketFlowLogUploadRequest> 
         : globalThis.Array.isArray(object?.transport_traffic)
         ? object.transport_traffic.map((e: any) => PacketFlowEntry.fromJSON(e))
         : [],
+      telemetryLogId: isSet(object.telemetryLogId)
+        ? globalThis.String(object.telemetryLogId)
+        : isSet(object.telemetry_log_id)
+        ? globalThis.String(object.telemetry_log_id)
+        : "",
+      domainTelemetryLogId: isSet(object.domainTelemetryLogId)
+        ? globalThis.String(object.domainTelemetryLogId)
+        : isSet(object.domain_telemetry_log_id)
+        ? globalThis.String(object.domain_telemetry_log_id)
+        : "",
+      nodeName: isSet(object.nodeName)
+        ? globalThis.String(object.nodeName)
+        : isSet(object.node_name)
+        ? globalThis.String(object.node_name)
+        : "",
+      userEmail: isSet(object.userEmail)
+        ? globalThis.String(object.userEmail)
+        : isSet(object.user_email)
+        ? globalThis.String(object.user_email)
+        : "",
+      dstPeers: globalThis.Array.isArray(object?.dstPeers)
+        ? object.dstPeers.map((e: any) => FlowPeerInfo.fromJSON(e))
+        : globalThis.Array.isArray(object?.dst_peers)
+        ? object.dst_peers.map((e: any) => FlowPeerInfo.fromJSON(e))
+        : [],
     };
   },
 
@@ -1842,6 +1977,21 @@ export const PacketFlowLogUploadRequest: MessageFns<PacketFlowLogUploadRequest> 
     if (message.transportTraffic?.length) {
       obj.transportTraffic = message.transportTraffic.map((e) => PacketFlowEntry.toJSON(e));
     }
+    if (message.telemetryLogId !== "") {
+      obj.telemetryLogId = message.telemetryLogId;
+    }
+    if (message.domainTelemetryLogId !== "") {
+      obj.domainTelemetryLogId = message.domainTelemetryLogId;
+    }
+    if (message.nodeName !== "") {
+      obj.nodeName = message.nodeName;
+    }
+    if (message.userEmail !== "") {
+      obj.userEmail = message.userEmail;
+    }
+    if (message.dstPeers?.length) {
+      obj.dstPeers = message.dstPeers.map((e) => FlowPeerInfo.toJSON(e));
+    }
     return obj;
   },
 
@@ -1857,6 +2007,135 @@ export const PacketFlowLogUploadRequest: MessageFns<PacketFlowLogUploadRequest> 
     message.lanTraffic = object.lanTraffic?.map((e) => PacketFlowEntry.fromPartial(e)) || [];
     message.exitNodeTraffic = object.exitNodeTraffic?.map((e) => PacketFlowEntry.fromPartial(e)) || [];
     message.transportTraffic = object.transportTraffic?.map((e) => PacketFlowEntry.fromPartial(e)) || [];
+    message.telemetryLogId = object.telemetryLogId ?? "";
+    message.domainTelemetryLogId = object.domainTelemetryLogId ?? "";
+    message.nodeName = object.nodeName ?? "";
+    message.userEmail = object.userEmail ?? "";
+    message.dstPeers = object.dstPeers?.map((e) => FlowPeerInfo.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseFlowPeerInfo(): FlowPeerInfo {
+  return { runetaleIp: "", nodeName: "", userEmail: "", nodeId: "" };
+}
+
+export const FlowPeerInfo: MessageFns<FlowPeerInfo> = {
+  encode(message: FlowPeerInfo, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.runetaleIp !== "") {
+      writer.uint32(10).string(message.runetaleIp);
+    }
+    if (message.nodeName !== "") {
+      writer.uint32(18).string(message.nodeName);
+    }
+    if (message.userEmail !== "") {
+      writer.uint32(26).string(message.userEmail);
+    }
+    if (message.nodeId !== "") {
+      writer.uint32(34).string(message.nodeId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FlowPeerInfo {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFlowPeerInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.runetaleIp = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.nodeName = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.userEmail = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.nodeId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FlowPeerInfo {
+    return {
+      runetaleIp: isSet(object.runetaleIp)
+        ? globalThis.String(object.runetaleIp)
+        : isSet(object.runetale_ip)
+        ? globalThis.String(object.runetale_ip)
+        : "",
+      nodeName: isSet(object.nodeName)
+        ? globalThis.String(object.nodeName)
+        : isSet(object.node_name)
+        ? globalThis.String(object.node_name)
+        : "",
+      userEmail: isSet(object.userEmail)
+        ? globalThis.String(object.userEmail)
+        : isSet(object.user_email)
+        ? globalThis.String(object.user_email)
+        : "",
+      nodeId: isSet(object.nodeId)
+        ? globalThis.String(object.nodeId)
+        : isSet(object.node_id)
+        ? globalThis.String(object.node_id)
+        : "",
+    };
+  },
+
+  toJSON(message: FlowPeerInfo): unknown {
+    const obj: any = {};
+    if (message.runetaleIp !== "") {
+      obj.runetaleIp = message.runetaleIp;
+    }
+    if (message.nodeName !== "") {
+      obj.nodeName = message.nodeName;
+    }
+    if (message.userEmail !== "") {
+      obj.userEmail = message.userEmail;
+    }
+    if (message.nodeId !== "") {
+      obj.nodeId = message.nodeId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FlowPeerInfo>, I>>(base?: I): FlowPeerInfo {
+    return FlowPeerInfo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FlowPeerInfo>, I>>(object: I): FlowPeerInfo {
+    const message = createBaseFlowPeerInfo();
+    message.runetaleIp = object.runetaleIp ?? "";
+    message.nodeName = object.nodeName ?? "";
+    message.userEmail = object.userEmail ?? "";
+    message.nodeId = object.nodeId ?? "";
     return message;
   },
 };
