@@ -176,6 +176,11 @@ export interface GetPacketFlowLogsRequest {
    * If set, queries logs by this ID instead of log_stream_id.
    */
   domainTelemetryLogId: string;
+  /**
+   * telemetry_log_id is the server-provided node-level telemetry ID for per-node queries.
+   * Priority: domain_telemetry_log_id > telemetry_log_id > log_stream_id.
+   */
+  telemetryLogId: string;
 }
 
 /** GetPacketFlowLogsResponse contains the queried flow logs. */
@@ -208,6 +213,21 @@ export interface StoredPacketFlowLog {
     | undefined;
   /** domain_telemetry_log_id is the server-provided tenant-level ID for admin correlation. */
   domainTelemetryLogId: string;
+  /** Source node identity (A-plan: embedded in payload for self-contained SIEM export). */
+  telemetryLogId: string;
+  /** source hostname (e.g. "alice-macbook.runep9anv.runet.") */
+  nodeName: string;
+  /** source user email (e.g. "alice@example.com") */
+  userEmail: string;
+  /**
+   * Destination node identity (resolved from dst_peers, Tailscale-style deduplication).
+   * Only populated for peer traffic (Runetale IP <-> Runetale IP).
+   */
+  dstNodeName: string;
+  /** destination user email */
+  dstUserEmail: string;
+  /** destination node ID */
+  dstNodeId: string;
 }
 
 function createBaseGetLoglyphRequest(): GetLoglyphRequest {
@@ -1712,6 +1732,7 @@ function createBaseGetPacketFlowLogsRequest(): GetPacketFlowLogsRequest {
     offset: 0,
     nodeType: "",
     domainTelemetryLogId: "",
+    telemetryLogId: "",
   };
 }
 
@@ -1737,6 +1758,9 @@ export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
     }
     if (message.domainTelemetryLogId !== "") {
       writer.uint32(58).string(message.domainTelemetryLogId);
+    }
+    if (message.telemetryLogId !== "") {
+      writer.uint32(66).string(message.telemetryLogId);
     }
     return writer;
   },
@@ -1804,6 +1828,14 @@ export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
           message.domainTelemetryLogId = reader.string();
           continue;
         }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.telemetryLogId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1834,6 +1866,11 @@ export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
         : isSet(object.domain_telemetry_log_id)
         ? globalThis.String(object.domain_telemetry_log_id)
         : "",
+      telemetryLogId: isSet(object.telemetryLogId)
+        ? globalThis.String(object.telemetryLogId)
+        : isSet(object.telemetry_log_id)
+        ? globalThis.String(object.telemetry_log_id)
+        : "",
     };
   },
 
@@ -1860,6 +1897,9 @@ export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
     if (message.domainTelemetryLogId !== "") {
       obj.domainTelemetryLogId = message.domainTelemetryLogId;
     }
+    if (message.telemetryLogId !== "") {
+      obj.telemetryLogId = message.telemetryLogId;
+    }
     return obj;
   },
 
@@ -1875,6 +1915,7 @@ export const GetPacketFlowLogsRequest: MessageFns<GetPacketFlowLogsRequest> = {
     message.offset = object.offset ?? 0;
     message.nodeType = object.nodeType ?? "";
     message.domainTelemetryLogId = object.domainTelemetryLogId ?? "";
+    message.telemetryLogId = object.telemetryLogId ?? "";
     return message;
   },
 };
@@ -1976,6 +2017,12 @@ function createBaseStoredPacketFlowLog(): StoredPacketFlowLog {
     loggedAt: undefined,
     createdAt: undefined,
     domainTelemetryLogId: "",
+    telemetryLogId: "",
+    nodeName: "",
+    userEmail: "",
+    dstNodeName: "",
+    dstUserEmail: "",
+    dstNodeId: "",
   };
 }
 
@@ -2025,6 +2072,24 @@ export const StoredPacketFlowLog: MessageFns<StoredPacketFlowLog> = {
     }
     if (message.domainTelemetryLogId !== "") {
       writer.uint32(122).string(message.domainTelemetryLogId);
+    }
+    if (message.telemetryLogId !== "") {
+      writer.uint32(130).string(message.telemetryLogId);
+    }
+    if (message.nodeName !== "") {
+      writer.uint32(138).string(message.nodeName);
+    }
+    if (message.userEmail !== "") {
+      writer.uint32(146).string(message.userEmail);
+    }
+    if (message.dstNodeName !== "") {
+      writer.uint32(154).string(message.dstNodeName);
+    }
+    if (message.dstUserEmail !== "") {
+      writer.uint32(162).string(message.dstUserEmail);
+    }
+    if (message.dstNodeId !== "") {
+      writer.uint32(170).string(message.dstNodeId);
     }
     return writer;
   },
@@ -2156,6 +2221,54 @@ export const StoredPacketFlowLog: MessageFns<StoredPacketFlowLog> = {
           message.domainTelemetryLogId = reader.string();
           continue;
         }
+        case 16: {
+          if (tag !== 130) {
+            break;
+          }
+
+          message.telemetryLogId = reader.string();
+          continue;
+        }
+        case 17: {
+          if (tag !== 138) {
+            break;
+          }
+
+          message.nodeName = reader.string();
+          continue;
+        }
+        case 18: {
+          if (tag !== 146) {
+            break;
+          }
+
+          message.userEmail = reader.string();
+          continue;
+        }
+        case 19: {
+          if (tag !== 154) {
+            break;
+          }
+
+          message.dstNodeName = reader.string();
+          continue;
+        }
+        case 20: {
+          if (tag !== 162) {
+            break;
+          }
+
+          message.dstUserEmail = reader.string();
+          continue;
+        }
+        case 21: {
+          if (tag !== 170) {
+            break;
+          }
+
+          message.dstNodeId = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2234,6 +2347,36 @@ export const StoredPacketFlowLog: MessageFns<StoredPacketFlowLog> = {
         : isSet(object.domain_telemetry_log_id)
         ? globalThis.String(object.domain_telemetry_log_id)
         : "",
+      telemetryLogId: isSet(object.telemetryLogId)
+        ? globalThis.String(object.telemetryLogId)
+        : isSet(object.telemetry_log_id)
+        ? globalThis.String(object.telemetry_log_id)
+        : "",
+      nodeName: isSet(object.nodeName)
+        ? globalThis.String(object.nodeName)
+        : isSet(object.node_name)
+        ? globalThis.String(object.node_name)
+        : "",
+      userEmail: isSet(object.userEmail)
+        ? globalThis.String(object.userEmail)
+        : isSet(object.user_email)
+        ? globalThis.String(object.user_email)
+        : "",
+      dstNodeName: isSet(object.dstNodeName)
+        ? globalThis.String(object.dstNodeName)
+        : isSet(object.dst_node_name)
+        ? globalThis.String(object.dst_node_name)
+        : "",
+      dstUserEmail: isSet(object.dstUserEmail)
+        ? globalThis.String(object.dstUserEmail)
+        : isSet(object.dst_user_email)
+        ? globalThis.String(object.dst_user_email)
+        : "",
+      dstNodeId: isSet(object.dstNodeId)
+        ? globalThis.String(object.dstNodeId)
+        : isSet(object.dst_node_id)
+        ? globalThis.String(object.dst_node_id)
+        : "",
     };
   },
 
@@ -2284,6 +2427,24 @@ export const StoredPacketFlowLog: MessageFns<StoredPacketFlowLog> = {
     if (message.domainTelemetryLogId !== "") {
       obj.domainTelemetryLogId = message.domainTelemetryLogId;
     }
+    if (message.telemetryLogId !== "") {
+      obj.telemetryLogId = message.telemetryLogId;
+    }
+    if (message.nodeName !== "") {
+      obj.nodeName = message.nodeName;
+    }
+    if (message.userEmail !== "") {
+      obj.userEmail = message.userEmail;
+    }
+    if (message.dstNodeName !== "") {
+      obj.dstNodeName = message.dstNodeName;
+    }
+    if (message.dstUserEmail !== "") {
+      obj.dstUserEmail = message.dstUserEmail;
+    }
+    if (message.dstNodeId !== "") {
+      obj.dstNodeId = message.dstNodeId;
+    }
     return obj;
   },
 
@@ -2307,6 +2468,12 @@ export const StoredPacketFlowLog: MessageFns<StoredPacketFlowLog> = {
     message.loggedAt = object.loggedAt ?? undefined;
     message.createdAt = object.createdAt ?? undefined;
     message.domainTelemetryLogId = object.domainTelemetryLogId ?? "";
+    message.telemetryLogId = object.telemetryLogId ?? "";
+    message.nodeName = object.nodeName ?? "";
+    message.userEmail = object.userEmail ?? "";
+    message.dstNodeName = object.dstNodeName ?? "";
+    message.dstUserEmail = object.dstUserEmail ?? "";
+    message.dstNodeId = object.dstNodeId ?? "";
     return message;
   },
 };
