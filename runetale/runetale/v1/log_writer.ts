@@ -8,6 +8,8 @@
 import { BinaryReader, BinaryWriter } from "@bufbuild/protobuf/wire";
 import { grpc } from "@improbable-eng/grpc-web";
 import { BrowserHeaders } from "browser-headers";
+import { Observable } from "rxjs";
+import { share } from "rxjs/operators";
 import { Timestamp } from "../../../google/protobuf/timestamp";
 
 export const protobufPackage = "logserver";
@@ -64,7 +66,10 @@ export function transportToJSON(object: Transport): string {
   }
 }
 
-/** LoglyphUploadRequest contains a batch of client debug log entries. */
+/**
+ * LoglyphUploadRequest contains a batch of client debug log entries.
+ * Used inside StreamLogRequest.loglyph.
+ */
 export interface LoglyphUploadRequest {
   /** session_id is the ephemeral session identifier. */
   sessionId: string;
@@ -94,7 +99,10 @@ export interface LoglyphEntry {
   v: number;
 }
 
-/** LoglyphUploadResponse is returned after processing a loglyph upload. */
+/**
+ * LoglyphUploadResponse is returned inside StreamLogResponse.ack
+ * when processing loglyph entries. Kept for structured per-type feedback.
+ */
 export interface LoglyphUploadResponse {
   /** accepted is the number of entries successfully stored. */
   accepted: number;
@@ -106,8 +114,8 @@ export interface LoglyphUploadResponse {
 
 /**
  * OrbitBatchUploadRequest contains a batch of telemetry events from a client.
- * Unlike the legacy OrbitBatchRequest, this does not include node_id;
- * the log server identifies the stream via log_stream_id (derived from private-id).
+ * Used inside StreamLogRequest.orbit.
+ * The log server identifies the stream via log_stream_id (derived from private-id).
  */
 export interface OrbitBatchUploadRequest {
   /** version is the client version string (e.g. "1.2.3"). */
@@ -118,7 +126,10 @@ export interface OrbitBatchUploadRequest {
   events: OrbitEvent[];
 }
 
-/** OrbitBatchUploadResponse is returned after processing a batch. */
+/**
+ * OrbitBatchUploadResponse is returned inside StreamLogResponse.ack
+ * when processing orbit events. Kept for structured per-type feedback.
+ */
 export interface OrbitBatchUploadResponse {
   /** accepted is the number of events successfully stored. */
   accepted: number;
@@ -347,8 +358,8 @@ export interface PathTransitionEvent {
 
 /**
  * PacketFlowLogUploadRequest contains network flow statistics from a client.
- * Unlike the legacy PacketFlowLogRequest, this does not include nodeId;
- * the log server identifies the stream via log_stream_id (derived from private-id).
+ * Used inside StreamLogRequest.packet_flow.
+ * The log server identifies the stream via log_stream_id (derived from private-id).
  *
  * Fields 8-11 embed node/tenant identity directly in the payload (A-plan).
  * This makes each log self-contained for SIEM export without requiring
@@ -438,10 +449,88 @@ export interface PacketFlowEntry {
   rxBytes: number;
 }
 
-/** PacketFlowLogUploadResponse is returned after processing flow logs. */
+/**
+ * PacketFlowLogUploadResponse is returned inside StreamLogResponse.ack
+ * when processing flow logs.
+ */
 export interface PacketFlowLogUploadResponse {
   /** accepted is the number of flow entries successfully stored. */
   accepted: number;
+}
+
+/**
+ * StreamLogRequest is sent by the client on the StreamLogs bidirectional stream.
+ * Each message carries exactly one log payload via the oneof field.
+ */
+export interface StreamLogRequest {
+  /** packet_flow carries network flow statistics (60s summaries). */
+  packetFlow?:
+    | PacketFlowLogUploadRequest
+    | undefined;
+  /** orbit carries a batch of telemetry events. */
+  orbit?:
+    | OrbitBatchUploadRequest
+    | undefined;
+  /** loglyph carries a batch of client debug log entries. */
+  loglyph?:
+    | LoglyphUploadRequest
+    | undefined;
+  /**
+   * sequence is a client-assigned monotonically increasing number.
+   * The server echoes it back in StreamAck for delivery confirmation.
+   */
+  sequence: number;
+}
+
+/**
+ * StreamLogResponse is sent by the server on the StreamLogs bidirectional stream.
+ * Each message carries either a configuration update or an acknowledgement.
+ */
+export interface StreamLogResponse {
+  /**
+   * config is a server-pushed configuration update.
+   * Sent immediately on connection and whenever tenant config changes.
+   */
+  config?:
+    | LogConfigUpdate
+    | undefined;
+  /** ack confirms receipt and processing of a client message. */
+  ack?: StreamAck | undefined;
+}
+
+/**
+ * LogConfigUpdate carries dynamic configuration from the server to the client.
+ * Allows the server to adjust client logging behavior without binary updates.
+ */
+export interface LogConfigUpdate {
+  /**
+   * poll_period_seconds is the interval between flow log collections.
+   * 0 means use client default (currently 60s).
+   */
+  pollPeriodSeconds: number;
+  /**
+   * min_bytes_threshold is the minimum total bytes for a connection to be logged.
+   * 0 means use client default (currently 256 bytes).
+   */
+  minBytesThreshold: number;
+  /** netflow_enabled controls whether network flow logs are collected. */
+  netflowEnabled: boolean;
+  /** orbit_enabled controls whether orbit telemetry events are collected. */
+  orbitEnabled: boolean;
+  /** loglyph_enabled controls whether client debug logs are collected. */
+  loglyphEnabled: boolean;
+}
+
+/** StreamAck confirms that the server has received and processed a client message. */
+export interface StreamAck {
+  /** sequence echoes the client's StreamLogRequest.sequence. */
+  sequence: number;
+  /** accepted is the number of entries/events/logs successfully stored. */
+  accepted: number;
+  /** dropped is the number of entries/events/logs dropped (if any). */
+  dropped: number;
+  /** reason is set if any entries were dropped (e.g. "rate_limited", "too_large"). */
+  reason: string;
 }
 
 function createBaseLoglyphUploadRequest(): LoglyphUploadRequest {
@@ -2370,28 +2459,483 @@ export const PacketFlowLogUploadResponse: MessageFns<PacketFlowLogUploadResponse
   },
 };
 
+function createBaseStreamLogRequest(): StreamLogRequest {
+  return { packetFlow: undefined, orbit: undefined, loglyph: undefined, sequence: 0 };
+}
+
+export const StreamLogRequest: MessageFns<StreamLogRequest> = {
+  encode(message: StreamLogRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.packetFlow !== undefined) {
+      PacketFlowLogUploadRequest.encode(message.packetFlow, writer.uint32(10).fork()).join();
+    }
+    if (message.orbit !== undefined) {
+      OrbitBatchUploadRequest.encode(message.orbit, writer.uint32(18).fork()).join();
+    }
+    if (message.loglyph !== undefined) {
+      LoglyphUploadRequest.encode(message.loglyph, writer.uint32(26).fork()).join();
+    }
+    if (message.sequence !== 0) {
+      writer.uint32(80).uint64(message.sequence);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): StreamLogRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamLogRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.packetFlow = PacketFlowLogUploadRequest.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.orbit = OrbitBatchUploadRequest.decode(reader, reader.uint32());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.loglyph = LoglyphUploadRequest.decode(reader, reader.uint32());
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.sequence = longToNumber(reader.uint64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamLogRequest {
+    return {
+      packetFlow: isSet(object.packetFlow)
+        ? PacketFlowLogUploadRequest.fromJSON(object.packetFlow)
+        : isSet(object.packet_flow)
+        ? PacketFlowLogUploadRequest.fromJSON(object.packet_flow)
+        : undefined,
+      orbit: isSet(object.orbit) ? OrbitBatchUploadRequest.fromJSON(object.orbit) : undefined,
+      loglyph: isSet(object.loglyph) ? LoglyphUploadRequest.fromJSON(object.loglyph) : undefined,
+      sequence: isSet(object.sequence) ? globalThis.Number(object.sequence) : 0,
+    };
+  },
+
+  toJSON(message: StreamLogRequest): unknown {
+    const obj: any = {};
+    if (message.packetFlow !== undefined) {
+      obj.packetFlow = PacketFlowLogUploadRequest.toJSON(message.packetFlow);
+    }
+    if (message.orbit !== undefined) {
+      obj.orbit = OrbitBatchUploadRequest.toJSON(message.orbit);
+    }
+    if (message.loglyph !== undefined) {
+      obj.loglyph = LoglyphUploadRequest.toJSON(message.loglyph);
+    }
+    if (message.sequence !== 0) {
+      obj.sequence = Math.round(message.sequence);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<StreamLogRequest>, I>>(base?: I): StreamLogRequest {
+    return StreamLogRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<StreamLogRequest>, I>>(object: I): StreamLogRequest {
+    const message = createBaseStreamLogRequest();
+    message.packetFlow = (object.packetFlow !== undefined && object.packetFlow !== null)
+      ? PacketFlowLogUploadRequest.fromPartial(object.packetFlow)
+      : undefined;
+    message.orbit = (object.orbit !== undefined && object.orbit !== null)
+      ? OrbitBatchUploadRequest.fromPartial(object.orbit)
+      : undefined;
+    message.loglyph = (object.loglyph !== undefined && object.loglyph !== null)
+      ? LoglyphUploadRequest.fromPartial(object.loglyph)
+      : undefined;
+    message.sequence = object.sequence ?? 0;
+    return message;
+  },
+};
+
+function createBaseStreamLogResponse(): StreamLogResponse {
+  return { config: undefined, ack: undefined };
+}
+
+export const StreamLogResponse: MessageFns<StreamLogResponse> = {
+  encode(message: StreamLogResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.config !== undefined) {
+      LogConfigUpdate.encode(message.config, writer.uint32(10).fork()).join();
+    }
+    if (message.ack !== undefined) {
+      StreamAck.encode(message.ack, writer.uint32(18).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): StreamLogResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamLogResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.config = LogConfigUpdate.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.ack = StreamAck.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamLogResponse {
+    return {
+      config: isSet(object.config) ? LogConfigUpdate.fromJSON(object.config) : undefined,
+      ack: isSet(object.ack) ? StreamAck.fromJSON(object.ack) : undefined,
+    };
+  },
+
+  toJSON(message: StreamLogResponse): unknown {
+    const obj: any = {};
+    if (message.config !== undefined) {
+      obj.config = LogConfigUpdate.toJSON(message.config);
+    }
+    if (message.ack !== undefined) {
+      obj.ack = StreamAck.toJSON(message.ack);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<StreamLogResponse>, I>>(base?: I): StreamLogResponse {
+    return StreamLogResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<StreamLogResponse>, I>>(object: I): StreamLogResponse {
+    const message = createBaseStreamLogResponse();
+    message.config = (object.config !== undefined && object.config !== null)
+      ? LogConfigUpdate.fromPartial(object.config)
+      : undefined;
+    message.ack = (object.ack !== undefined && object.ack !== null) ? StreamAck.fromPartial(object.ack) : undefined;
+    return message;
+  },
+};
+
+function createBaseLogConfigUpdate(): LogConfigUpdate {
+  return {
+    pollPeriodSeconds: 0,
+    minBytesThreshold: 0,
+    netflowEnabled: false,
+    orbitEnabled: false,
+    loglyphEnabled: false,
+  };
+}
+
+export const LogConfigUpdate: MessageFns<LogConfigUpdate> = {
+  encode(message: LogConfigUpdate, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.pollPeriodSeconds !== 0) {
+      writer.uint32(8).uint32(message.pollPeriodSeconds);
+    }
+    if (message.minBytesThreshold !== 0) {
+      writer.uint32(16).uint64(message.minBytesThreshold);
+    }
+    if (message.netflowEnabled !== false) {
+      writer.uint32(24).bool(message.netflowEnabled);
+    }
+    if (message.orbitEnabled !== false) {
+      writer.uint32(32).bool(message.orbitEnabled);
+    }
+    if (message.loglyphEnabled !== false) {
+      writer.uint32(40).bool(message.loglyphEnabled);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): LogConfigUpdate {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseLogConfigUpdate();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.pollPeriodSeconds = reader.uint32();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.minBytesThreshold = longToNumber(reader.uint64());
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.netflowEnabled = reader.bool();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.orbitEnabled = reader.bool();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.loglyphEnabled = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): LogConfigUpdate {
+    return {
+      pollPeriodSeconds: isSet(object.pollPeriodSeconds)
+        ? globalThis.Number(object.pollPeriodSeconds)
+        : isSet(object.poll_period_seconds)
+        ? globalThis.Number(object.poll_period_seconds)
+        : 0,
+      minBytesThreshold: isSet(object.minBytesThreshold)
+        ? globalThis.Number(object.minBytesThreshold)
+        : isSet(object.min_bytes_threshold)
+        ? globalThis.Number(object.min_bytes_threshold)
+        : 0,
+      netflowEnabled: isSet(object.netflowEnabled)
+        ? globalThis.Boolean(object.netflowEnabled)
+        : isSet(object.netflow_enabled)
+        ? globalThis.Boolean(object.netflow_enabled)
+        : false,
+      orbitEnabled: isSet(object.orbitEnabled)
+        ? globalThis.Boolean(object.orbitEnabled)
+        : isSet(object.orbit_enabled)
+        ? globalThis.Boolean(object.orbit_enabled)
+        : false,
+      loglyphEnabled: isSet(object.loglyphEnabled)
+        ? globalThis.Boolean(object.loglyphEnabled)
+        : isSet(object.loglyph_enabled)
+        ? globalThis.Boolean(object.loglyph_enabled)
+        : false,
+    };
+  },
+
+  toJSON(message: LogConfigUpdate): unknown {
+    const obj: any = {};
+    if (message.pollPeriodSeconds !== 0) {
+      obj.pollPeriodSeconds = Math.round(message.pollPeriodSeconds);
+    }
+    if (message.minBytesThreshold !== 0) {
+      obj.minBytesThreshold = Math.round(message.minBytesThreshold);
+    }
+    if (message.netflowEnabled !== false) {
+      obj.netflowEnabled = message.netflowEnabled;
+    }
+    if (message.orbitEnabled !== false) {
+      obj.orbitEnabled = message.orbitEnabled;
+    }
+    if (message.loglyphEnabled !== false) {
+      obj.loglyphEnabled = message.loglyphEnabled;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<LogConfigUpdate>, I>>(base?: I): LogConfigUpdate {
+    return LogConfigUpdate.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<LogConfigUpdate>, I>>(object: I): LogConfigUpdate {
+    const message = createBaseLogConfigUpdate();
+    message.pollPeriodSeconds = object.pollPeriodSeconds ?? 0;
+    message.minBytesThreshold = object.minBytesThreshold ?? 0;
+    message.netflowEnabled = object.netflowEnabled ?? false;
+    message.orbitEnabled = object.orbitEnabled ?? false;
+    message.loglyphEnabled = object.loglyphEnabled ?? false;
+    return message;
+  },
+};
+
+function createBaseStreamAck(): StreamAck {
+  return { sequence: 0, accepted: 0, dropped: 0, reason: "" };
+}
+
+export const StreamAck: MessageFns<StreamAck> = {
+  encode(message: StreamAck, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sequence !== 0) {
+      writer.uint32(8).uint64(message.sequence);
+    }
+    if (message.accepted !== 0) {
+      writer.uint32(16).uint32(message.accepted);
+    }
+    if (message.dropped !== 0) {
+      writer.uint32(24).uint32(message.dropped);
+    }
+    if (message.reason !== "") {
+      writer.uint32(34).string(message.reason);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): StreamAck {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseStreamAck();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.sequence = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.accepted = reader.uint32();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.dropped = reader.uint32();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.reason = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): StreamAck {
+    return {
+      sequence: isSet(object.sequence) ? globalThis.Number(object.sequence) : 0,
+      accepted: isSet(object.accepted) ? globalThis.Number(object.accepted) : 0,
+      dropped: isSet(object.dropped) ? globalThis.Number(object.dropped) : 0,
+      reason: isSet(object.reason) ? globalThis.String(object.reason) : "",
+    };
+  },
+
+  toJSON(message: StreamAck): unknown {
+    const obj: any = {};
+    if (message.sequence !== 0) {
+      obj.sequence = Math.round(message.sequence);
+    }
+    if (message.accepted !== 0) {
+      obj.accepted = Math.round(message.accepted);
+    }
+    if (message.dropped !== 0) {
+      obj.dropped = Math.round(message.dropped);
+    }
+    if (message.reason !== "") {
+      obj.reason = message.reason;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<StreamAck>, I>>(base?: I): StreamAck {
+    return StreamAck.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<StreamAck>, I>>(object: I): StreamAck {
+    const message = createBaseStreamAck();
+    message.sequence = object.sequence ?? 0;
+    message.accepted = object.accepted ?? 0;
+    message.dropped = object.dropped ?? 0;
+    message.reason = object.reason ?? "";
+    return message;
+  },
+};
+
 /**
- * LogWriterService receives log uploads from client nodes.
- * Authentication: gRPC metadata "private-id" + "log-token" headers.
- * The log server validates the token signature, checks expiration,
- * and verifies that SHA-256(private-id) matches the token's public_id.
+ * LogWriterService receives log uploads from client nodes via a single
+ * bidirectional stream. All three log types (Loglyph, Orbit, PacketFlowLog)
+ * are multiplexed over one persistent gRPC stream per client.
+ *
+ * Authentication: gRPC metadata "private-id" header.
+ * The log server validates the format, computes log_stream_id = SHA-256(private-id),
+ * and extracts optional telemetry IDs for admin correlation.
  */
 export interface LogWriterService {
-  /** UploadLoglyphEntries uploads client debug log entries. */
-  UploadLoglyphEntries(
-    request: DeepPartial<LoglyphUploadRequest>,
+  /**
+   * StreamLogs is a bidirectional stream for uploading all log types.
+   * The client sends StreamLogRequest messages (containing one of the three
+   * log payloads) and receives StreamLogResponse messages (config updates
+   * and acknowledgements) from the server.
+   *
+   * On initial connection, the server sends a LogConfigUpdate with the
+   * current configuration for this client's tenant.
+   */
+  StreamLogs(
+    request: Observable<DeepPartial<StreamLogRequest>>,
     metadata?: grpc.Metadata,
-  ): Promise<LoglyphUploadResponse>;
-  /** UploadOrbitBatch uploads a batch of telemetry events. */
-  UploadOrbitBatch(
-    request: DeepPartial<OrbitBatchUploadRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<OrbitBatchUploadResponse>;
-  /** UploadPacketFlowLogs uploads network flow statistics. */
-  UploadPacketFlowLogs(
-    request: DeepPartial<PacketFlowLogUploadRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<PacketFlowLogUploadResponse>;
+  ): Observable<StreamLogResponse>;
 }
 
 export class LogWriterServiceClientImpl implements LogWriterService {
@@ -2399,111 +2943,18 @@ export class LogWriterServiceClientImpl implements LogWriterService {
 
   constructor(rpc: Rpc) {
     this.rpc = rpc;
-    this.UploadLoglyphEntries = this.UploadLoglyphEntries.bind(this);
-    this.UploadOrbitBatch = this.UploadOrbitBatch.bind(this);
-    this.UploadPacketFlowLogs = this.UploadPacketFlowLogs.bind(this);
+    this.StreamLogs = this.StreamLogs.bind(this);
   }
 
-  UploadLoglyphEntries(
-    request: DeepPartial<LoglyphUploadRequest>,
+  StreamLogs(
+    request: Observable<DeepPartial<StreamLogRequest>>,
     metadata?: grpc.Metadata,
-  ): Promise<LoglyphUploadResponse> {
-    return this.rpc.unary(
-      LogWriterServiceUploadLoglyphEntriesDesc,
-      LoglyphUploadRequest.fromPartial(request),
-      metadata,
-    );
-  }
-
-  UploadOrbitBatch(
-    request: DeepPartial<OrbitBatchUploadRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<OrbitBatchUploadResponse> {
-    return this.rpc.unary(LogWriterServiceUploadOrbitBatchDesc, OrbitBatchUploadRequest.fromPartial(request), metadata);
-  }
-
-  UploadPacketFlowLogs(
-    request: DeepPartial<PacketFlowLogUploadRequest>,
-    metadata?: grpc.Metadata,
-  ): Promise<PacketFlowLogUploadResponse> {
-    return this.rpc.unary(
-      LogWriterServiceUploadPacketFlowLogsDesc,
-      PacketFlowLogUploadRequest.fromPartial(request),
-      metadata,
-    );
+  ): Observable<StreamLogResponse> {
+    throw new Error("ts-proto does not yet support client streaming!");
   }
 }
 
 export const LogWriterServiceDesc = { serviceName: "logserver.LogWriterService" };
-
-export const LogWriterServiceUploadLoglyphEntriesDesc: UnaryMethodDefinitionish = {
-  methodName: "UploadLoglyphEntries",
-  service: LogWriterServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return LoglyphUploadRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = LoglyphUploadResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const LogWriterServiceUploadOrbitBatchDesc: UnaryMethodDefinitionish = {
-  methodName: "UploadOrbitBatch",
-  service: LogWriterServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return OrbitBatchUploadRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = OrbitBatchUploadResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
-
-export const LogWriterServiceUploadPacketFlowLogsDesc: UnaryMethodDefinitionish = {
-  methodName: "UploadPacketFlowLogs",
-  service: LogWriterServiceDesc,
-  requestStream: false,
-  responseStream: false,
-  requestType: {
-    serializeBinary() {
-      return PacketFlowLogUploadRequest.encode(this).finish();
-    },
-  } as any,
-  responseType: {
-    deserializeBinary(data: Uint8Array) {
-      const value = PacketFlowLogUploadResponse.decode(data);
-      return {
-        ...value,
-        toObject() {
-          return value;
-        },
-      };
-    },
-  } as any,
-};
 
 interface UnaryMethodDefinitionishR extends grpc.UnaryMethodDefinition<any, any> {
   requestStream: any;
@@ -2518,13 +2969,18 @@ interface Rpc {
     request: any,
     metadata: grpc.Metadata | undefined,
   ): Promise<any>;
+  invoke<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Observable<any>;
 }
 
 export class GrpcWebImpl {
   private host: string;
   private options: {
     transport?: grpc.TransportFactory;
-
+    streamingTransport?: grpc.TransportFactory;
     debug?: boolean;
     metadata?: grpc.Metadata;
     upStreamRetryCodes?: number[];
@@ -2534,7 +2990,7 @@ export class GrpcWebImpl {
     host: string,
     options: {
       transport?: grpc.TransportFactory;
-
+      streamingTransport?: grpc.TransportFactory;
       debug?: boolean;
       metadata?: grpc.Metadata;
       upStreamRetryCodes?: number[];
@@ -2570,6 +3026,46 @@ export class GrpcWebImpl {
         },
       });
     });
+  }
+
+  invoke<T extends UnaryMethodDefinitionish>(
+    methodDesc: T,
+    _request: any,
+    metadata: grpc.Metadata | undefined,
+  ): Observable<any> {
+    const upStreamCodes = this.options.upStreamRetryCodes ?? [];
+    const DEFAULT_TIMEOUT_TIME: number = 3_000;
+    const request = { ..._request, ...methodDesc.requestType };
+    const transport = this.options.streamingTransport ?? this.options.transport;
+    const maybeCombinedMetadata = metadata && this.options.metadata
+      ? new BrowserHeaders({ ...this.options?.metadata.headersMap, ...metadata?.headersMap })
+      : metadata ?? this.options.metadata;
+    return new Observable((observer) => {
+      const upStream = () => {
+        const client = grpc.invoke(methodDesc, {
+          host: this.host,
+          request,
+          ...(transport !== undefined ? { transport } : {}),
+          metadata: maybeCombinedMetadata ?? {},
+          debug: this.options.debug ?? false,
+          onMessage: (next) => observer.next(next),
+          onEnd: (code: grpc.Code, message: string, trailers: grpc.Metadata) => {
+            if (code === 0) {
+              observer.complete();
+            } else if (upStreamCodes.includes(code)) {
+              setTimeout(upStream, DEFAULT_TIMEOUT_TIME);
+            } else {
+              const err = new Error(message) as any;
+              err.code = code;
+              err.metadata = trailers;
+              observer.error(err);
+            }
+          },
+        });
+        observer.add(() => client.close());
+      };
+      upStream();
+    }).pipe(share());
   }
 }
 
