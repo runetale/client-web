@@ -37,7 +37,26 @@ export interface Node {
   /** online indicates whether the node is connected to the server */
   online: boolean;
   /** lastSeen is when the node was last online (only set when offline) */
-  lastSeen: Date | undefined;
+  lastSeen:
+    | Date
+    | undefined;
+  /**
+   * keyExpiry is when this node's key expires. Zero value means no expiry.
+   * After this time, the node must re-authenticate to continue using the network.
+   */
+  keyExpiry:
+    | Date
+    | undefined;
+  /**
+   * expired indicates whether the server has marked this node's key as expired.
+   * When true, the node should initiate key rotation or re-authentication.
+   */
+  expired: boolean;
+  /**
+   * keySignature is the CBOR-encoded NodeKeySignature for Network Lock (TKA).
+   * Only set when Network Lock is enabled for the Runetale Network.
+   */
+  keySignature: Uint8Array;
 }
 
 export interface ComposeNodeResponse {
@@ -274,6 +293,135 @@ export interface DNSConfig_RoutesEntry {
   value: Resolvers | undefined;
 }
 
+/**
+ * RotateNodeKeyRequest is sent when a node wants to rotate its keys.
+ * The server validates the old keys and updates to the new keys.
+ */
+export interface RotateNodeKeyRequest {
+  /** oldNodeKey is the current node key (for verification) */
+  oldNodeKey: string;
+  /** newNodeKey is the new node key to rotate to */
+  newNodeKey: string;
+  /** oldWgPubKey is the current WireGuard public key (for verification) */
+  oldWgPubKey: string;
+  /** newWgPubKey is the new WireGuard public key to rotate to */
+  newWgPubKey: string;
+  /** oldRuneKey is the current Rune key (for verification) */
+  oldRuneKey: string;
+  /** newRuneKey is the new Rune key to rotate to */
+  newRuneKey: string;
+  /**
+   * nodeKeySignature is the new NodeKeySignature if Network Lock is enabled.
+   * This must be signed by the node's rotation key or a trusted NL key.
+   */
+  nodeKeySignature: Uint8Array;
+}
+
+/** RotateNodeKeyResponse is returned after a successful key rotation. */
+export interface RotateNodeKeyResponse {
+  /** success indicates whether the key rotation was successful */
+  success: boolean;
+  /** newKeyExpiry is the new expiry time for the rotated keys */
+  newKeyExpiry:
+    | Date
+    | undefined;
+  /** error is set if success is false */
+  error: string;
+}
+
+/** NetworkLockInitRequest initializes Network Lock for the Runetale Network. */
+export interface NetworkLockInitRequest {
+  /** keys are the initial trusted signing keys (NL public keys) */
+  keys: NetworkLockKey[];
+  /** disablementSecret is a secret that can be used to disable Network Lock */
+  disablementSecret: Uint8Array;
+}
+
+/** NetworkLockInitResponse is returned after Network Lock initialization. */
+export interface NetworkLockInitResponse {
+  /** success indicates whether initialization was successful */
+  success: boolean;
+  /** error is set if success is false */
+  error: string;
+}
+
+/** NetworkLockSignRequest requests signing of a node key. */
+export interface NetworkLockSignRequest {
+  /** nodeKey is the public node key to sign */
+  nodeKey: string;
+  /**
+   * rotationPublic is an optional ed25519 public key for future key rotations.
+   * If set, the node can rotate its key by signing with this rotation key.
+   */
+  rotationPublic: Uint8Array;
+}
+
+/** NetworkLockSignResponse returns the signed node key signature. */
+export interface NetworkLockSignResponse {
+  /** signature is the CBOR-encoded NodeKeySignature */
+  signature: Uint8Array;
+  /** error is set if signing failed */
+  error: string;
+}
+
+/** NetworkLockDisableRequest disables Network Lock for the Runetale Network. */
+export interface NetworkLockDisableRequest {
+  /** disablementSecret is the secret provided during initialization */
+  disablementSecret: Uint8Array;
+}
+
+/** NetworkLockDisableResponse is returned after disabling Network Lock. */
+export interface NetworkLockDisableResponse {
+  /** success indicates whether disabling was successful */
+  success: boolean;
+  /** error is set if success is false */
+  error: string;
+}
+
+/** NetworkLockStatusResponse returns the current Network Lock status. */
+export interface NetworkLockStatusResponse {
+  /** enabled indicates whether Network Lock is enabled */
+  enabled: boolean;
+  /** head is the current AUM chain head hash (32 bytes) */
+  head: Uint8Array;
+  /** publicKey is this node's Network Lock public key */
+  publicKey: Uint8Array;
+  /** nodeKey is this node's current node public key */
+  nodeKey: string;
+  /** nodeKeySigned indicates whether this node's key is properly signed */
+  nodeKeySigned: boolean;
+  /** trustedKeys are the currently trusted signing keys */
+  trustedKeys: NetworkLockKey[];
+  /** filteredPeers are peers that failed Network Lock verification */
+  filteredPeers: FilteredPeer[];
+}
+
+/** NetworkLockKey represents a trusted Network Lock signing key. */
+export interface NetworkLockKey {
+  /** keyId is the key identifier (hash of the public key) */
+  keyId: Uint8Array;
+  /** publicKey is the ed25519 public key */
+  publicKey: Uint8Array;
+  /** kind is the key type (e.g., "nl" for Network Lock key) */
+  kind: string;
+  /** votes is the voting weight of this key (for threshold signing) */
+  votes: number;
+  /** comment is an optional human-readable description */
+  comment: string;
+}
+
+/** FilteredPeer represents a peer that was filtered due to Network Lock. */
+export interface FilteredPeer {
+  /** nodeId is the peer's node ID */
+  nodeId: number;
+  /** name is the peer's hostname */
+  name: string;
+  /** nodeKey is the peer's node public key */
+  nodeKey: string;
+  /** reason is why the peer was filtered */
+  reason: string;
+}
+
 function createBaseNode(): Node {
   return {
     name: "",
@@ -291,6 +439,9 @@ function createBaseNode(): Node {
     cerfHomeRegionId: 0,
     online: false,
     lastSeen: undefined,
+    keyExpiry: undefined,
+    expired: false,
+    keySignature: new Uint8Array(0),
   };
 }
 
@@ -340,6 +491,15 @@ export const Node: MessageFns<Node> = {
     }
     if (message.lastSeen !== undefined) {
       Timestamp.encode(toTimestamp(message.lastSeen), writer.uint32(122).fork()).join();
+    }
+    if (message.keyExpiry !== undefined) {
+      Timestamp.encode(toTimestamp(message.keyExpiry), writer.uint32(130).fork()).join();
+    }
+    if (message.expired !== false) {
+      writer.uint32(136).bool(message.expired);
+    }
+    if (message.keySignature.length !== 0) {
+      writer.uint32(146).bytes(message.keySignature);
     }
     return writer;
   },
@@ -471,6 +631,30 @@ export const Node: MessageFns<Node> = {
           message.lastSeen = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
+        case 16: {
+          if (tag !== 130) {
+            break;
+          }
+
+          message.keyExpiry = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 17: {
+          if (tag !== 136) {
+            break;
+          }
+
+          message.expired = reader.bool();
+          continue;
+        }
+        case 18: {
+          if (tag !== 146) {
+            break;
+          }
+
+          message.keySignature = reader.bytes();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -501,6 +685,9 @@ export const Node: MessageFns<Node> = {
       cerfHomeRegionId: isSet(object.cerfHomeRegionId) ? globalThis.Number(object.cerfHomeRegionId) : 0,
       online: isSet(object.online) ? globalThis.Boolean(object.online) : false,
       lastSeen: isSet(object.lastSeen) ? fromJsonTimestamp(object.lastSeen) : undefined,
+      keyExpiry: isSet(object.keyExpiry) ? fromJsonTimestamp(object.keyExpiry) : undefined,
+      expired: isSet(object.expired) ? globalThis.Boolean(object.expired) : false,
+      keySignature: isSet(object.keySignature) ? bytesFromBase64(object.keySignature) : new Uint8Array(0),
     };
   },
 
@@ -551,6 +738,15 @@ export const Node: MessageFns<Node> = {
     if (message.lastSeen !== undefined) {
       obj.lastSeen = message.lastSeen.toISOString();
     }
+    if (message.keyExpiry !== undefined) {
+      obj.keyExpiry = message.keyExpiry.toISOString();
+    }
+    if (message.expired !== false) {
+      obj.expired = message.expired;
+    }
+    if (message.keySignature.length !== 0) {
+      obj.keySignature = base64FromBytes(message.keySignature);
+    }
     return obj;
   },
 
@@ -574,6 +770,9 @@ export const Node: MessageFns<Node> = {
     message.cerfHomeRegionId = object.cerfHomeRegionId ?? 0;
     message.online = object.online ?? false;
     message.lastSeen = object.lastSeen ?? undefined;
+    message.keyExpiry = object.keyExpiry ?? undefined;
+    message.expired = object.expired ?? false;
+    message.keySignature = object.keySignature ?? new Uint8Array(0);
     return message;
   },
 };
@@ -2178,6 +2377,1106 @@ export const DNSConfig_RoutesEntry: MessageFns<DNSConfig_RoutesEntry> = {
   },
 };
 
+function createBaseRotateNodeKeyRequest(): RotateNodeKeyRequest {
+  return {
+    oldNodeKey: "",
+    newNodeKey: "",
+    oldWgPubKey: "",
+    newWgPubKey: "",
+    oldRuneKey: "",
+    newRuneKey: "",
+    nodeKeySignature: new Uint8Array(0),
+  };
+}
+
+export const RotateNodeKeyRequest: MessageFns<RotateNodeKeyRequest> = {
+  encode(message: RotateNodeKeyRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.oldNodeKey !== "") {
+      writer.uint32(10).string(message.oldNodeKey);
+    }
+    if (message.newNodeKey !== "") {
+      writer.uint32(18).string(message.newNodeKey);
+    }
+    if (message.oldWgPubKey !== "") {
+      writer.uint32(26).string(message.oldWgPubKey);
+    }
+    if (message.newWgPubKey !== "") {
+      writer.uint32(34).string(message.newWgPubKey);
+    }
+    if (message.oldRuneKey !== "") {
+      writer.uint32(42).string(message.oldRuneKey);
+    }
+    if (message.newRuneKey !== "") {
+      writer.uint32(50).string(message.newRuneKey);
+    }
+    if (message.nodeKeySignature.length !== 0) {
+      writer.uint32(58).bytes(message.nodeKeySignature);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RotateNodeKeyRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRotateNodeKeyRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.oldNodeKey = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.newNodeKey = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.oldWgPubKey = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.newWgPubKey = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.oldRuneKey = reader.string();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.newRuneKey = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.nodeKeySignature = reader.bytes();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RotateNodeKeyRequest {
+    return {
+      oldNodeKey: isSet(object.oldNodeKey) ? globalThis.String(object.oldNodeKey) : "",
+      newNodeKey: isSet(object.newNodeKey) ? globalThis.String(object.newNodeKey) : "",
+      oldWgPubKey: isSet(object.oldWgPubKey) ? globalThis.String(object.oldWgPubKey) : "",
+      newWgPubKey: isSet(object.newWgPubKey) ? globalThis.String(object.newWgPubKey) : "",
+      oldRuneKey: isSet(object.oldRuneKey) ? globalThis.String(object.oldRuneKey) : "",
+      newRuneKey: isSet(object.newRuneKey) ? globalThis.String(object.newRuneKey) : "",
+      nodeKeySignature: isSet(object.nodeKeySignature) ? bytesFromBase64(object.nodeKeySignature) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: RotateNodeKeyRequest): unknown {
+    const obj: any = {};
+    if (message.oldNodeKey !== "") {
+      obj.oldNodeKey = message.oldNodeKey;
+    }
+    if (message.newNodeKey !== "") {
+      obj.newNodeKey = message.newNodeKey;
+    }
+    if (message.oldWgPubKey !== "") {
+      obj.oldWgPubKey = message.oldWgPubKey;
+    }
+    if (message.newWgPubKey !== "") {
+      obj.newWgPubKey = message.newWgPubKey;
+    }
+    if (message.oldRuneKey !== "") {
+      obj.oldRuneKey = message.oldRuneKey;
+    }
+    if (message.newRuneKey !== "") {
+      obj.newRuneKey = message.newRuneKey;
+    }
+    if (message.nodeKeySignature.length !== 0) {
+      obj.nodeKeySignature = base64FromBytes(message.nodeKeySignature);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RotateNodeKeyRequest>, I>>(base?: I): RotateNodeKeyRequest {
+    return RotateNodeKeyRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RotateNodeKeyRequest>, I>>(object: I): RotateNodeKeyRequest {
+    const message = createBaseRotateNodeKeyRequest();
+    message.oldNodeKey = object.oldNodeKey ?? "";
+    message.newNodeKey = object.newNodeKey ?? "";
+    message.oldWgPubKey = object.oldWgPubKey ?? "";
+    message.newWgPubKey = object.newWgPubKey ?? "";
+    message.oldRuneKey = object.oldRuneKey ?? "";
+    message.newRuneKey = object.newRuneKey ?? "";
+    message.nodeKeySignature = object.nodeKeySignature ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseRotateNodeKeyResponse(): RotateNodeKeyResponse {
+  return { success: false, newKeyExpiry: undefined, error: "" };
+}
+
+export const RotateNodeKeyResponse: MessageFns<RotateNodeKeyResponse> = {
+  encode(message: RotateNodeKeyResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.newKeyExpiry !== undefined) {
+      Timestamp.encode(toTimestamp(message.newKeyExpiry), writer.uint32(18).fork()).join();
+    }
+    if (message.error !== "") {
+      writer.uint32(26).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RotateNodeKeyResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRotateNodeKeyResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.newKeyExpiry = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RotateNodeKeyResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      newKeyExpiry: isSet(object.newKeyExpiry) ? fromJsonTimestamp(object.newKeyExpiry) : undefined,
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+    };
+  },
+
+  toJSON(message: RotateNodeKeyResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.newKeyExpiry !== undefined) {
+      obj.newKeyExpiry = message.newKeyExpiry.toISOString();
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RotateNodeKeyResponse>, I>>(base?: I): RotateNodeKeyResponse {
+    return RotateNodeKeyResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RotateNodeKeyResponse>, I>>(object: I): RotateNodeKeyResponse {
+    const message = createBaseRotateNodeKeyResponse();
+    message.success = object.success ?? false;
+    message.newKeyExpiry = object.newKeyExpiry ?? undefined;
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBaseNetworkLockInitRequest(): NetworkLockInitRequest {
+  return { keys: [], disablementSecret: new Uint8Array(0) };
+}
+
+export const NetworkLockInitRequest: MessageFns<NetworkLockInitRequest> = {
+  encode(message: NetworkLockInitRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.keys) {
+      NetworkLockKey.encode(v!, writer.uint32(10).fork()).join();
+    }
+    if (message.disablementSecret.length !== 0) {
+      writer.uint32(18).bytes(message.disablementSecret);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetworkLockInitRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetworkLockInitRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.keys.push(NetworkLockKey.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.disablementSecret = reader.bytes();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetworkLockInitRequest {
+    return {
+      keys: globalThis.Array.isArray(object?.keys) ? object.keys.map((e: any) => NetworkLockKey.fromJSON(e)) : [],
+      disablementSecret: isSet(object.disablementSecret)
+        ? bytesFromBase64(object.disablementSecret)
+        : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: NetworkLockInitRequest): unknown {
+    const obj: any = {};
+    if (message.keys?.length) {
+      obj.keys = message.keys.map((e) => NetworkLockKey.toJSON(e));
+    }
+    if (message.disablementSecret.length !== 0) {
+      obj.disablementSecret = base64FromBytes(message.disablementSecret);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetworkLockInitRequest>, I>>(base?: I): NetworkLockInitRequest {
+    return NetworkLockInitRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetworkLockInitRequest>, I>>(object: I): NetworkLockInitRequest {
+    const message = createBaseNetworkLockInitRequest();
+    message.keys = object.keys?.map((e) => NetworkLockKey.fromPartial(e)) || [];
+    message.disablementSecret = object.disablementSecret ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseNetworkLockInitResponse(): NetworkLockInitResponse {
+  return { success: false, error: "" };
+}
+
+export const NetworkLockInitResponse: MessageFns<NetworkLockInitResponse> = {
+  encode(message: NetworkLockInitResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.error !== "") {
+      writer.uint32(18).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetworkLockInitResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetworkLockInitResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetworkLockInitResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+    };
+  },
+
+  toJSON(message: NetworkLockInitResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetworkLockInitResponse>, I>>(base?: I): NetworkLockInitResponse {
+    return NetworkLockInitResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetworkLockInitResponse>, I>>(object: I): NetworkLockInitResponse {
+    const message = createBaseNetworkLockInitResponse();
+    message.success = object.success ?? false;
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBaseNetworkLockSignRequest(): NetworkLockSignRequest {
+  return { nodeKey: "", rotationPublic: new Uint8Array(0) };
+}
+
+export const NetworkLockSignRequest: MessageFns<NetworkLockSignRequest> = {
+  encode(message: NetworkLockSignRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.nodeKey !== "") {
+      writer.uint32(10).string(message.nodeKey);
+    }
+    if (message.rotationPublic.length !== 0) {
+      writer.uint32(18).bytes(message.rotationPublic);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetworkLockSignRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetworkLockSignRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.nodeKey = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.rotationPublic = reader.bytes();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetworkLockSignRequest {
+    return {
+      nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
+      rotationPublic: isSet(object.rotationPublic) ? bytesFromBase64(object.rotationPublic) : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: NetworkLockSignRequest): unknown {
+    const obj: any = {};
+    if (message.nodeKey !== "") {
+      obj.nodeKey = message.nodeKey;
+    }
+    if (message.rotationPublic.length !== 0) {
+      obj.rotationPublic = base64FromBytes(message.rotationPublic);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetworkLockSignRequest>, I>>(base?: I): NetworkLockSignRequest {
+    return NetworkLockSignRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetworkLockSignRequest>, I>>(object: I): NetworkLockSignRequest {
+    const message = createBaseNetworkLockSignRequest();
+    message.nodeKey = object.nodeKey ?? "";
+    message.rotationPublic = object.rotationPublic ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseNetworkLockSignResponse(): NetworkLockSignResponse {
+  return { signature: new Uint8Array(0), error: "" };
+}
+
+export const NetworkLockSignResponse: MessageFns<NetworkLockSignResponse> = {
+  encode(message: NetworkLockSignResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.signature.length !== 0) {
+      writer.uint32(10).bytes(message.signature);
+    }
+    if (message.error !== "") {
+      writer.uint32(18).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetworkLockSignResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetworkLockSignResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.signature = reader.bytes();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetworkLockSignResponse {
+    return {
+      signature: isSet(object.signature) ? bytesFromBase64(object.signature) : new Uint8Array(0),
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+    };
+  },
+
+  toJSON(message: NetworkLockSignResponse): unknown {
+    const obj: any = {};
+    if (message.signature.length !== 0) {
+      obj.signature = base64FromBytes(message.signature);
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetworkLockSignResponse>, I>>(base?: I): NetworkLockSignResponse {
+    return NetworkLockSignResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetworkLockSignResponse>, I>>(object: I): NetworkLockSignResponse {
+    const message = createBaseNetworkLockSignResponse();
+    message.signature = object.signature ?? new Uint8Array(0);
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBaseNetworkLockDisableRequest(): NetworkLockDisableRequest {
+  return { disablementSecret: new Uint8Array(0) };
+}
+
+export const NetworkLockDisableRequest: MessageFns<NetworkLockDisableRequest> = {
+  encode(message: NetworkLockDisableRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.disablementSecret.length !== 0) {
+      writer.uint32(10).bytes(message.disablementSecret);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetworkLockDisableRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetworkLockDisableRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.disablementSecret = reader.bytes();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetworkLockDisableRequest {
+    return {
+      disablementSecret: isSet(object.disablementSecret)
+        ? bytesFromBase64(object.disablementSecret)
+        : new Uint8Array(0),
+    };
+  },
+
+  toJSON(message: NetworkLockDisableRequest): unknown {
+    const obj: any = {};
+    if (message.disablementSecret.length !== 0) {
+      obj.disablementSecret = base64FromBytes(message.disablementSecret);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetworkLockDisableRequest>, I>>(base?: I): NetworkLockDisableRequest {
+    return NetworkLockDisableRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetworkLockDisableRequest>, I>>(object: I): NetworkLockDisableRequest {
+    const message = createBaseNetworkLockDisableRequest();
+    message.disablementSecret = object.disablementSecret ?? new Uint8Array(0);
+    return message;
+  },
+};
+
+function createBaseNetworkLockDisableResponse(): NetworkLockDisableResponse {
+  return { success: false, error: "" };
+}
+
+export const NetworkLockDisableResponse: MessageFns<NetworkLockDisableResponse> = {
+  encode(message: NetworkLockDisableResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.error !== "") {
+      writer.uint32(18).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetworkLockDisableResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetworkLockDisableResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetworkLockDisableResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+    };
+  },
+
+  toJSON(message: NetworkLockDisableResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetworkLockDisableResponse>, I>>(base?: I): NetworkLockDisableResponse {
+    return NetworkLockDisableResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetworkLockDisableResponse>, I>>(object: I): NetworkLockDisableResponse {
+    const message = createBaseNetworkLockDisableResponse();
+    message.success = object.success ?? false;
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBaseNetworkLockStatusResponse(): NetworkLockStatusResponse {
+  return {
+    enabled: false,
+    head: new Uint8Array(0),
+    publicKey: new Uint8Array(0),
+    nodeKey: "",
+    nodeKeySigned: false,
+    trustedKeys: [],
+    filteredPeers: [],
+  };
+}
+
+export const NetworkLockStatusResponse: MessageFns<NetworkLockStatusResponse> = {
+  encode(message: NetworkLockStatusResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.enabled !== false) {
+      writer.uint32(8).bool(message.enabled);
+    }
+    if (message.head.length !== 0) {
+      writer.uint32(18).bytes(message.head);
+    }
+    if (message.publicKey.length !== 0) {
+      writer.uint32(26).bytes(message.publicKey);
+    }
+    if (message.nodeKey !== "") {
+      writer.uint32(34).string(message.nodeKey);
+    }
+    if (message.nodeKeySigned !== false) {
+      writer.uint32(40).bool(message.nodeKeySigned);
+    }
+    for (const v of message.trustedKeys) {
+      NetworkLockKey.encode(v!, writer.uint32(50).fork()).join();
+    }
+    for (const v of message.filteredPeers) {
+      FilteredPeer.encode(v!, writer.uint32(58).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetworkLockStatusResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetworkLockStatusResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.enabled = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.head = reader.bytes();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.publicKey = reader.bytes();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.nodeKey = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.nodeKeySigned = reader.bool();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.trustedKeys.push(NetworkLockKey.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.filteredPeers.push(FilteredPeer.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetworkLockStatusResponse {
+    return {
+      enabled: isSet(object.enabled) ? globalThis.Boolean(object.enabled) : false,
+      head: isSet(object.head) ? bytesFromBase64(object.head) : new Uint8Array(0),
+      publicKey: isSet(object.publicKey) ? bytesFromBase64(object.publicKey) : new Uint8Array(0),
+      nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
+      nodeKeySigned: isSet(object.nodeKeySigned) ? globalThis.Boolean(object.nodeKeySigned) : false,
+      trustedKeys: globalThis.Array.isArray(object?.trustedKeys)
+        ? object.trustedKeys.map((e: any) => NetworkLockKey.fromJSON(e))
+        : [],
+      filteredPeers: globalThis.Array.isArray(object?.filteredPeers)
+        ? object.filteredPeers.map((e: any) => FilteredPeer.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: NetworkLockStatusResponse): unknown {
+    const obj: any = {};
+    if (message.enabled !== false) {
+      obj.enabled = message.enabled;
+    }
+    if (message.head.length !== 0) {
+      obj.head = base64FromBytes(message.head);
+    }
+    if (message.publicKey.length !== 0) {
+      obj.publicKey = base64FromBytes(message.publicKey);
+    }
+    if (message.nodeKey !== "") {
+      obj.nodeKey = message.nodeKey;
+    }
+    if (message.nodeKeySigned !== false) {
+      obj.nodeKeySigned = message.nodeKeySigned;
+    }
+    if (message.trustedKeys?.length) {
+      obj.trustedKeys = message.trustedKeys.map((e) => NetworkLockKey.toJSON(e));
+    }
+    if (message.filteredPeers?.length) {
+      obj.filteredPeers = message.filteredPeers.map((e) => FilteredPeer.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetworkLockStatusResponse>, I>>(base?: I): NetworkLockStatusResponse {
+    return NetworkLockStatusResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetworkLockStatusResponse>, I>>(object: I): NetworkLockStatusResponse {
+    const message = createBaseNetworkLockStatusResponse();
+    message.enabled = object.enabled ?? false;
+    message.head = object.head ?? new Uint8Array(0);
+    message.publicKey = object.publicKey ?? new Uint8Array(0);
+    message.nodeKey = object.nodeKey ?? "";
+    message.nodeKeySigned = object.nodeKeySigned ?? false;
+    message.trustedKeys = object.trustedKeys?.map((e) => NetworkLockKey.fromPartial(e)) || [];
+    message.filteredPeers = object.filteredPeers?.map((e) => FilteredPeer.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseNetworkLockKey(): NetworkLockKey {
+  return { keyId: new Uint8Array(0), publicKey: new Uint8Array(0), kind: "", votes: 0, comment: "" };
+}
+
+export const NetworkLockKey: MessageFns<NetworkLockKey> = {
+  encode(message: NetworkLockKey, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.keyId.length !== 0) {
+      writer.uint32(10).bytes(message.keyId);
+    }
+    if (message.publicKey.length !== 0) {
+      writer.uint32(18).bytes(message.publicKey);
+    }
+    if (message.kind !== "") {
+      writer.uint32(26).string(message.kind);
+    }
+    if (message.votes !== 0) {
+      writer.uint32(32).uint32(message.votes);
+    }
+    if (message.comment !== "") {
+      writer.uint32(42).string(message.comment);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NetworkLockKey {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseNetworkLockKey();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.keyId = reader.bytes();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.publicKey = reader.bytes();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.kind = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.votes = reader.uint32();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.comment = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): NetworkLockKey {
+    return {
+      keyId: isSet(object.keyId) ? bytesFromBase64(object.keyId) : new Uint8Array(0),
+      publicKey: isSet(object.publicKey) ? bytesFromBase64(object.publicKey) : new Uint8Array(0),
+      kind: isSet(object.kind) ? globalThis.String(object.kind) : "",
+      votes: isSet(object.votes) ? globalThis.Number(object.votes) : 0,
+      comment: isSet(object.comment) ? globalThis.String(object.comment) : "",
+    };
+  },
+
+  toJSON(message: NetworkLockKey): unknown {
+    const obj: any = {};
+    if (message.keyId.length !== 0) {
+      obj.keyId = base64FromBytes(message.keyId);
+    }
+    if (message.publicKey.length !== 0) {
+      obj.publicKey = base64FromBytes(message.publicKey);
+    }
+    if (message.kind !== "") {
+      obj.kind = message.kind;
+    }
+    if (message.votes !== 0) {
+      obj.votes = Math.round(message.votes);
+    }
+    if (message.comment !== "") {
+      obj.comment = message.comment;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NetworkLockKey>, I>>(base?: I): NetworkLockKey {
+    return NetworkLockKey.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NetworkLockKey>, I>>(object: I): NetworkLockKey {
+    const message = createBaseNetworkLockKey();
+    message.keyId = object.keyId ?? new Uint8Array(0);
+    message.publicKey = object.publicKey ?? new Uint8Array(0);
+    message.kind = object.kind ?? "";
+    message.votes = object.votes ?? 0;
+    message.comment = object.comment ?? "";
+    return message;
+  },
+};
+
+function createBaseFilteredPeer(): FilteredPeer {
+  return { nodeId: 0, name: "", nodeKey: "", reason: "" };
+}
+
+export const FilteredPeer: MessageFns<FilteredPeer> = {
+  encode(message: FilteredPeer, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.nodeKey !== "") {
+      writer.uint32(26).string(message.nodeKey);
+    }
+    if (message.reason !== "") {
+      writer.uint32(34).string(message.reason);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FilteredPeer {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFilteredPeer();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.nodeId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.nodeKey = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.reason = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FilteredPeer {
+    return {
+      nodeId: isSet(object.nodeId) ? globalThis.Number(object.nodeId) : 0,
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      nodeKey: isSet(object.nodeKey) ? globalThis.String(object.nodeKey) : "",
+      reason: isSet(object.reason) ? globalThis.String(object.reason) : "",
+    };
+  },
+
+  toJSON(message: FilteredPeer): unknown {
+    const obj: any = {};
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.nodeKey !== "") {
+      obj.nodeKey = message.nodeKey;
+    }
+    if (message.reason !== "") {
+      obj.reason = message.reason;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FilteredPeer>, I>>(base?: I): FilteredPeer {
+    return FilteredPeer.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FilteredPeer>, I>>(object: I): FilteredPeer {
+    const message = createBaseFilteredPeer();
+    message.nodeId = object.nodeId ?? 0;
+    message.name = object.name ?? "";
+    message.nodeKey = object.nodeKey ?? "";
+    message.reason = object.reason ?? "";
+    return message;
+  },
+};
+
 export interface NodeService {
   ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse>;
   GetNetworkMap(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkMapResponse>;
@@ -2185,6 +3484,31 @@ export interface NodeService {
     request: Observable<DeepPartial<NetworkMapRequest>>,
     metadata?: grpc.Metadata,
   ): Observable<NetworkMapResponse>;
+  /**
+   * RotateNodeKey rotates the node's keys (NodeKey and WgPubKey) to new values.
+   * This is used for seamless key renewal without disconnecting the VPN.
+   */
+  RotateNodeKey(request: DeepPartial<RotateNodeKeyRequest>, metadata?: grpc.Metadata): Promise<RotateNodeKeyResponse>;
+  /**
+   * Network Lock (TKA) RPCs
+   * NetworkLockInit enables Network Lock for the Runetale Network.
+   */
+  NetworkLockInit(
+    request: DeepPartial<NetworkLockInitRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<NetworkLockInitResponse>;
+  /** NetworkLockSign signs a node key with a trusted Network Lock key. */
+  NetworkLockSign(
+    request: DeepPartial<NetworkLockSignRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<NetworkLockSignResponse>;
+  /** NetworkLockDisable disables Network Lock for the Runetale Network. */
+  NetworkLockDisable(
+    request: DeepPartial<NetworkLockDisableRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<NetworkLockDisableResponse>;
+  /** NetworkLockStatus returns the current Network Lock status. */
+  NetworkLockStatus(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkLockStatusResponse>;
 }
 
 export class NodeServiceClientImpl implements NodeService {
@@ -2195,6 +3519,11 @@ export class NodeServiceClientImpl implements NodeService {
     this.ComposeNode = this.ComposeNode.bind(this);
     this.GetNetworkMap = this.GetNetworkMap.bind(this);
     this.ConnectNetworkMapTable = this.ConnectNetworkMapTable.bind(this);
+    this.RotateNodeKey = this.RotateNodeKey.bind(this);
+    this.NetworkLockInit = this.NetworkLockInit.bind(this);
+    this.NetworkLockSign = this.NetworkLockSign.bind(this);
+    this.NetworkLockDisable = this.NetworkLockDisable.bind(this);
+    this.NetworkLockStatus = this.NetworkLockStatus.bind(this);
   }
 
   ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse> {
@@ -2210,6 +3539,35 @@ export class NodeServiceClientImpl implements NodeService {
     metadata?: grpc.Metadata,
   ): Observable<NetworkMapResponse> {
     throw new Error("ts-proto does not yet support client streaming!");
+  }
+
+  RotateNodeKey(request: DeepPartial<RotateNodeKeyRequest>, metadata?: grpc.Metadata): Promise<RotateNodeKeyResponse> {
+    return this.rpc.unary(NodeServiceRotateNodeKeyDesc, RotateNodeKeyRequest.fromPartial(request), metadata);
+  }
+
+  NetworkLockInit(
+    request: DeepPartial<NetworkLockInitRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<NetworkLockInitResponse> {
+    return this.rpc.unary(NodeServiceNetworkLockInitDesc, NetworkLockInitRequest.fromPartial(request), metadata);
+  }
+
+  NetworkLockSign(
+    request: DeepPartial<NetworkLockSignRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<NetworkLockSignResponse> {
+    return this.rpc.unary(NodeServiceNetworkLockSignDesc, NetworkLockSignRequest.fromPartial(request), metadata);
+  }
+
+  NetworkLockDisable(
+    request: DeepPartial<NetworkLockDisableRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<NetworkLockDisableResponse> {
+    return this.rpc.unary(NodeServiceNetworkLockDisableDesc, NetworkLockDisableRequest.fromPartial(request), metadata);
+  }
+
+  NetworkLockStatus(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkLockStatusResponse> {
+    return this.rpc.unary(NodeServiceNetworkLockStatusDesc, Empty.fromPartial(request), metadata);
   }
 }
 
@@ -2251,6 +3609,121 @@ export const NodeServiceGetNetworkMapDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = NetworkMapResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceRotateNodeKeyDesc: UnaryMethodDefinitionish = {
+  methodName: "RotateNodeKey",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RotateNodeKeyRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = RotateNodeKeyResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceNetworkLockInitDesc: UnaryMethodDefinitionish = {
+  methodName: "NetworkLockInit",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return NetworkLockInitRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = NetworkLockInitResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceNetworkLockSignDesc: UnaryMethodDefinitionish = {
+  methodName: "NetworkLockSign",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return NetworkLockSignRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = NetworkLockSignResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceNetworkLockDisableDesc: UnaryMethodDefinitionish = {
+  methodName: "NetworkLockDisable",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return NetworkLockDisableRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = NetworkLockDisableResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceNetworkLockStatusDesc: UnaryMethodDefinitionish = {
+  methodName: "NetworkLockStatus",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return Empty.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = NetworkLockStatusResponse.decode(data);
       return {
         ...value,
         toObject() {
@@ -2371,6 +3844,31 @@ export class GrpcWebImpl {
       };
       upStream();
     }).pipe(share());
+  }
+}
+
+function bytesFromBase64(b64: string): Uint8Array {
+  if ((globalThis as any).Buffer) {
+    return Uint8Array.from(globalThis.Buffer.from(b64, "base64"));
+  } else {
+    const bin = globalThis.atob(b64);
+    const arr = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; ++i) {
+      arr[i] = bin.charCodeAt(i);
+    }
+    return arr;
+  }
+}
+
+function base64FromBytes(arr: Uint8Array): string {
+  if ((globalThis as any).Buffer) {
+    return globalThis.Buffer.from(arr).toString("base64");
+  } else {
+    const bin: string[] = [];
+    arr.forEach((byte) => {
+      bin.push(globalThis.String.fromCharCode(byte));
+    });
+    return globalThis.btoa(bin.join(""));
   }
 }
 
