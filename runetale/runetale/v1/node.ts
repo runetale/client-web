@@ -193,6 +193,12 @@ export interface NetworkMapResponse {
    * The client checks these capabilities to enable/disable features.
    */
   capabilities: string[];
+  /**
+   * server_time is the current timestamp according to the server.
+   * The client uses this to detect clock skew between local and server time,
+   * which is critical for accurate key expiry evaluation.
+   */
+  serverTime: Date | undefined;
 }
 
 export interface CerfMap {
@@ -1293,6 +1299,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     telemetryLogId: "",
     domainTelemetryLogId: "",
     capabilities: [],
+    serverTime: undefined,
   };
 }
 
@@ -1347,6 +1354,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     }
     for (const v of message.capabilities) {
       writer.uint32(194).string(v!);
+    }
+    if (message.serverTime !== undefined) {
+      Timestamp.encode(toTimestamp(message.serverTime), writer.uint32(202).fork()).join();
     }
     return writer;
   },
@@ -1496,6 +1506,14 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
           message.capabilities.push(reader.string());
           continue;
         }
+        case 25: {
+          if (tag !== 202) {
+            break;
+          }
+
+          message.serverTime = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1541,6 +1559,11 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
       capabilities: globalThis.Array.isArray(object?.capabilities)
         ? object.capabilities.map((e: any) => globalThis.String(e))
         : [],
+      serverTime: isSet(object.serverTime)
+        ? fromJsonTimestamp(object.serverTime)
+        : isSet(object.server_time)
+        ? fromJsonTimestamp(object.server_time)
+        : undefined,
     };
   },
 
@@ -1594,6 +1617,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.capabilities?.length) {
       obj.capabilities = message.capabilities;
     }
+    if (message.serverTime !== undefined) {
+      obj.serverTime = message.serverTime.toISOString();
+    }
     return obj;
   },
 
@@ -1620,6 +1646,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.telemetryLogId = object.telemetryLogId ?? "";
     message.domainTelemetryLogId = object.domainTelemetryLogId ?? "";
     message.capabilities = object.capabilities?.map((e) => e) || [];
+    message.serverTime = object.serverTime ?? undefined;
     return message;
   },
 };
