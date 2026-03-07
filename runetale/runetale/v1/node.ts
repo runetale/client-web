@@ -226,6 +226,10 @@ export interface CerfNode {
   forceHttp: boolean;
   /** STUN-only node (no /cerf relay) */
   stunOnly: boolean;
+  /** optional: direct IPv4 address to bypass DNS resolution */
+  ipv4: string;
+  /** optional: direct IPv6 address to bypass DNS resolution */
+  ipv6: string;
 }
 
 export interface AppLinker {
@@ -1796,7 +1800,17 @@ export const CerfRegion: MessageFns<CerfRegion> = {
 };
 
 function createBaseCerfNode(): CerfNode {
-  return { name: "", hostName: "", cerfPort: 0, stunPort: 0, websocketOnly: false, forceHttp: false, stunOnly: false };
+  return {
+    name: "",
+    hostName: "",
+    cerfPort: 0,
+    stunPort: 0,
+    websocketOnly: false,
+    forceHttp: false,
+    stunOnly: false,
+    ipv4: "",
+    ipv6: "",
+  };
 }
 
 export const CerfNode: MessageFns<CerfNode> = {
@@ -1821,6 +1835,12 @@ export const CerfNode: MessageFns<CerfNode> = {
     }
     if (message.stunOnly !== false) {
       writer.uint32(56).bool(message.stunOnly);
+    }
+    if (message.ipv4 !== "") {
+      writer.uint32(66).string(message.ipv4);
+    }
+    if (message.ipv6 !== "") {
+      writer.uint32(74).string(message.ipv6);
     }
     return writer;
   },
@@ -1888,6 +1908,22 @@ export const CerfNode: MessageFns<CerfNode> = {
           message.stunOnly = reader.bool();
           continue;
         }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.ipv4 = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.ipv6 = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1906,6 +1942,8 @@ export const CerfNode: MessageFns<CerfNode> = {
       websocketOnly: isSet(object.websocketOnly) ? globalThis.Boolean(object.websocketOnly) : false,
       forceHttp: isSet(object.forceHttp) ? globalThis.Boolean(object.forceHttp) : false,
       stunOnly: isSet(object.stunOnly) ? globalThis.Boolean(object.stunOnly) : false,
+      ipv4: isSet(object.ipv4) ? globalThis.String(object.ipv4) : "",
+      ipv6: isSet(object.ipv6) ? globalThis.String(object.ipv6) : "",
     };
   },
 
@@ -1932,6 +1970,12 @@ export const CerfNode: MessageFns<CerfNode> = {
     if (message.stunOnly !== false) {
       obj.stunOnly = message.stunOnly;
     }
+    if (message.ipv4 !== "") {
+      obj.ipv4 = message.ipv4;
+    }
+    if (message.ipv6 !== "") {
+      obj.ipv6 = message.ipv6;
+    }
     return obj;
   },
 
@@ -1947,6 +1991,8 @@ export const CerfNode: MessageFns<CerfNode> = {
     message.websocketOnly = object.websocketOnly ?? false;
     message.forceHttp = object.forceHttp ?? false;
     message.stunOnly = object.stunOnly ?? false;
+    message.ipv4 = object.ipv4 ?? "";
+    message.ipv6 = object.ipv6 ?? "";
     return message;
   },
 };
