@@ -689,7 +689,7 @@ export interface NegotiationService {
   Offer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Answer(request: DeepPartial<HandshakeRequest>, metadata?: grpc.Metadata): Promise<Empty>;
   Candidate(request: DeepPartial<CandidateRequest>, metadata?: grpc.Metadata): Promise<Empty>;
-  Negotiate(
+  Connect(
     request: Observable<DeepPartial<NegotiationMessage>>,
     metadata?: grpc.Metadata,
   ): Observable<NegotiationMessage>;
@@ -704,7 +704,7 @@ export class NegotiationServiceClientImpl implements NegotiationService {
     this.Offer = this.Offer.bind(this);
     this.Answer = this.Answer.bind(this);
     this.Candidate = this.Candidate.bind(this);
-    this.Negotiate = this.Negotiate.bind(this);
+    this.Connect = this.Connect.bind(this);
     this.FleaMessage = this.FleaMessage.bind(this);
   }
 
@@ -720,7 +720,7 @@ export class NegotiationServiceClientImpl implements NegotiationService {
     return this.rpc.unary(NegotiationServiceCandidateDesc, CandidateRequest.fromPartial(request), metadata);
   }
 
-  Negotiate(
+  Connect(
     request: Observable<DeepPartial<NegotiationMessage>>,
     metadata?: grpc.Metadata,
   ): Observable<NegotiationMessage> {
