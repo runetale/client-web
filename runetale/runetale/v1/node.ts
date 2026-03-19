@@ -15,6 +15,254 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
 
 export const protobufPackage = "protos";
 
+/** SSHSessionState represents the state of an SSH session. */
+export enum SSHSessionState {
+  SSH_SESSION_STATE_UNSPECIFIED = 0,
+  /** SSH_SESSION_STATE_ACTIVE - Session is active */
+  SSH_SESSION_STATE_ACTIVE = 1,
+  /** SSH_SESSION_STATE_SUSPENDED - Session is suspended (can be resumed) */
+  SSH_SESSION_STATE_SUSPENDED = 2,
+  /** SSH_SESSION_STATE_TERMINATED - Session has ended */
+  SSH_SESSION_STATE_TERMINATED = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function sSHSessionStateFromJSON(object: any): SSHSessionState {
+  switch (object) {
+    case 0:
+    case "SSH_SESSION_STATE_UNSPECIFIED":
+      return SSHSessionState.SSH_SESSION_STATE_UNSPECIFIED;
+    case 1:
+    case "SSH_SESSION_STATE_ACTIVE":
+      return SSHSessionState.SSH_SESSION_STATE_ACTIVE;
+    case 2:
+    case "SSH_SESSION_STATE_SUSPENDED":
+      return SSHSessionState.SSH_SESSION_STATE_SUSPENDED;
+    case 3:
+    case "SSH_SESSION_STATE_TERMINATED":
+      return SSHSessionState.SSH_SESSION_STATE_TERMINATED;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return SSHSessionState.UNRECOGNIZED;
+  }
+}
+
+export function sSHSessionStateToJSON(object: SSHSessionState): string {
+  switch (object) {
+    case SSHSessionState.SSH_SESSION_STATE_UNSPECIFIED:
+      return "SSH_SESSION_STATE_UNSPECIFIED";
+    case SSHSessionState.SSH_SESSION_STATE_ACTIVE:
+      return "SSH_SESSION_STATE_ACTIVE";
+    case SSHSessionState.SSH_SESSION_STATE_SUSPENDED:
+      return "SSH_SESSION_STATE_SUSPENDED";
+    case SSHSessionState.SSH_SESSION_STATE_TERMINATED:
+      return "SSH_SESSION_STATE_TERMINATED";
+    case SSHSessionState.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+/** SSHSessionRole represents a user's role in a session. */
+export enum SSHSessionRole {
+  SSH_SESSION_ROLE_UNSPECIFIED = 0,
+  /** SSH_SESSION_ROLE_OWNER - Full control */
+  SSH_SESSION_ROLE_OWNER = 1,
+  /** SSH_SESSION_ROLE_COLLABORATOR - Can input, cannot manage */
+  SSH_SESSION_ROLE_COLLABORATOR = 2,
+  /** SSH_SESSION_ROLE_VIEWER - Read-only access */
+  SSH_SESSION_ROLE_VIEWER = 3,
+  /** SSH_SESSION_ROLE_PUBLISHER - Can publish only */
+  SSH_SESSION_ROLE_PUBLISHER = 4,
+  UNRECOGNIZED = -1,
+}
+
+export function sSHSessionRoleFromJSON(object: any): SSHSessionRole {
+  switch (object) {
+    case 0:
+    case "SSH_SESSION_ROLE_UNSPECIFIED":
+      return SSHSessionRole.SSH_SESSION_ROLE_UNSPECIFIED;
+    case 1:
+    case "SSH_SESSION_ROLE_OWNER":
+      return SSHSessionRole.SSH_SESSION_ROLE_OWNER;
+    case 2:
+    case "SSH_SESSION_ROLE_COLLABORATOR":
+      return SSHSessionRole.SSH_SESSION_ROLE_COLLABORATOR;
+    case 3:
+    case "SSH_SESSION_ROLE_VIEWER":
+      return SSHSessionRole.SSH_SESSION_ROLE_VIEWER;
+    case 4:
+    case "SSH_SESSION_ROLE_PUBLISHER":
+      return SSHSessionRole.SSH_SESSION_ROLE_PUBLISHER;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return SSHSessionRole.UNRECOGNIZED;
+  }
+}
+
+export function sSHSessionRoleToJSON(object: SSHSessionRole): string {
+  switch (object) {
+    case SSHSessionRole.SSH_SESSION_ROLE_UNSPECIFIED:
+      return "SSH_SESSION_ROLE_UNSPECIFIED";
+    case SSHSessionRole.SSH_SESSION_ROLE_OWNER:
+      return "SSH_SESSION_ROLE_OWNER";
+    case SSHSessionRole.SSH_SESSION_ROLE_COLLABORATOR:
+      return "SSH_SESSION_ROLE_COLLABORATOR";
+    case SSHSessionRole.SSH_SESSION_ROLE_VIEWER:
+      return "SSH_SESSION_ROLE_VIEWER";
+    case SSHSessionRole.SSH_SESSION_ROLE_PUBLISHER:
+      return "SSH_SESSION_ROLE_PUBLISHER";
+    case SSHSessionRole.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+/** SSHSessionVisibility represents the visibility of a published session. */
+export enum SSHSessionVisibility {
+  SSH_SESSION_VISIBILITY_UNSPECIFIED = 0,
+  /** SSH_SESSION_VISIBILITY_INTERNAL - Organization only */
+  SSH_SESSION_VISIBILITY_INTERNAL = 1,
+  /** SSH_SESSION_VISIBILITY_AUTHENTICATED - Any authenticated user */
+  SSH_SESSION_VISIBILITY_AUTHENTICATED = 2,
+  /** SSH_SESSION_VISIBILITY_PUBLIC - Anyone (anonymous) */
+  SSH_SESSION_VISIBILITY_PUBLIC = 3,
+  UNRECOGNIZED = -1,
+}
+
+export function sSHSessionVisibilityFromJSON(object: any): SSHSessionVisibility {
+  switch (object) {
+    case 0:
+    case "SSH_SESSION_VISIBILITY_UNSPECIFIED":
+      return SSHSessionVisibility.SSH_SESSION_VISIBILITY_UNSPECIFIED;
+    case 1:
+    case "SSH_SESSION_VISIBILITY_INTERNAL":
+      return SSHSessionVisibility.SSH_SESSION_VISIBILITY_INTERNAL;
+    case 2:
+    case "SSH_SESSION_VISIBILITY_AUTHENTICATED":
+      return SSHSessionVisibility.SSH_SESSION_VISIBILITY_AUTHENTICATED;
+    case 3:
+    case "SSH_SESSION_VISIBILITY_PUBLIC":
+      return SSHSessionVisibility.SSH_SESSION_VISIBILITY_PUBLIC;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return SSHSessionVisibility.UNRECOGNIZED;
+  }
+}
+
+export function sSHSessionVisibilityToJSON(object: SSHSessionVisibility): string {
+  switch (object) {
+    case SSHSessionVisibility.SSH_SESSION_VISIBILITY_UNSPECIFIED:
+      return "SSH_SESSION_VISIBILITY_UNSPECIFIED";
+    case SSHSessionVisibility.SSH_SESSION_VISIBILITY_INTERNAL:
+      return "SSH_SESSION_VISIBILITY_INTERNAL";
+    case SSHSessionVisibility.SSH_SESSION_VISIBILITY_AUTHENTICATED:
+      return "SSH_SESSION_VISIBILITY_AUTHENTICATED";
+    case SSHSessionVisibility.SSH_SESSION_VISIBILITY_PUBLIC:
+      return "SSH_SESSION_VISIBILITY_PUBLIC";
+    case SSHSessionVisibility.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
+/** SSHSessionEventType represents types of session events. */
+export enum SSHSessionEventType {
+  SSH_SESSION_EVENT_UNSPECIFIED = 0,
+  SSH_SESSION_EVENT_CREATED = 1,
+  SSH_SESSION_EVENT_RESUMED = 2,
+  SSH_SESSION_EVENT_SUSPENDED = 3,
+  SSH_SESSION_EVENT_TERMINATED = 4,
+  SSH_SESSION_EVENT_SHARED = 5,
+  SSH_SESSION_EVENT_SHARE_REVOKED = 6,
+  SSH_SESSION_EVENT_PUBLISHED = 7,
+  SSH_SESSION_EVENT_UNPUBLISHED = 8,
+  SSH_SESSION_EVENT_ACL_CHANGED = 9,
+  SSH_SESSION_EVENT_USER_JOINED = 10,
+  SSH_SESSION_EVENT_USER_LEFT = 11,
+  UNRECOGNIZED = -1,
+}
+
+export function sSHSessionEventTypeFromJSON(object: any): SSHSessionEventType {
+  switch (object) {
+    case 0:
+    case "SSH_SESSION_EVENT_UNSPECIFIED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_UNSPECIFIED;
+    case 1:
+    case "SSH_SESSION_EVENT_CREATED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_CREATED;
+    case 2:
+    case "SSH_SESSION_EVENT_RESUMED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_RESUMED;
+    case 3:
+    case "SSH_SESSION_EVENT_SUSPENDED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_SUSPENDED;
+    case 4:
+    case "SSH_SESSION_EVENT_TERMINATED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_TERMINATED;
+    case 5:
+    case "SSH_SESSION_EVENT_SHARED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_SHARED;
+    case 6:
+    case "SSH_SESSION_EVENT_SHARE_REVOKED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_SHARE_REVOKED;
+    case 7:
+    case "SSH_SESSION_EVENT_PUBLISHED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_PUBLISHED;
+    case 8:
+    case "SSH_SESSION_EVENT_UNPUBLISHED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_UNPUBLISHED;
+    case 9:
+    case "SSH_SESSION_EVENT_ACL_CHANGED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_ACL_CHANGED;
+    case 10:
+    case "SSH_SESSION_EVENT_USER_JOINED":
+      return SSHSessionEventType.SSH_SESSION_EVENT_USER_JOINED;
+    case 11:
+    case "SSH_SESSION_EVENT_USER_LEFT":
+      return SSHSessionEventType.SSH_SESSION_EVENT_USER_LEFT;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return SSHSessionEventType.UNRECOGNIZED;
+  }
+}
+
+export function sSHSessionEventTypeToJSON(object: SSHSessionEventType): string {
+  switch (object) {
+    case SSHSessionEventType.SSH_SESSION_EVENT_UNSPECIFIED:
+      return "SSH_SESSION_EVENT_UNSPECIFIED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_CREATED:
+      return "SSH_SESSION_EVENT_CREATED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_RESUMED:
+      return "SSH_SESSION_EVENT_RESUMED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_SUSPENDED:
+      return "SSH_SESSION_EVENT_SUSPENDED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_TERMINATED:
+      return "SSH_SESSION_EVENT_TERMINATED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_SHARED:
+      return "SSH_SESSION_EVENT_SHARED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_SHARE_REVOKED:
+      return "SSH_SESSION_EVENT_SHARE_REVOKED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_PUBLISHED:
+      return "SSH_SESSION_EVENT_PUBLISHED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_UNPUBLISHED:
+      return "SSH_SESSION_EVENT_UNPUBLISHED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_ACL_CHANGED:
+      return "SSH_SESSION_EVENT_ACL_CHANGED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_USER_JOINED:
+      return "SSH_SESSION_EVENT_USER_JOINED";
+    case SSHSessionEventType.SSH_SESSION_EVENT_USER_LEFT:
+      return "SSH_SESSION_EVENT_USER_LEFT";
+    case SSHSessionEventType.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 export interface Node {
   name: string;
   nodeId: number;
@@ -527,6 +775,200 @@ export interface SSHRecorderFailureAction {
   rejectSessionWithMessage: string;
   /** terminate_session_with_message terminates the session if recording fails mid-session */
   terminateSessionWithMessage: string;
+}
+
+/** SSHSession represents a managed SSH session that can be resumed/shared/published. */
+export interface SSHSession {
+  /** session_id is the unique identifier for this session */
+  sessionId: string;
+  /** node_id is the node where the SSH server is running */
+  nodeId: number;
+  /** owner_user_id is the user who created the session */
+  ownerUserId: number;
+  /** state is the current session state */
+  state: SSHSessionState;
+  /** created_at is when the session was created (Unix timestamp) */
+  createdAt: number;
+  /** last_active_at is when the session was last active (Unix timestamp) */
+  lastActiveAt: number;
+  /** expires_at is when the session expires (Unix timestamp, 0 = no expiry) */
+  expiresAt: number;
+  /** local_user is the local Unix user for the session */
+  localUser: string;
+  /** remote_user is the connecting user's login */
+  remoteUser: string;
+  /** remote_node_id is the node the user connected from */
+  remoteNodeId: number;
+  /** share_token is the token for sharing this session (if shared) */
+  shareToken: string;
+  /** publish_slug is the URL slug for publishing (if published) */
+  publishSlug: string;
+  /** publish_visibility is the visibility level when published */
+  publishVisibility: SSHSessionVisibility;
+  /** acl is the access control list for this session */
+  acl: SSHSessionACLEntry[];
+  /** terminal_cols is the terminal width */
+  terminalCols: number;
+  /** terminal_rows is the terminal height */
+  terminalRows: number;
+}
+
+/** SSHSessionACLEntry represents an access control entry for a session. */
+export interface SSHSessionACLEntry {
+  /** entry_id is the unique identifier for this ACL entry */
+  entryId: string;
+  /** user_id is the user this entry applies to (0 for group-based) */
+  userId: number;
+  /** group_id is the group this entry applies to (empty for user-based) */
+  groupId: string;
+  /** role is the role granted by this entry */
+  role: SSHSessionRole;
+  /** granted_at is when this entry was created (Unix timestamp) */
+  grantedAt: number;
+  /** granted_by is the user who created this entry */
+  grantedBy: number;
+  /** expires_at is when this entry expires (Unix timestamp, 0 = no expiry) */
+  expiresAt: number;
+}
+
+/** SSHSessionEvent represents an event in a session's lifecycle. */
+export interface SSHSessionEvent {
+  /** session_id is the session this event belongs to */
+  sessionId: string;
+  /** event_type is the type of event */
+  eventType: SSHSessionEventType;
+  /** timestamp is when the event occurred (Unix timestamp) */
+  timestamp: number;
+  /** actor_user_id is the user who triggered the event */
+  actorUserId: number;
+  /** details contains event-specific information */
+  details: string;
+}
+
+/** RegisterSessionRequest is sent when a new SSH session starts. */
+export interface RegisterSessionRequest {
+  /** local_user is the local Unix user for the session */
+  localUser: string;
+  /** remote_user is the connecting user's login */
+  remoteUser: string;
+  /** remote_node_id is the node the user connected from */
+  remoteNodeId: number;
+  /** terminal_cols is the initial terminal width */
+  terminalCols: number;
+  /** terminal_rows is the initial terminal height */
+  terminalRows: number;
+}
+
+/** RegisterSessionResponse is returned after registering a session. */
+export interface RegisterSessionResponse {
+  /** session_id is the assigned session ID */
+  sessionId: string;
+  /** error is set if registration failed */
+  error: string;
+}
+
+/** UpdateSessionStateRequest updates a session's state. */
+export interface UpdateSessionStateRequest {
+  /** session_id is the session to update */
+  sessionId: string;
+  /** new_state is the new state */
+  newState: SSHSessionState;
+}
+
+/** UpdateSessionStateResponse is returned after updating session state. */
+export interface UpdateSessionStateResponse {
+  /** success indicates whether the update was successful */
+  success: boolean;
+  /** error is set if the update failed */
+  error: string;
+}
+
+/** GetSessionRequest retrieves a session by ID. */
+export interface GetSessionRequest {
+  /** session_id is the session to retrieve */
+  sessionId: string;
+}
+
+/** GetSessionResponse returns the requested session. */
+export interface GetSessionResponse {
+  /** session is the requested session */
+  session:
+    | SSHSession
+    | undefined;
+  /** error is set if retrieval failed */
+  error: string;
+}
+
+/** ListSessionsRequest lists sessions for the current node. */
+export interface ListSessionsRequest {
+  /** include_terminated includes terminated sessions */
+  includeTerminated: boolean;
+}
+
+/** ListSessionsResponse returns the list of sessions. */
+export interface ListSessionsResponse {
+  /** sessions is the list of sessions */
+  sessions: SSHSession[];
+}
+
+/** ResumeSessionRequest requests to resume a suspended session. */
+export interface ResumeSessionRequest {
+  /** session_id is the session to resume */
+  sessionId: string;
+}
+
+/** ResumeSessionResponse is returned after attempting to resume. */
+export interface ResumeSessionResponse {
+  /** success indicates whether resume was successful */
+  success: boolean;
+  /** scrollback is the terminal scrollback buffer to restore */
+  scrollback: Uint8Array;
+  /** error is set if resume failed */
+  error: string;
+}
+
+/** ShareSessionRequest creates a share token for a session. */
+export interface ShareSessionRequest {
+  /** session_id is the session to share */
+  sessionId: string;
+  /** role is the role to grant via the share link */
+  role: SSHSessionRole;
+  /** expires_in_seconds is how long the share token is valid (0 = no expiry) */
+  expiresInSeconds: number;
+  /** max_uses is the maximum number of times the token can be used (0 = unlimited) */
+  maxUses: number;
+}
+
+/** ShareSessionResponse returns the share token. */
+export interface ShareSessionResponse {
+  /** share_token is the generated share token */
+  shareToken: string;
+  /** share_url is the full URL for sharing */
+  shareUrl: string;
+  /** error is set if sharing failed */
+  error: string;
+}
+
+/** PublishSessionRequest publishes a session to rune.host. */
+export interface PublishSessionRequest {
+  /** session_id is the session to publish */
+  sessionId: string;
+  /** slug is the desired URL slug (optional, auto-generated if empty) */
+  slug: string;
+  /** visibility is the visibility level */
+  visibility: SSHSessionVisibility;
+  /** allow_input allows viewers to send input */
+  allowInput: boolean;
+}
+
+/** PublishSessionResponse returns the publish URL. */
+export interface PublishSessionResponse {
+  /** publish_url is the full URL for the published session */
+  publishUrl: string;
+  /** slug is the assigned slug */
+  slug: string;
+  /** error is set if publishing failed */
+  error: string;
 }
 
 function createBaseNode(): Node {
@@ -4476,6 +4918,1937 @@ export const SSHRecorderFailureAction: MessageFns<SSHRecorderFailureAction> = {
   },
 };
 
+function createBaseSSHSession(): SSHSession {
+  return {
+    sessionId: "",
+    nodeId: 0,
+    ownerUserId: 0,
+    state: 0,
+    createdAt: 0,
+    lastActiveAt: 0,
+    expiresAt: 0,
+    localUser: "",
+    remoteUser: "",
+    remoteNodeId: 0,
+    shareToken: "",
+    publishSlug: "",
+    publishVisibility: 0,
+    acl: [],
+    terminalCols: 0,
+    terminalRows: 0,
+  };
+}
+
+export const SSHSession: MessageFns<SSHSession> = {
+  encode(message: SSHSession, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sessionId !== "") {
+      writer.uint32(10).string(message.sessionId);
+    }
+    if (message.nodeId !== 0) {
+      writer.uint32(16).uint64(message.nodeId);
+    }
+    if (message.ownerUserId !== 0) {
+      writer.uint32(24).uint64(message.ownerUserId);
+    }
+    if (message.state !== 0) {
+      writer.uint32(32).int32(message.state);
+    }
+    if (message.createdAt !== 0) {
+      writer.uint32(40).int64(message.createdAt);
+    }
+    if (message.lastActiveAt !== 0) {
+      writer.uint32(48).int64(message.lastActiveAt);
+    }
+    if (message.expiresAt !== 0) {
+      writer.uint32(56).int64(message.expiresAt);
+    }
+    if (message.localUser !== "") {
+      writer.uint32(66).string(message.localUser);
+    }
+    if (message.remoteUser !== "") {
+      writer.uint32(74).string(message.remoteUser);
+    }
+    if (message.remoteNodeId !== 0) {
+      writer.uint32(80).uint64(message.remoteNodeId);
+    }
+    if (message.shareToken !== "") {
+      writer.uint32(90).string(message.shareToken);
+    }
+    if (message.publishSlug !== "") {
+      writer.uint32(98).string(message.publishSlug);
+    }
+    if (message.publishVisibility !== 0) {
+      writer.uint32(104).int32(message.publishVisibility);
+    }
+    for (const v of message.acl) {
+      SSHSessionACLEntry.encode(v!, writer.uint32(114).fork()).join();
+    }
+    if (message.terminalCols !== 0) {
+      writer.uint32(120).uint32(message.terminalCols);
+    }
+    if (message.terminalRows !== 0) {
+      writer.uint32(128).uint32(message.terminalRows);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SSHSession {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSSHSession();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.nodeId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.ownerUserId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.state = reader.int32() as any;
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.createdAt = longToNumber(reader.int64());
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.lastActiveAt = longToNumber(reader.int64());
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.expiresAt = longToNumber(reader.int64());
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.localUser = reader.string();
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.remoteUser = reader.string();
+          continue;
+        }
+        case 10: {
+          if (tag !== 80) {
+            break;
+          }
+
+          message.remoteNodeId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.shareToken = reader.string();
+          continue;
+        }
+        case 12: {
+          if (tag !== 98) {
+            break;
+          }
+
+          message.publishSlug = reader.string();
+          continue;
+        }
+        case 13: {
+          if (tag !== 104) {
+            break;
+          }
+
+          message.publishVisibility = reader.int32() as any;
+          continue;
+        }
+        case 14: {
+          if (tag !== 114) {
+            break;
+          }
+
+          message.acl.push(SSHSessionACLEntry.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 15: {
+          if (tag !== 120) {
+            break;
+          }
+
+          message.terminalCols = reader.uint32();
+          continue;
+        }
+        case 16: {
+          if (tag !== 128) {
+            break;
+          }
+
+          message.terminalRows = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SSHSession {
+    return {
+      sessionId: isSet(object.sessionId)
+        ? globalThis.String(object.sessionId)
+        : isSet(object.session_id)
+        ? globalThis.String(object.session_id)
+        : "",
+      nodeId: isSet(object.nodeId)
+        ? globalThis.Number(object.nodeId)
+        : isSet(object.node_id)
+        ? globalThis.Number(object.node_id)
+        : 0,
+      ownerUserId: isSet(object.ownerUserId)
+        ? globalThis.Number(object.ownerUserId)
+        : isSet(object.owner_user_id)
+        ? globalThis.Number(object.owner_user_id)
+        : 0,
+      state: isSet(object.state) ? sSHSessionStateFromJSON(object.state) : 0,
+      createdAt: isSet(object.createdAt)
+        ? globalThis.Number(object.createdAt)
+        : isSet(object.created_at)
+        ? globalThis.Number(object.created_at)
+        : 0,
+      lastActiveAt: isSet(object.lastActiveAt)
+        ? globalThis.Number(object.lastActiveAt)
+        : isSet(object.last_active_at)
+        ? globalThis.Number(object.last_active_at)
+        : 0,
+      expiresAt: isSet(object.expiresAt)
+        ? globalThis.Number(object.expiresAt)
+        : isSet(object.expires_at)
+        ? globalThis.Number(object.expires_at)
+        : 0,
+      localUser: isSet(object.localUser)
+        ? globalThis.String(object.localUser)
+        : isSet(object.local_user)
+        ? globalThis.String(object.local_user)
+        : "",
+      remoteUser: isSet(object.remoteUser)
+        ? globalThis.String(object.remoteUser)
+        : isSet(object.remote_user)
+        ? globalThis.String(object.remote_user)
+        : "",
+      remoteNodeId: isSet(object.remoteNodeId)
+        ? globalThis.Number(object.remoteNodeId)
+        : isSet(object.remote_node_id)
+        ? globalThis.Number(object.remote_node_id)
+        : 0,
+      shareToken: isSet(object.shareToken)
+        ? globalThis.String(object.shareToken)
+        : isSet(object.share_token)
+        ? globalThis.String(object.share_token)
+        : "",
+      publishSlug: isSet(object.publishSlug)
+        ? globalThis.String(object.publishSlug)
+        : isSet(object.publish_slug)
+        ? globalThis.String(object.publish_slug)
+        : "",
+      publishVisibility: isSet(object.publishVisibility)
+        ? sSHSessionVisibilityFromJSON(object.publishVisibility)
+        : isSet(object.publish_visibility)
+        ? sSHSessionVisibilityFromJSON(object.publish_visibility)
+        : 0,
+      acl: globalThis.Array.isArray(object?.acl)
+        ? object.acl.map((e: any) => SSHSessionACLEntry.fromJSON(e))
+        : [],
+      terminalCols: isSet(object.terminalCols)
+        ? globalThis.Number(object.terminalCols)
+        : isSet(object.terminal_cols)
+        ? globalThis.Number(object.terminal_cols)
+        : 0,
+      terminalRows: isSet(object.terminalRows)
+        ? globalThis.Number(object.terminalRows)
+        : isSet(object.terminal_rows)
+        ? globalThis.Number(object.terminal_rows)
+        : 0,
+    };
+  },
+
+  toJSON(message: SSHSession): unknown {
+    const obj: any = {};
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.ownerUserId !== 0) {
+      obj.ownerUserId = Math.round(message.ownerUserId);
+    }
+    if (message.state !== 0) {
+      obj.state = sSHSessionStateToJSON(message.state);
+    }
+    if (message.createdAt !== 0) {
+      obj.createdAt = Math.round(message.createdAt);
+    }
+    if (message.lastActiveAt !== 0) {
+      obj.lastActiveAt = Math.round(message.lastActiveAt);
+    }
+    if (message.expiresAt !== 0) {
+      obj.expiresAt = Math.round(message.expiresAt);
+    }
+    if (message.localUser !== "") {
+      obj.localUser = message.localUser;
+    }
+    if (message.remoteUser !== "") {
+      obj.remoteUser = message.remoteUser;
+    }
+    if (message.remoteNodeId !== 0) {
+      obj.remoteNodeId = Math.round(message.remoteNodeId);
+    }
+    if (message.shareToken !== "") {
+      obj.shareToken = message.shareToken;
+    }
+    if (message.publishSlug !== "") {
+      obj.publishSlug = message.publishSlug;
+    }
+    if (message.publishVisibility !== 0) {
+      obj.publishVisibility = sSHSessionVisibilityToJSON(message.publishVisibility);
+    }
+    if (message.acl?.length) {
+      obj.acl = message.acl.map((e) => SSHSessionACLEntry.toJSON(e));
+    }
+    if (message.terminalCols !== 0) {
+      obj.terminalCols = Math.round(message.terminalCols);
+    }
+    if (message.terminalRows !== 0) {
+      obj.terminalRows = Math.round(message.terminalRows);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SSHSession>, I>>(base?: I): SSHSession {
+    return SSHSession.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SSHSession>, I>>(object: I): SSHSession {
+    const message = createBaseSSHSession();
+    message.sessionId = object.sessionId ?? "";
+    message.nodeId = object.nodeId ?? 0;
+    message.ownerUserId = object.ownerUserId ?? 0;
+    message.state = object.state ?? 0;
+    message.createdAt = object.createdAt ?? 0;
+    message.lastActiveAt = object.lastActiveAt ?? 0;
+    message.expiresAt = object.expiresAt ?? 0;
+    message.localUser = object.localUser ?? "";
+    message.remoteUser = object.remoteUser ?? "";
+    message.remoteNodeId = object.remoteNodeId ?? 0;
+    message.shareToken = object.shareToken ?? "";
+    message.publishSlug = object.publishSlug ?? "";
+    message.publishVisibility = object.publishVisibility ?? 0;
+    message.acl = object.acl?.map((e) => SSHSessionACLEntry.fromPartial(e)) || [];
+    message.terminalCols = object.terminalCols ?? 0;
+    message.terminalRows = object.terminalRows ?? 0;
+    return message;
+  },
+};
+
+function createBaseSSHSessionACLEntry(): SSHSessionACLEntry {
+  return { entryId: "", userId: 0, groupId: "", role: 0, grantedAt: 0, grantedBy: 0, expiresAt: 0 };
+}
+
+export const SSHSessionACLEntry: MessageFns<SSHSessionACLEntry> = {
+  encode(message: SSHSessionACLEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.entryId !== "") {
+      writer.uint32(10).string(message.entryId);
+    }
+    if (message.userId !== 0) {
+      writer.uint32(16).uint64(message.userId);
+    }
+    if (message.groupId !== "") {
+      writer.uint32(26).string(message.groupId);
+    }
+    if (message.role !== 0) {
+      writer.uint32(32).int32(message.role);
+    }
+    if (message.grantedAt !== 0) {
+      writer.uint32(40).int64(message.grantedAt);
+    }
+    if (message.grantedBy !== 0) {
+      writer.uint32(48).uint64(message.grantedBy);
+    }
+    if (message.expiresAt !== 0) {
+      writer.uint32(56).int64(message.expiresAt);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SSHSessionACLEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSSHSessionACLEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.entryId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.userId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.groupId = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.role = reader.int32() as any;
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.grantedAt = longToNumber(reader.int64());
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.grantedBy = longToNumber(reader.uint64());
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.expiresAt = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SSHSessionACLEntry {
+    return {
+      entryId: isSet(object.entryId)
+        ? globalThis.String(object.entryId)
+        : isSet(object.entry_id)
+        ? globalThis.String(object.entry_id)
+        : "",
+      userId: isSet(object.userId)
+        ? globalThis.Number(object.userId)
+        : isSet(object.user_id)
+        ? globalThis.Number(object.user_id)
+        : 0,
+      groupId: isSet(object.groupId)
+        ? globalThis.String(object.groupId)
+        : isSet(object.group_id)
+        ? globalThis.String(object.group_id)
+        : "",
+      role: isSet(object.role) ? sSHSessionRoleFromJSON(object.role) : 0,
+      grantedAt: isSet(object.grantedAt)
+        ? globalThis.Number(object.grantedAt)
+        : isSet(object.granted_at)
+        ? globalThis.Number(object.granted_at)
+        : 0,
+      grantedBy: isSet(object.grantedBy)
+        ? globalThis.Number(object.grantedBy)
+        : isSet(object.granted_by)
+        ? globalThis.Number(object.granted_by)
+        : 0,
+      expiresAt: isSet(object.expiresAt)
+        ? globalThis.Number(object.expiresAt)
+        : isSet(object.expires_at)
+        ? globalThis.Number(object.expires_at)
+        : 0,
+    };
+  },
+
+  toJSON(message: SSHSessionACLEntry): unknown {
+    const obj: any = {};
+    if (message.entryId !== "") {
+      obj.entryId = message.entryId;
+    }
+    if (message.userId !== 0) {
+      obj.userId = Math.round(message.userId);
+    }
+    if (message.groupId !== "") {
+      obj.groupId = message.groupId;
+    }
+    if (message.role !== 0) {
+      obj.role = sSHSessionRoleToJSON(message.role);
+    }
+    if (message.grantedAt !== 0) {
+      obj.grantedAt = Math.round(message.grantedAt);
+    }
+    if (message.grantedBy !== 0) {
+      obj.grantedBy = Math.round(message.grantedBy);
+    }
+    if (message.expiresAt !== 0) {
+      obj.expiresAt = Math.round(message.expiresAt);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SSHSessionACLEntry>, I>>(base?: I): SSHSessionACLEntry {
+    return SSHSessionACLEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SSHSessionACLEntry>, I>>(object: I): SSHSessionACLEntry {
+    const message = createBaseSSHSessionACLEntry();
+    message.entryId = object.entryId ?? "";
+    message.userId = object.userId ?? 0;
+    message.groupId = object.groupId ?? "";
+    message.role = object.role ?? 0;
+    message.grantedAt = object.grantedAt ?? 0;
+    message.grantedBy = object.grantedBy ?? 0;
+    message.expiresAt = object.expiresAt ?? 0;
+    return message;
+  },
+};
+
+function createBaseSSHSessionEvent(): SSHSessionEvent {
+  return { sessionId: "", eventType: 0, timestamp: 0, actorUserId: 0, details: "" };
+}
+
+export const SSHSessionEvent: MessageFns<SSHSessionEvent> = {
+  encode(message: SSHSessionEvent, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sessionId !== "") {
+      writer.uint32(10).string(message.sessionId);
+    }
+    if (message.eventType !== 0) {
+      writer.uint32(16).int32(message.eventType);
+    }
+    if (message.timestamp !== 0) {
+      writer.uint32(24).int64(message.timestamp);
+    }
+    if (message.actorUserId !== 0) {
+      writer.uint32(32).uint64(message.actorUserId);
+    }
+    if (message.details !== "") {
+      writer.uint32(42).string(message.details);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SSHSessionEvent {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSSHSessionEvent();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.eventType = reader.int32() as any;
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.timestamp = longToNumber(reader.int64());
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.actorUserId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.details = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SSHSessionEvent {
+    return {
+      sessionId: isSet(object.sessionId)
+        ? globalThis.String(object.sessionId)
+        : isSet(object.session_id)
+        ? globalThis.String(object.session_id)
+        : "",
+      eventType: isSet(object.eventType)
+        ? sSHSessionEventTypeFromJSON(object.eventType)
+        : isSet(object.event_type)
+        ? sSHSessionEventTypeFromJSON(object.event_type)
+        : 0,
+      timestamp: isSet(object.timestamp) ? globalThis.Number(object.timestamp) : 0,
+      actorUserId: isSet(object.actorUserId)
+        ? globalThis.Number(object.actorUserId)
+        : isSet(object.actor_user_id)
+        ? globalThis.Number(object.actor_user_id)
+        : 0,
+      details: isSet(object.details) ? globalThis.String(object.details) : "",
+    };
+  },
+
+  toJSON(message: SSHSessionEvent): unknown {
+    const obj: any = {};
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    if (message.eventType !== 0) {
+      obj.eventType = sSHSessionEventTypeToJSON(message.eventType);
+    }
+    if (message.timestamp !== 0) {
+      obj.timestamp = Math.round(message.timestamp);
+    }
+    if (message.actorUserId !== 0) {
+      obj.actorUserId = Math.round(message.actorUserId);
+    }
+    if (message.details !== "") {
+      obj.details = message.details;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SSHSessionEvent>, I>>(base?: I): SSHSessionEvent {
+    return SSHSessionEvent.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SSHSessionEvent>, I>>(object: I): SSHSessionEvent {
+    const message = createBaseSSHSessionEvent();
+    message.sessionId = object.sessionId ?? "";
+    message.eventType = object.eventType ?? 0;
+    message.timestamp = object.timestamp ?? 0;
+    message.actorUserId = object.actorUserId ?? 0;
+    message.details = object.details ?? "";
+    return message;
+  },
+};
+
+function createBaseRegisterSessionRequest(): RegisterSessionRequest {
+  return { localUser: "", remoteUser: "", remoteNodeId: 0, terminalCols: 0, terminalRows: 0 };
+}
+
+export const RegisterSessionRequest: MessageFns<RegisterSessionRequest> = {
+  encode(message: RegisterSessionRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.localUser !== "") {
+      writer.uint32(10).string(message.localUser);
+    }
+    if (message.remoteUser !== "") {
+      writer.uint32(18).string(message.remoteUser);
+    }
+    if (message.remoteNodeId !== 0) {
+      writer.uint32(24).uint64(message.remoteNodeId);
+    }
+    if (message.terminalCols !== 0) {
+      writer.uint32(32).uint32(message.terminalCols);
+    }
+    if (message.terminalRows !== 0) {
+      writer.uint32(40).uint32(message.terminalRows);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RegisterSessionRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRegisterSessionRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.localUser = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.remoteUser = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.remoteNodeId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.terminalCols = reader.uint32();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.terminalRows = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RegisterSessionRequest {
+    return {
+      localUser: isSet(object.localUser)
+        ? globalThis.String(object.localUser)
+        : isSet(object.local_user)
+        ? globalThis.String(object.local_user)
+        : "",
+      remoteUser: isSet(object.remoteUser)
+        ? globalThis.String(object.remoteUser)
+        : isSet(object.remote_user)
+        ? globalThis.String(object.remote_user)
+        : "",
+      remoteNodeId: isSet(object.remoteNodeId)
+        ? globalThis.Number(object.remoteNodeId)
+        : isSet(object.remote_node_id)
+        ? globalThis.Number(object.remote_node_id)
+        : 0,
+      terminalCols: isSet(object.terminalCols)
+        ? globalThis.Number(object.terminalCols)
+        : isSet(object.terminal_cols)
+        ? globalThis.Number(object.terminal_cols)
+        : 0,
+      terminalRows: isSet(object.terminalRows)
+        ? globalThis.Number(object.terminalRows)
+        : isSet(object.terminal_rows)
+        ? globalThis.Number(object.terminal_rows)
+        : 0,
+    };
+  },
+
+  toJSON(message: RegisterSessionRequest): unknown {
+    const obj: any = {};
+    if (message.localUser !== "") {
+      obj.localUser = message.localUser;
+    }
+    if (message.remoteUser !== "") {
+      obj.remoteUser = message.remoteUser;
+    }
+    if (message.remoteNodeId !== 0) {
+      obj.remoteNodeId = Math.round(message.remoteNodeId);
+    }
+    if (message.terminalCols !== 0) {
+      obj.terminalCols = Math.round(message.terminalCols);
+    }
+    if (message.terminalRows !== 0) {
+      obj.terminalRows = Math.round(message.terminalRows);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RegisterSessionRequest>, I>>(base?: I): RegisterSessionRequest {
+    return RegisterSessionRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RegisterSessionRequest>, I>>(object: I): RegisterSessionRequest {
+    const message = createBaseRegisterSessionRequest();
+    message.localUser = object.localUser ?? "";
+    message.remoteUser = object.remoteUser ?? "";
+    message.remoteNodeId = object.remoteNodeId ?? 0;
+    message.terminalCols = object.terminalCols ?? 0;
+    message.terminalRows = object.terminalRows ?? 0;
+    return message;
+  },
+};
+
+function createBaseRegisterSessionResponse(): RegisterSessionResponse {
+  return { sessionId: "", error: "" };
+}
+
+export const RegisterSessionResponse: MessageFns<RegisterSessionResponse> = {
+  encode(message: RegisterSessionResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sessionId !== "") {
+      writer.uint32(10).string(message.sessionId);
+    }
+    if (message.error !== "") {
+      writer.uint32(18).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): RegisterSessionResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseRegisterSessionResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): RegisterSessionResponse {
+    return {
+      sessionId: isSet(object.sessionId)
+        ? globalThis.String(object.sessionId)
+        : isSet(object.session_id)
+        ? globalThis.String(object.session_id)
+        : "",
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+    };
+  },
+
+  toJSON(message: RegisterSessionResponse): unknown {
+    const obj: any = {};
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<RegisterSessionResponse>, I>>(base?: I): RegisterSessionResponse {
+    return RegisterSessionResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<RegisterSessionResponse>, I>>(object: I): RegisterSessionResponse {
+    const message = createBaseRegisterSessionResponse();
+    message.sessionId = object.sessionId ?? "";
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBaseUpdateSessionStateRequest(): UpdateSessionStateRequest {
+  return { sessionId: "", newState: 0 };
+}
+
+export const UpdateSessionStateRequest: MessageFns<UpdateSessionStateRequest> = {
+  encode(message: UpdateSessionStateRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sessionId !== "") {
+      writer.uint32(10).string(message.sessionId);
+    }
+    if (message.newState !== 0) {
+      writer.uint32(16).int32(message.newState);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateSessionStateRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateSessionStateRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.newState = reader.int32() as any;
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateSessionStateRequest {
+    return {
+      sessionId: isSet(object.sessionId)
+        ? globalThis.String(object.sessionId)
+        : isSet(object.session_id)
+        ? globalThis.String(object.session_id)
+        : "",
+      newState: isSet(object.newState)
+        ? sSHSessionStateFromJSON(object.newState)
+        : isSet(object.new_state)
+        ? sSHSessionStateFromJSON(object.new_state)
+        : 0,
+    };
+  },
+
+  toJSON(message: UpdateSessionStateRequest): unknown {
+    const obj: any = {};
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    if (message.newState !== 0) {
+      obj.newState = sSHSessionStateToJSON(message.newState);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateSessionStateRequest>, I>>(base?: I): UpdateSessionStateRequest {
+    return UpdateSessionStateRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateSessionStateRequest>, I>>(object: I): UpdateSessionStateRequest {
+    const message = createBaseUpdateSessionStateRequest();
+    message.sessionId = object.sessionId ?? "";
+    message.newState = object.newState ?? 0;
+    return message;
+  },
+};
+
+function createBaseUpdateSessionStateResponse(): UpdateSessionStateResponse {
+  return { success: false, error: "" };
+}
+
+export const UpdateSessionStateResponse: MessageFns<UpdateSessionStateResponse> = {
+  encode(message: UpdateSessionStateResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.error !== "") {
+      writer.uint32(18).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): UpdateSessionStateResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseUpdateSessionStateResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): UpdateSessionStateResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+    };
+  },
+
+  toJSON(message: UpdateSessionStateResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<UpdateSessionStateResponse>, I>>(base?: I): UpdateSessionStateResponse {
+    return UpdateSessionStateResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<UpdateSessionStateResponse>, I>>(object: I): UpdateSessionStateResponse {
+    const message = createBaseUpdateSessionStateResponse();
+    message.success = object.success ?? false;
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBaseGetSessionRequest(): GetSessionRequest {
+  return { sessionId: "" };
+}
+
+export const GetSessionRequest: MessageFns<GetSessionRequest> = {
+  encode(message: GetSessionRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sessionId !== "") {
+      writer.uint32(10).string(message.sessionId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetSessionRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetSessionRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetSessionRequest {
+    return {
+      sessionId: isSet(object.sessionId)
+        ? globalThis.String(object.sessionId)
+        : isSet(object.session_id)
+        ? globalThis.String(object.session_id)
+        : "",
+    };
+  },
+
+  toJSON(message: GetSessionRequest): unknown {
+    const obj: any = {};
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetSessionRequest>, I>>(base?: I): GetSessionRequest {
+    return GetSessionRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetSessionRequest>, I>>(object: I): GetSessionRequest {
+    const message = createBaseGetSessionRequest();
+    message.sessionId = object.sessionId ?? "";
+    return message;
+  },
+};
+
+function createBaseGetSessionResponse(): GetSessionResponse {
+  return { session: undefined, error: "" };
+}
+
+export const GetSessionResponse: MessageFns<GetSessionResponse> = {
+  encode(message: GetSessionResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.session !== undefined) {
+      SSHSession.encode(message.session, writer.uint32(10).fork()).join();
+    }
+    if (message.error !== "") {
+      writer.uint32(18).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): GetSessionResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseGetSessionResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.session = SSHSession.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): GetSessionResponse {
+    return {
+      session: isSet(object.session) ? SSHSession.fromJSON(object.session) : undefined,
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+    };
+  },
+
+  toJSON(message: GetSessionResponse): unknown {
+    const obj: any = {};
+    if (message.session !== undefined) {
+      obj.session = SSHSession.toJSON(message.session);
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<GetSessionResponse>, I>>(base?: I): GetSessionResponse {
+    return GetSessionResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<GetSessionResponse>, I>>(object: I): GetSessionResponse {
+    const message = createBaseGetSessionResponse();
+    message.session = (object.session !== undefined && object.session !== null)
+      ? SSHSession.fromPartial(object.session)
+      : undefined;
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBaseListSessionsRequest(): ListSessionsRequest {
+  return { includeTerminated: false };
+}
+
+export const ListSessionsRequest: MessageFns<ListSessionsRequest> = {
+  encode(message: ListSessionsRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.includeTerminated !== false) {
+      writer.uint32(8).bool(message.includeTerminated);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ListSessionsRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListSessionsRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.includeTerminated = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListSessionsRequest {
+    return {
+      includeTerminated: isSet(object.includeTerminated)
+        ? globalThis.Boolean(object.includeTerminated)
+        : isSet(object.include_terminated)
+        ? globalThis.Boolean(object.include_terminated)
+        : false,
+    };
+  },
+
+  toJSON(message: ListSessionsRequest): unknown {
+    const obj: any = {};
+    if (message.includeTerminated !== false) {
+      obj.includeTerminated = message.includeTerminated;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListSessionsRequest>, I>>(base?: I): ListSessionsRequest {
+    return ListSessionsRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ListSessionsRequest>, I>>(object: I): ListSessionsRequest {
+    const message = createBaseListSessionsRequest();
+    message.includeTerminated = object.includeTerminated ?? false;
+    return message;
+  },
+};
+
+function createBaseListSessionsResponse(): ListSessionsResponse {
+  return { sessions: [] };
+}
+
+export const ListSessionsResponse: MessageFns<ListSessionsResponse> = {
+  encode(message: ListSessionsResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.sessions) {
+      SSHSession.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ListSessionsResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseListSessionsResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sessions.push(SSHSession.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ListSessionsResponse {
+    return {
+      sessions: globalThis.Array.isArray(object?.sessions)
+        ? object.sessions.map((e: any) => SSHSession.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ListSessionsResponse): unknown {
+    const obj: any = {};
+    if (message.sessions?.length) {
+      obj.sessions = message.sessions.map((e) => SSHSession.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ListSessionsResponse>, I>>(base?: I): ListSessionsResponse {
+    return ListSessionsResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ListSessionsResponse>, I>>(object: I): ListSessionsResponse {
+    const message = createBaseListSessionsResponse();
+    message.sessions = object.sessions?.map((e) => SSHSession.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseResumeSessionRequest(): ResumeSessionRequest {
+  return { sessionId: "" };
+}
+
+export const ResumeSessionRequest: MessageFns<ResumeSessionRequest> = {
+  encode(message: ResumeSessionRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sessionId !== "") {
+      writer.uint32(10).string(message.sessionId);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResumeSessionRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResumeSessionRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResumeSessionRequest {
+    return {
+      sessionId: isSet(object.sessionId)
+        ? globalThis.String(object.sessionId)
+        : isSet(object.session_id)
+        ? globalThis.String(object.session_id)
+        : "",
+    };
+  },
+
+  toJSON(message: ResumeSessionRequest): unknown {
+    const obj: any = {};
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResumeSessionRequest>, I>>(base?: I): ResumeSessionRequest {
+    return ResumeSessionRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResumeSessionRequest>, I>>(object: I): ResumeSessionRequest {
+    const message = createBaseResumeSessionRequest();
+    message.sessionId = object.sessionId ?? "";
+    return message;
+  },
+};
+
+function createBaseResumeSessionResponse(): ResumeSessionResponse {
+  return { success: false, scrollback: new Uint8Array(0), error: "" };
+}
+
+export const ResumeSessionResponse: MessageFns<ResumeSessionResponse> = {
+  encode(message: ResumeSessionResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.success !== false) {
+      writer.uint32(8).bool(message.success);
+    }
+    if (message.scrollback.length !== 0) {
+      writer.uint32(18).bytes(message.scrollback);
+    }
+    if (message.error !== "") {
+      writer.uint32(26).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ResumeSessionResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseResumeSessionResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.success = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.scrollback = reader.bytes();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ResumeSessionResponse {
+    return {
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      scrollback: isSet(object.scrollback) ? bytesFromBase64(object.scrollback) : new Uint8Array(0),
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+    };
+  },
+
+  toJSON(message: ResumeSessionResponse): unknown {
+    const obj: any = {};
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.scrollback.length !== 0) {
+      obj.scrollback = base64FromBytes(message.scrollback);
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ResumeSessionResponse>, I>>(base?: I): ResumeSessionResponse {
+    return ResumeSessionResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ResumeSessionResponse>, I>>(object: I): ResumeSessionResponse {
+    const message = createBaseResumeSessionResponse();
+    message.success = object.success ?? false;
+    message.scrollback = object.scrollback ?? new Uint8Array(0);
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBaseShareSessionRequest(): ShareSessionRequest {
+  return { sessionId: "", role: 0, expiresInSeconds: 0, maxUses: 0 };
+}
+
+export const ShareSessionRequest: MessageFns<ShareSessionRequest> = {
+  encode(message: ShareSessionRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sessionId !== "") {
+      writer.uint32(10).string(message.sessionId);
+    }
+    if (message.role !== 0) {
+      writer.uint32(16).int32(message.role);
+    }
+    if (message.expiresInSeconds !== 0) {
+      writer.uint32(24).int64(message.expiresInSeconds);
+    }
+    if (message.maxUses !== 0) {
+      writer.uint32(32).int32(message.maxUses);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ShareSessionRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseShareSessionRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.role = reader.int32() as any;
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.expiresInSeconds = longToNumber(reader.int64());
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.maxUses = reader.int32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ShareSessionRequest {
+    return {
+      sessionId: isSet(object.sessionId)
+        ? globalThis.String(object.sessionId)
+        : isSet(object.session_id)
+        ? globalThis.String(object.session_id)
+        : "",
+      role: isSet(object.role) ? sSHSessionRoleFromJSON(object.role) : 0,
+      expiresInSeconds: isSet(object.expiresInSeconds)
+        ? globalThis.Number(object.expiresInSeconds)
+        : isSet(object.expires_in_seconds)
+        ? globalThis.Number(object.expires_in_seconds)
+        : 0,
+      maxUses: isSet(object.maxUses)
+        ? globalThis.Number(object.maxUses)
+        : isSet(object.max_uses)
+        ? globalThis.Number(object.max_uses)
+        : 0,
+    };
+  },
+
+  toJSON(message: ShareSessionRequest): unknown {
+    const obj: any = {};
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    if (message.role !== 0) {
+      obj.role = sSHSessionRoleToJSON(message.role);
+    }
+    if (message.expiresInSeconds !== 0) {
+      obj.expiresInSeconds = Math.round(message.expiresInSeconds);
+    }
+    if (message.maxUses !== 0) {
+      obj.maxUses = Math.round(message.maxUses);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ShareSessionRequest>, I>>(base?: I): ShareSessionRequest {
+    return ShareSessionRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ShareSessionRequest>, I>>(object: I): ShareSessionRequest {
+    const message = createBaseShareSessionRequest();
+    message.sessionId = object.sessionId ?? "";
+    message.role = object.role ?? 0;
+    message.expiresInSeconds = object.expiresInSeconds ?? 0;
+    message.maxUses = object.maxUses ?? 0;
+    return message;
+  },
+};
+
+function createBaseShareSessionResponse(): ShareSessionResponse {
+  return { shareToken: "", shareUrl: "", error: "" };
+}
+
+export const ShareSessionResponse: MessageFns<ShareSessionResponse> = {
+  encode(message: ShareSessionResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.shareToken !== "") {
+      writer.uint32(10).string(message.shareToken);
+    }
+    if (message.shareUrl !== "") {
+      writer.uint32(18).string(message.shareUrl);
+    }
+    if (message.error !== "") {
+      writer.uint32(26).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ShareSessionResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseShareSessionResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.shareToken = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.shareUrl = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ShareSessionResponse {
+    return {
+      shareToken: isSet(object.shareToken)
+        ? globalThis.String(object.shareToken)
+        : isSet(object.share_token)
+        ? globalThis.String(object.share_token)
+        : "",
+      shareUrl: isSet(object.shareUrl)
+        ? globalThis.String(object.shareUrl)
+        : isSet(object.share_url)
+        ? globalThis.String(object.share_url)
+        : "",
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+    };
+  },
+
+  toJSON(message: ShareSessionResponse): unknown {
+    const obj: any = {};
+    if (message.shareToken !== "") {
+      obj.shareToken = message.shareToken;
+    }
+    if (message.shareUrl !== "") {
+      obj.shareUrl = message.shareUrl;
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ShareSessionResponse>, I>>(base?: I): ShareSessionResponse {
+    return ShareSessionResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ShareSessionResponse>, I>>(object: I): ShareSessionResponse {
+    const message = createBaseShareSessionResponse();
+    message.shareToken = object.shareToken ?? "";
+    message.shareUrl = object.shareUrl ?? "";
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBasePublishSessionRequest(): PublishSessionRequest {
+  return { sessionId: "", slug: "", visibility: 0, allowInput: false };
+}
+
+export const PublishSessionRequest: MessageFns<PublishSessionRequest> = {
+  encode(message: PublishSessionRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.sessionId !== "") {
+      writer.uint32(10).string(message.sessionId);
+    }
+    if (message.slug !== "") {
+      writer.uint32(18).string(message.slug);
+    }
+    if (message.visibility !== 0) {
+      writer.uint32(24).int32(message.visibility);
+    }
+    if (message.allowInput !== false) {
+      writer.uint32(32).bool(message.allowInput);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PublishSessionRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePublishSessionRequest();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.sessionId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.slug = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.visibility = reader.int32() as any;
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.allowInput = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PublishSessionRequest {
+    return {
+      sessionId: isSet(object.sessionId)
+        ? globalThis.String(object.sessionId)
+        : isSet(object.session_id)
+        ? globalThis.String(object.session_id)
+        : "",
+      slug: isSet(object.slug) ? globalThis.String(object.slug) : "",
+      visibility: isSet(object.visibility) ? sSHSessionVisibilityFromJSON(object.visibility) : 0,
+      allowInput: isSet(object.allowInput)
+        ? globalThis.Boolean(object.allowInput)
+        : isSet(object.allow_input)
+        ? globalThis.Boolean(object.allow_input)
+        : false,
+    };
+  },
+
+  toJSON(message: PublishSessionRequest): unknown {
+    const obj: any = {};
+    if (message.sessionId !== "") {
+      obj.sessionId = message.sessionId;
+    }
+    if (message.slug !== "") {
+      obj.slug = message.slug;
+    }
+    if (message.visibility !== 0) {
+      obj.visibility = sSHSessionVisibilityToJSON(message.visibility);
+    }
+    if (message.allowInput !== false) {
+      obj.allowInput = message.allowInput;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PublishSessionRequest>, I>>(base?: I): PublishSessionRequest {
+    return PublishSessionRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PublishSessionRequest>, I>>(object: I): PublishSessionRequest {
+    const message = createBasePublishSessionRequest();
+    message.sessionId = object.sessionId ?? "";
+    message.slug = object.slug ?? "";
+    message.visibility = object.visibility ?? 0;
+    message.allowInput = object.allowInput ?? false;
+    return message;
+  },
+};
+
+function createBasePublishSessionResponse(): PublishSessionResponse {
+  return { publishUrl: "", slug: "", error: "" };
+}
+
+export const PublishSessionResponse: MessageFns<PublishSessionResponse> = {
+  encode(message: PublishSessionResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.publishUrl !== "") {
+      writer.uint32(10).string(message.publishUrl);
+    }
+    if (message.slug !== "") {
+      writer.uint32(18).string(message.slug);
+    }
+    if (message.error !== "") {
+      writer.uint32(26).string(message.error);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PublishSessionResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePublishSessionResponse();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.publishUrl = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.slug = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.error = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PublishSessionResponse {
+    return {
+      publishUrl: isSet(object.publishUrl)
+        ? globalThis.String(object.publishUrl)
+        : isSet(object.publish_url)
+        ? globalThis.String(object.publish_url)
+        : "",
+      slug: isSet(object.slug) ? globalThis.String(object.slug) : "",
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+    };
+  },
+
+  toJSON(message: PublishSessionResponse): unknown {
+    const obj: any = {};
+    if (message.publishUrl !== "") {
+      obj.publishUrl = message.publishUrl;
+    }
+    if (message.slug !== "") {
+      obj.slug = message.slug;
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PublishSessionResponse>, I>>(base?: I): PublishSessionResponse {
+    return PublishSessionResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PublishSessionResponse>, I>>(object: I): PublishSessionResponse {
+    const message = createBasePublishSessionResponse();
+    message.publishUrl = object.publishUrl ?? "";
+    message.slug = object.slug ?? "";
+    message.error = object.error ?? "";
+    return message;
+  },
+};
+
 export interface NodeService {
   ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse>;
   GetNetworkMap(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkMapResponse>;
@@ -4509,6 +6882,32 @@ export interface NodeService {
   ): Promise<NetworkLockDisableResponse>;
   /** NetworkLockStatus returns the current Network Lock status. */
   NetworkLockStatus(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkLockStatusResponse>;
+  /**
+   * SSH Session Management RPCs
+   * RegisterSession registers a new SSH session with the server.
+   */
+  RegisterSession(
+    request: DeepPartial<RegisterSessionRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<RegisterSessionResponse>;
+  /** UpdateSessionState updates the state of an SSH session. */
+  UpdateSessionState(
+    request: DeepPartial<UpdateSessionStateRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UpdateSessionStateResponse>;
+  /** GetSession retrieves an SSH session by ID. */
+  GetSession(request: DeepPartial<GetSessionRequest>, metadata?: grpc.Metadata): Promise<GetSessionResponse>;
+  /** ListSessions lists SSH sessions for the current node. */
+  ListSessions(request: DeepPartial<ListSessionsRequest>, metadata?: grpc.Metadata): Promise<ListSessionsResponse>;
+  /** ResumeSession resumes a suspended SSH session. */
+  ResumeSession(request: DeepPartial<ResumeSessionRequest>, metadata?: grpc.Metadata): Promise<ResumeSessionResponse>;
+  /** ShareSession creates a share token for an SSH session. */
+  ShareSession(request: DeepPartial<ShareSessionRequest>, metadata?: grpc.Metadata): Promise<ShareSessionResponse>;
+  /** PublishSession publishes an SSH session to rune.host. */
+  PublishSession(
+    request: DeepPartial<PublishSessionRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<PublishSessionResponse>;
 }
 
 export class NodeServiceClientImpl implements NodeService {
@@ -4524,6 +6923,13 @@ export class NodeServiceClientImpl implements NodeService {
     this.NetworkLockSign = this.NetworkLockSign.bind(this);
     this.NetworkLockDisable = this.NetworkLockDisable.bind(this);
     this.NetworkLockStatus = this.NetworkLockStatus.bind(this);
+    this.RegisterSession = this.RegisterSession.bind(this);
+    this.UpdateSessionState = this.UpdateSessionState.bind(this);
+    this.GetSession = this.GetSession.bind(this);
+    this.ListSessions = this.ListSessions.bind(this);
+    this.ResumeSession = this.ResumeSession.bind(this);
+    this.ShareSession = this.ShareSession.bind(this);
+    this.PublishSession = this.PublishSession.bind(this);
   }
 
   ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse> {
@@ -4568,6 +6974,43 @@ export class NodeServiceClientImpl implements NodeService {
 
   NetworkLockStatus(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<NetworkLockStatusResponse> {
     return this.rpc.unary(NodeServiceNetworkLockStatusDesc, Empty.fromPartial(request), metadata);
+  }
+
+  RegisterSession(
+    request: DeepPartial<RegisterSessionRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<RegisterSessionResponse> {
+    return this.rpc.unary(NodeServiceRegisterSessionDesc, RegisterSessionRequest.fromPartial(request), metadata);
+  }
+
+  UpdateSessionState(
+    request: DeepPartial<UpdateSessionStateRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<UpdateSessionStateResponse> {
+    return this.rpc.unary(NodeServiceUpdateSessionStateDesc, UpdateSessionStateRequest.fromPartial(request), metadata);
+  }
+
+  GetSession(request: DeepPartial<GetSessionRequest>, metadata?: grpc.Metadata): Promise<GetSessionResponse> {
+    return this.rpc.unary(NodeServiceGetSessionDesc, GetSessionRequest.fromPartial(request), metadata);
+  }
+
+  ListSessions(request: DeepPartial<ListSessionsRequest>, metadata?: grpc.Metadata): Promise<ListSessionsResponse> {
+    return this.rpc.unary(NodeServiceListSessionsDesc, ListSessionsRequest.fromPartial(request), metadata);
+  }
+
+  ResumeSession(request: DeepPartial<ResumeSessionRequest>, metadata?: grpc.Metadata): Promise<ResumeSessionResponse> {
+    return this.rpc.unary(NodeServiceResumeSessionDesc, ResumeSessionRequest.fromPartial(request), metadata);
+  }
+
+  ShareSession(request: DeepPartial<ShareSessionRequest>, metadata?: grpc.Metadata): Promise<ShareSessionResponse> {
+    return this.rpc.unary(NodeServiceShareSessionDesc, ShareSessionRequest.fromPartial(request), metadata);
+  }
+
+  PublishSession(
+    request: DeepPartial<PublishSessionRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<PublishSessionResponse> {
+    return this.rpc.unary(NodeServicePublishSessionDesc, PublishSessionRequest.fromPartial(request), metadata);
   }
 }
 
@@ -4724,6 +7167,167 @@ export const NodeServiceNetworkLockStatusDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = NetworkLockStatusResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceRegisterSessionDesc: UnaryMethodDefinitionish = {
+  methodName: "RegisterSession",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return RegisterSessionRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = RegisterSessionResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceUpdateSessionStateDesc: UnaryMethodDefinitionish = {
+  methodName: "UpdateSessionState",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return UpdateSessionStateRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = UpdateSessionStateResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceGetSessionDesc: UnaryMethodDefinitionish = {
+  methodName: "GetSession",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return GetSessionRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = GetSessionResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceListSessionsDesc: UnaryMethodDefinitionish = {
+  methodName: "ListSessions",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ListSessionsRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ListSessionsResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceResumeSessionDesc: UnaryMethodDefinitionish = {
+  methodName: "ResumeSession",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ResumeSessionRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ResumeSessionResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceShareSessionDesc: UnaryMethodDefinitionish = {
+  methodName: "ShareSession",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return ShareSessionRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = ShareSessionResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServicePublishSessionDesc: UnaryMethodDefinitionish = {
+  methodName: "PublishSession",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return PublishSessionRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = PublishSessionResponse.decode(data);
       return {
         ...value,
         toObject() {
