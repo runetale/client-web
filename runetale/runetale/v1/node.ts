@@ -198,7 +198,14 @@ export interface NetworkMapResponse {
    * The client uses this to detect clock skew between local and server time,
    * which is critical for accurate key expiry evaluation.
    */
-  serverTime: Date | undefined;
+  serverTime:
+    | Date
+    | undefined;
+  /**
+   * ssh_policy defines SSH access control rules for this node.
+   * If set, the node should run an SSH server with these rules.
+   */
+  sshPolicy: SSHPolicy | undefined;
 }
 
 export interface CerfMap {
@@ -422,6 +429,104 @@ export interface FilteredPeer {
   nodeKey: string;
   /** reason is why the peer was filtered */
   reason: string;
+}
+
+/**
+ * SSHPolicy defines SSH access control rules for a node.
+ * Rules are evaluated in order; the first matching rule determines the action.
+ */
+export interface SSHPolicy {
+  rules: SSHRule[];
+}
+
+/** SSHRule defines a single SSH access control rule. */
+export interface SSHRule {
+  /** rule_id is a unique identifier for this rule (for auditing) */
+  ruleId: string;
+  /** rule_expires is when this rule expires (Unix timestamp, 0 = no expiry) */
+  ruleExpires: number;
+  /** principals defines who can connect (evaluated with OR logic) */
+  principals: SSHPrincipal[];
+  /**
+   * ssh_users maps SSH usernames to local usernames
+   * Key: SSH username or "*" (wildcard)
+   * Value: local username, "=" (same as SSH user), or "" (deny)
+   */
+  sshUsers: { [key: string]: string };
+  /** action defines what happens when this rule matches */
+  action:
+    | SSHAction
+    | undefined;
+  /**
+   * accept_env is a list of environment variable patterns to allow
+   * Supports wildcards: * (any chars) and ? (single char)
+   */
+  acceptEnv: string[];
+  /** Audit fields */
+  createdBy: string;
+  /** Unix timestamp */
+  createdAt: number;
+}
+
+export interface SSHRule_SshUsersEntry {
+  key: string;
+  value: string;
+}
+
+/**
+ * SSHPrincipal defines conditions for matching SSH connection sources.
+ * Multiple fields are evaluated with OR logic within a principal,
+ * but all non-empty fields must match.
+ */
+export interface SSHPrincipal {
+  /** Basic match conditions (OR logic) */
+  nodeId: number;
+  /** Match by node IP (CIDR supported) */
+  nodeIp: string;
+  /** Match by user ID */
+  userId: number;
+  /** Match by user login (email format) */
+  userLogin: string;
+  /** Match any connection */
+  any: boolean;
+  /** runetale-specific: Match by group/fleet membership */
+  fleetIds: string[];
+  /** Match users in these groups */
+  groupIds: string[];
+  /**
+   * Additional authentication requirements
+   * If set, one of these public keys must be presented
+   * Supports URL format (e.g., https://github.com/username.keys)
+   */
+  pubKeys: string[];
+}
+
+/** SSHAction defines what happens when an SSH rule matches. */
+export interface SSHAction {
+  /** message is displayed to the user before the action */
+  message: string;
+  /** Action type (reject takes priority over accept) */
+  reject: boolean;
+  accept: boolean;
+  /** Session settings */
+  sessionDuration: number;
+  /** Allow SSH agent forwarding */
+  allowAgentForwarding: boolean;
+  /** Allow local port forwarding (-L) */
+  allowLocalPortForwarding: boolean;
+  /** Allow remote port forwarding (-R) */
+  allowRemotePortForwarding: boolean;
+  /** Session recording */
+  recorders: string[];
+  onRecordingFailure: SSHRecorderFailureAction | undefined;
+}
+
+/** SSHRecorderFailureAction defines behavior when session recording fails. */
+export interface SSHRecorderFailureAction {
+  /** reject_session_with_message rejects the session if recording fails to start */
+  rejectSessionWithMessage: string;
+  /** terminate_session_with_message terminates the session if recording fails mid-session */
+  terminateSessionWithMessage: string;
 }
 
 function createBaseNode(): Node {
@@ -1296,6 +1401,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     domainTelemetryLogId: "",
     capabilities: [],
     serverTime: undefined,
+    sshPolicy: undefined,
   };
 }
 
@@ -1353,6 +1459,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     }
     if (message.serverTime !== undefined) {
       Timestamp.encode(toTimestamp(message.serverTime), writer.uint32(202).fork()).join();
+    }
+    if (message.sshPolicy !== undefined) {
+      SSHPolicy.encode(message.sshPolicy, writer.uint32(210).fork()).join();
     }
     return writer;
   },
@@ -1510,6 +1619,14 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
           message.serverTime = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
+        case 26: {
+          if (tag !== 210) {
+            break;
+          }
+
+          message.sshPolicy = SSHPolicy.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1559,6 +1676,11 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
         ? fromJsonTimestamp(object.serverTime)
         : isSet(object.server_time)
         ? fromJsonTimestamp(object.server_time)
+        : undefined,
+      sshPolicy: isSet(object.sshPolicy)
+        ? SSHPolicy.fromJSON(object.sshPolicy)
+        : isSet(object.ssh_policy)
+        ? SSHPolicy.fromJSON(object.ssh_policy)
         : undefined,
     };
   },
@@ -1616,6 +1738,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.serverTime !== undefined) {
       obj.serverTime = message.serverTime.toISOString();
     }
+    if (message.sshPolicy !== undefined) {
+      obj.sshPolicy = SSHPolicy.toJSON(message.sshPolicy);
+    }
     return obj;
   },
 
@@ -1643,6 +1768,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.domainTelemetryLogId = object.domainTelemetryLogId ?? "";
     message.capabilities = object.capabilities?.map((e) => e) || [];
     message.serverTime = object.serverTime ?? undefined;
+    message.sshPolicy = (object.sshPolicy !== undefined && object.sshPolicy !== null)
+      ? SSHPolicy.fromPartial(object.sshPolicy)
+      : undefined;
     return message;
   },
 };
@@ -3466,6 +3594,884 @@ export const FilteredPeer: MessageFns<FilteredPeer> = {
     message.name = object.name ?? "";
     message.nodeKey = object.nodeKey ?? "";
     message.reason = object.reason ?? "";
+    return message;
+  },
+};
+
+function createBaseSSHPolicy(): SSHPolicy {
+  return { rules: [] };
+}
+
+export const SSHPolicy: MessageFns<SSHPolicy> = {
+  encode(message: SSHPolicy, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.rules) {
+      SSHRule.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SSHPolicy {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSSHPolicy();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.rules.push(SSHRule.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SSHPolicy {
+    return { rules: globalThis.Array.isArray(object?.rules) ? object.rules.map((e: any) => SSHRule.fromJSON(e)) : [] };
+  },
+
+  toJSON(message: SSHPolicy): unknown {
+    const obj: any = {};
+    if (message.rules?.length) {
+      obj.rules = message.rules.map((e) => SSHRule.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SSHPolicy>, I>>(base?: I): SSHPolicy {
+    return SSHPolicy.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SSHPolicy>, I>>(object: I): SSHPolicy {
+    const message = createBaseSSHPolicy();
+    message.rules = object.rules?.map((e) => SSHRule.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseSSHRule(): SSHRule {
+  return {
+    ruleId: "",
+    ruleExpires: 0,
+    principals: [],
+    sshUsers: {},
+    action: undefined,
+    acceptEnv: [],
+    createdBy: "",
+    createdAt: 0,
+  };
+}
+
+export const SSHRule: MessageFns<SSHRule> = {
+  encode(message: SSHRule, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.ruleId !== "") {
+      writer.uint32(10).string(message.ruleId);
+    }
+    if (message.ruleExpires !== 0) {
+      writer.uint32(16).int64(message.ruleExpires);
+    }
+    for (const v of message.principals) {
+      SSHPrincipal.encode(v!, writer.uint32(26).fork()).join();
+    }
+    globalThis.Object.entries(message.sshUsers).forEach(([key, value]: [string, string]) => {
+      SSHRule_SshUsersEntry.encode({ key: key as any, value }, writer.uint32(34).fork()).join();
+    });
+    if (message.action !== undefined) {
+      SSHAction.encode(message.action, writer.uint32(42).fork()).join();
+    }
+    for (const v of message.acceptEnv) {
+      writer.uint32(50).string(v!);
+    }
+    if (message.createdBy !== "") {
+      writer.uint32(58).string(message.createdBy);
+    }
+    if (message.createdAt !== 0) {
+      writer.uint32(64).int64(message.createdAt);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SSHRule {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSSHRule();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.ruleId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.ruleExpires = longToNumber(reader.int64());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.principals.push(SSHPrincipal.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          const entry4 = SSHRule_SshUsersEntry.decode(reader, reader.uint32());
+          if (entry4.value !== undefined) {
+            message.sshUsers[entry4.key] = entry4.value;
+          }
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.action = SSHAction.decode(reader, reader.uint32());
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.acceptEnv.push(reader.string());
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.createdBy = reader.string();
+          continue;
+        }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.createdAt = longToNumber(reader.int64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SSHRule {
+    return {
+      ruleId: isSet(object.ruleId)
+        ? globalThis.String(object.ruleId)
+        : isSet(object.rule_id)
+        ? globalThis.String(object.rule_id)
+        : "",
+      ruleExpires: isSet(object.ruleExpires)
+        ? globalThis.Number(object.ruleExpires)
+        : isSet(object.rule_expires)
+        ? globalThis.Number(object.rule_expires)
+        : 0,
+      principals: globalThis.Array.isArray(object?.principals)
+        ? object.principals.map((e: any) => SSHPrincipal.fromJSON(e))
+        : [],
+      sshUsers: isObject(object.sshUsers)
+        ? (globalThis.Object.entries(object.sshUsers) as [string, any][]).reduce(
+          (acc: { [key: string]: string }, [key, value]: [string, any]) => {
+            acc[key] = globalThis.String(value);
+            return acc;
+          },
+          {},
+        )
+        : isObject(object.ssh_users)
+        ? (globalThis.Object.entries(object.ssh_users) as [string, any][]).reduce(
+          (acc: { [key: string]: string }, [key, value]: [string, any]) => {
+            acc[key] = globalThis.String(value);
+            return acc;
+          },
+          {},
+        )
+        : {},
+      action: isSet(object.action) ? SSHAction.fromJSON(object.action) : undefined,
+      acceptEnv: globalThis.Array.isArray(object?.acceptEnv)
+        ? object.acceptEnv.map((e: any) => globalThis.String(e))
+        : globalThis.Array.isArray(object?.accept_env)
+        ? object.accept_env.map((e: any) => globalThis.String(e))
+        : [],
+      createdBy: isSet(object.createdBy)
+        ? globalThis.String(object.createdBy)
+        : isSet(object.created_by)
+        ? globalThis.String(object.created_by)
+        : "",
+      createdAt: isSet(object.createdAt)
+        ? globalThis.Number(object.createdAt)
+        : isSet(object.created_at)
+        ? globalThis.Number(object.created_at)
+        : 0,
+    };
+  },
+
+  toJSON(message: SSHRule): unknown {
+    const obj: any = {};
+    if (message.ruleId !== "") {
+      obj.ruleId = message.ruleId;
+    }
+    if (message.ruleExpires !== 0) {
+      obj.ruleExpires = Math.round(message.ruleExpires);
+    }
+    if (message.principals?.length) {
+      obj.principals = message.principals.map((e) => SSHPrincipal.toJSON(e));
+    }
+    if (message.sshUsers) {
+      const entries = globalThis.Object.entries(message.sshUsers) as [string, string][];
+      if (entries.length > 0) {
+        obj.sshUsers = {};
+        entries.forEach(([k, v]) => {
+          obj.sshUsers[k] = v;
+        });
+      }
+    }
+    if (message.action !== undefined) {
+      obj.action = SSHAction.toJSON(message.action);
+    }
+    if (message.acceptEnv?.length) {
+      obj.acceptEnv = message.acceptEnv;
+    }
+    if (message.createdBy !== "") {
+      obj.createdBy = message.createdBy;
+    }
+    if (message.createdAt !== 0) {
+      obj.createdAt = Math.round(message.createdAt);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SSHRule>, I>>(base?: I): SSHRule {
+    return SSHRule.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SSHRule>, I>>(object: I): SSHRule {
+    const message = createBaseSSHRule();
+    message.ruleId = object.ruleId ?? "";
+    message.ruleExpires = object.ruleExpires ?? 0;
+    message.principals = object.principals?.map((e) => SSHPrincipal.fromPartial(e)) || [];
+    message.sshUsers = (globalThis.Object.entries(object.sshUsers ?? {}) as [string, string][]).reduce(
+      (acc: { [key: string]: string }, [key, value]: [string, string]) => {
+        if (value !== undefined) {
+          acc[key] = globalThis.String(value);
+        }
+        return acc;
+      },
+      {},
+    );
+    message.action = (object.action !== undefined && object.action !== null)
+      ? SSHAction.fromPartial(object.action)
+      : undefined;
+    message.acceptEnv = object.acceptEnv?.map((e) => e) || [];
+    message.createdBy = object.createdBy ?? "";
+    message.createdAt = object.createdAt ?? 0;
+    return message;
+  },
+};
+
+function createBaseSSHRule_SshUsersEntry(): SSHRule_SshUsersEntry {
+  return { key: "", value: "" };
+}
+
+export const SSHRule_SshUsersEntry: MessageFns<SSHRule_SshUsersEntry> = {
+  encode(message: SSHRule_SshUsersEntry, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.key !== "") {
+      writer.uint32(10).string(message.key);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SSHRule_SshUsersEntry {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSSHRule_SshUsersEntry();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.key = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.value = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SSHRule_SshUsersEntry {
+    return {
+      key: isSet(object.key) ? globalThis.String(object.key) : "",
+      value: isSet(object.value) ? globalThis.String(object.value) : "",
+    };
+  },
+
+  toJSON(message: SSHRule_SshUsersEntry): unknown {
+    const obj: any = {};
+    if (message.key !== "") {
+      obj.key = message.key;
+    }
+    if (message.value !== "") {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SSHRule_SshUsersEntry>, I>>(base?: I): SSHRule_SshUsersEntry {
+    return SSHRule_SshUsersEntry.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SSHRule_SshUsersEntry>, I>>(object: I): SSHRule_SshUsersEntry {
+    const message = createBaseSSHRule_SshUsersEntry();
+    message.key = object.key ?? "";
+    message.value = object.value ?? "";
+    return message;
+  },
+};
+
+function createBaseSSHPrincipal(): SSHPrincipal {
+  return { nodeId: 0, nodeIp: "", userId: 0, userLogin: "", any: false, fleetIds: [], groupIds: [], pubKeys: [] };
+}
+
+export const SSHPrincipal: MessageFns<SSHPrincipal> = {
+  encode(message: SSHPrincipal, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.nodeId !== 0) {
+      writer.uint32(8).uint64(message.nodeId);
+    }
+    if (message.nodeIp !== "") {
+      writer.uint32(18).string(message.nodeIp);
+    }
+    if (message.userId !== 0) {
+      writer.uint32(24).uint64(message.userId);
+    }
+    if (message.userLogin !== "") {
+      writer.uint32(34).string(message.userLogin);
+    }
+    if (message.any !== false) {
+      writer.uint32(40).bool(message.any);
+    }
+    for (const v of message.fleetIds) {
+      writer.uint32(50).string(v!);
+    }
+    for (const v of message.groupIds) {
+      writer.uint32(58).string(v!);
+    }
+    for (const v of message.pubKeys) {
+      writer.uint32(66).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SSHPrincipal {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSSHPrincipal();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.nodeId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.nodeIp = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.userId = longToNumber(reader.uint64());
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.userLogin = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.any = reader.bool();
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.fleetIds.push(reader.string());
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.groupIds.push(reader.string());
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.pubKeys.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SSHPrincipal {
+    return {
+      nodeId: isSet(object.nodeId)
+        ? globalThis.Number(object.nodeId)
+        : isSet(object.node_id)
+        ? globalThis.Number(object.node_id)
+        : 0,
+      nodeIp: isSet(object.nodeIp)
+        ? globalThis.String(object.nodeIp)
+        : isSet(object.node_ip)
+        ? globalThis.String(object.node_ip)
+        : "",
+      userId: isSet(object.userId)
+        ? globalThis.Number(object.userId)
+        : isSet(object.user_id)
+        ? globalThis.Number(object.user_id)
+        : 0,
+      userLogin: isSet(object.userLogin)
+        ? globalThis.String(object.userLogin)
+        : isSet(object.user_login)
+        ? globalThis.String(object.user_login)
+        : "",
+      any: isSet(object.any) ? globalThis.Boolean(object.any) : false,
+      fleetIds: globalThis.Array.isArray(object?.fleetIds)
+        ? object.fleetIds.map((e: any) => globalThis.String(e))
+        : globalThis.Array.isArray(object?.fleet_ids)
+        ? object.fleet_ids.map((e: any) => globalThis.String(e))
+        : [],
+      groupIds: globalThis.Array.isArray(object?.groupIds)
+        ? object.groupIds.map((e: any) => globalThis.String(e))
+        : globalThis.Array.isArray(object?.group_ids)
+        ? object.group_ids.map((e: any) => globalThis.String(e))
+        : [],
+      pubKeys: globalThis.Array.isArray(object?.pubKeys)
+        ? object.pubKeys.map((e: any) => globalThis.String(e))
+        : globalThis.Array.isArray(object?.pub_keys)
+        ? object.pub_keys.map((e: any) => globalThis.String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: SSHPrincipal): unknown {
+    const obj: any = {};
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.nodeIp !== "") {
+      obj.nodeIp = message.nodeIp;
+    }
+    if (message.userId !== 0) {
+      obj.userId = Math.round(message.userId);
+    }
+    if (message.userLogin !== "") {
+      obj.userLogin = message.userLogin;
+    }
+    if (message.any !== false) {
+      obj.any = message.any;
+    }
+    if (message.fleetIds?.length) {
+      obj.fleetIds = message.fleetIds;
+    }
+    if (message.groupIds?.length) {
+      obj.groupIds = message.groupIds;
+    }
+    if (message.pubKeys?.length) {
+      obj.pubKeys = message.pubKeys;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SSHPrincipal>, I>>(base?: I): SSHPrincipal {
+    return SSHPrincipal.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SSHPrincipal>, I>>(object: I): SSHPrincipal {
+    const message = createBaseSSHPrincipal();
+    message.nodeId = object.nodeId ?? 0;
+    message.nodeIp = object.nodeIp ?? "";
+    message.userId = object.userId ?? 0;
+    message.userLogin = object.userLogin ?? "";
+    message.any = object.any ?? false;
+    message.fleetIds = object.fleetIds?.map((e) => e) || [];
+    message.groupIds = object.groupIds?.map((e) => e) || [];
+    message.pubKeys = object.pubKeys?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseSSHAction(): SSHAction {
+  return {
+    message: "",
+    reject: false,
+    accept: false,
+    sessionDuration: 0,
+    allowAgentForwarding: false,
+    allowLocalPortForwarding: false,
+    allowRemotePortForwarding: false,
+    recorders: [],
+    onRecordingFailure: undefined,
+  };
+}
+
+export const SSHAction: MessageFns<SSHAction> = {
+  encode(message: SSHAction, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.message !== "") {
+      writer.uint32(10).string(message.message);
+    }
+    if (message.reject !== false) {
+      writer.uint32(16).bool(message.reject);
+    }
+    if (message.accept !== false) {
+      writer.uint32(24).bool(message.accept);
+    }
+    if (message.sessionDuration !== 0) {
+      writer.uint32(32).uint32(message.sessionDuration);
+    }
+    if (message.allowAgentForwarding !== false) {
+      writer.uint32(40).bool(message.allowAgentForwarding);
+    }
+    if (message.allowLocalPortForwarding !== false) {
+      writer.uint32(48).bool(message.allowLocalPortForwarding);
+    }
+    if (message.allowRemotePortForwarding !== false) {
+      writer.uint32(56).bool(message.allowRemotePortForwarding);
+    }
+    for (const v of message.recorders) {
+      writer.uint32(66).string(v!);
+    }
+    if (message.onRecordingFailure !== undefined) {
+      SSHRecorderFailureAction.encode(message.onRecordingFailure, writer.uint32(74).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SSHAction {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSSHAction();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.message = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.reject = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.accept = reader.bool();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.sessionDuration = reader.uint32();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.allowAgentForwarding = reader.bool();
+          continue;
+        }
+        case 6: {
+          if (tag !== 48) {
+            break;
+          }
+
+          message.allowLocalPortForwarding = reader.bool();
+          continue;
+        }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.allowRemotePortForwarding = reader.bool();
+          continue;
+        }
+        case 8: {
+          if (tag !== 66) {
+            break;
+          }
+
+          message.recorders.push(reader.string());
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.onRecordingFailure = SSHRecorderFailureAction.decode(reader, reader.uint32());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SSHAction {
+    return {
+      message: isSet(object.message) ? globalThis.String(object.message) : "",
+      reject: isSet(object.reject) ? globalThis.Boolean(object.reject) : false,
+      accept: isSet(object.accept) ? globalThis.Boolean(object.accept) : false,
+      sessionDuration: isSet(object.sessionDuration)
+        ? globalThis.Number(object.sessionDuration)
+        : isSet(object.session_duration)
+        ? globalThis.Number(object.session_duration)
+        : 0,
+      allowAgentForwarding: isSet(object.allowAgentForwarding)
+        ? globalThis.Boolean(object.allowAgentForwarding)
+        : isSet(object.allow_agent_forwarding)
+        ? globalThis.Boolean(object.allow_agent_forwarding)
+        : false,
+      allowLocalPortForwarding: isSet(object.allowLocalPortForwarding)
+        ? globalThis.Boolean(object.allowLocalPortForwarding)
+        : isSet(object.allow_local_port_forwarding)
+        ? globalThis.Boolean(object.allow_local_port_forwarding)
+        : false,
+      allowRemotePortForwarding: isSet(object.allowRemotePortForwarding)
+        ? globalThis.Boolean(object.allowRemotePortForwarding)
+        : isSet(object.allow_remote_port_forwarding)
+        ? globalThis.Boolean(object.allow_remote_port_forwarding)
+        : false,
+      recorders: globalThis.Array.isArray(object?.recorders)
+        ? object.recorders.map((e: any) => globalThis.String(e))
+        : [],
+      onRecordingFailure: isSet(object.onRecordingFailure)
+        ? SSHRecorderFailureAction.fromJSON(object.onRecordingFailure)
+        : isSet(object.on_recording_failure)
+        ? SSHRecorderFailureAction.fromJSON(object.on_recording_failure)
+        : undefined,
+    };
+  },
+
+  toJSON(message: SSHAction): unknown {
+    const obj: any = {};
+    if (message.message !== "") {
+      obj.message = message.message;
+    }
+    if (message.reject !== false) {
+      obj.reject = message.reject;
+    }
+    if (message.accept !== false) {
+      obj.accept = message.accept;
+    }
+    if (message.sessionDuration !== 0) {
+      obj.sessionDuration = Math.round(message.sessionDuration);
+    }
+    if (message.allowAgentForwarding !== false) {
+      obj.allowAgentForwarding = message.allowAgentForwarding;
+    }
+    if (message.allowLocalPortForwarding !== false) {
+      obj.allowLocalPortForwarding = message.allowLocalPortForwarding;
+    }
+    if (message.allowRemotePortForwarding !== false) {
+      obj.allowRemotePortForwarding = message.allowRemotePortForwarding;
+    }
+    if (message.recorders?.length) {
+      obj.recorders = message.recorders;
+    }
+    if (message.onRecordingFailure !== undefined) {
+      obj.onRecordingFailure = SSHRecorderFailureAction.toJSON(message.onRecordingFailure);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SSHAction>, I>>(base?: I): SSHAction {
+    return SSHAction.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SSHAction>, I>>(object: I): SSHAction {
+    const message = createBaseSSHAction();
+    message.message = object.message ?? "";
+    message.reject = object.reject ?? false;
+    message.accept = object.accept ?? false;
+    message.sessionDuration = object.sessionDuration ?? 0;
+    message.allowAgentForwarding = object.allowAgentForwarding ?? false;
+    message.allowLocalPortForwarding = object.allowLocalPortForwarding ?? false;
+    message.allowRemotePortForwarding = object.allowRemotePortForwarding ?? false;
+    message.recorders = object.recorders?.map((e) => e) || [];
+    message.onRecordingFailure = (object.onRecordingFailure !== undefined && object.onRecordingFailure !== null)
+      ? SSHRecorderFailureAction.fromPartial(object.onRecordingFailure)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseSSHRecorderFailureAction(): SSHRecorderFailureAction {
+  return { rejectSessionWithMessage: "", terminateSessionWithMessage: "" };
+}
+
+export const SSHRecorderFailureAction: MessageFns<SSHRecorderFailureAction> = {
+  encode(message: SSHRecorderFailureAction, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.rejectSessionWithMessage !== "") {
+      writer.uint32(10).string(message.rejectSessionWithMessage);
+    }
+    if (message.terminateSessionWithMessage !== "") {
+      writer.uint32(18).string(message.terminateSessionWithMessage);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SSHRecorderFailureAction {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSSHRecorderFailureAction();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.rejectSessionWithMessage = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.terminateSessionWithMessage = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SSHRecorderFailureAction {
+    return {
+      rejectSessionWithMessage: isSet(object.rejectSessionWithMessage)
+        ? globalThis.String(object.rejectSessionWithMessage)
+        : isSet(object.reject_session_with_message)
+        ? globalThis.String(object.reject_session_with_message)
+        : "",
+      terminateSessionWithMessage: isSet(object.terminateSessionWithMessage)
+        ? globalThis.String(object.terminateSessionWithMessage)
+        : isSet(object.terminate_session_with_message)
+        ? globalThis.String(object.terminate_session_with_message)
+        : "",
+    };
+  },
+
+  toJSON(message: SSHRecorderFailureAction): unknown {
+    const obj: any = {};
+    if (message.rejectSessionWithMessage !== "") {
+      obj.rejectSessionWithMessage = message.rejectSessionWithMessage;
+    }
+    if (message.terminateSessionWithMessage !== "") {
+      obj.terminateSessionWithMessage = message.terminateSessionWithMessage;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SSHRecorderFailureAction>, I>>(base?: I): SSHRecorderFailureAction {
+    return SSHRecorderFailureAction.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SSHRecorderFailureAction>, I>>(object: I): SSHRecorderFailureAction {
+    const message = createBaseSSHRecorderFailureAction();
+    message.rejectSessionWithMessage = object.rejectSessionWithMessage ?? "";
+    message.terminateSessionWithMessage = object.terminateSessionWithMessage ?? "";
     return message;
   },
 };
