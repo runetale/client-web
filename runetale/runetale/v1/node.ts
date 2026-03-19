@@ -873,6 +873,8 @@ export interface UpdateSessionStateRequest {
   sessionId: string;
   /** new_state is the new state */
   newState: SSHSessionState;
+  /** scrollback is the terminal scrollback buffer (only used when suspending) */
+  scrollback: Uint8Array;
 }
 
 /** UpdateSessionStateResponse is returned after updating session state. */
@@ -5834,7 +5836,7 @@ export const RegisterSessionResponse: MessageFns<RegisterSessionResponse> = {
 };
 
 function createBaseUpdateSessionStateRequest(): UpdateSessionStateRequest {
-  return { sessionId: "", newState: 0 };
+  return { sessionId: "", newState: 0, scrollback: new Uint8Array(0) };
 }
 
 export const UpdateSessionStateRequest: MessageFns<UpdateSessionStateRequest> = {
@@ -5844,6 +5846,9 @@ export const UpdateSessionStateRequest: MessageFns<UpdateSessionStateRequest> = 
     }
     if (message.newState !== 0) {
       writer.uint32(16).int32(message.newState);
+    }
+    if (message.scrollback.length !== 0) {
+      writer.uint32(26).bytes(message.scrollback);
     }
     return writer;
   },
@@ -5871,6 +5876,14 @@ export const UpdateSessionStateRequest: MessageFns<UpdateSessionStateRequest> = 
           message.newState = reader.int32() as any;
           continue;
         }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.scrollback = reader.bytes();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -5892,6 +5905,7 @@ export const UpdateSessionStateRequest: MessageFns<UpdateSessionStateRequest> = 
         : isSet(object.new_state)
         ? sSHSessionStateFromJSON(object.new_state)
         : 0,
+      scrollback: isSet(object.scrollback) ? bytesFromBase64(object.scrollback) : new Uint8Array(0),
     };
   },
 
@@ -5903,6 +5917,9 @@ export const UpdateSessionStateRequest: MessageFns<UpdateSessionStateRequest> = 
     if (message.newState !== 0) {
       obj.newState = sSHSessionStateToJSON(message.newState);
     }
+    if (message.scrollback.length !== 0) {
+      obj.scrollback = base64FromBytes(message.scrollback);
+    }
     return obj;
   },
 
@@ -5913,6 +5930,7 @@ export const UpdateSessionStateRequest: MessageFns<UpdateSessionStateRequest> = 
     const message = createBaseUpdateSessionStateRequest();
     message.sessionId = object.sessionId ?? "";
     message.newState = object.newState ?? 0;
+    message.scrollback = object.scrollback ?? new Uint8Array(0);
     return message;
   },
 };
