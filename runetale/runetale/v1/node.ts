@@ -766,7 +766,13 @@ export interface SSHAction {
   allowRemotePortForwarding: boolean;
   /** Session recording */
   recorders: string[];
-  onRecordingFailure: SSHRecorderFailureAction | undefined;
+  onRecordingFailure:
+    | SSHRecorderFailureAction
+    | undefined;
+  /** Port forwarding restrictions (empty = all ports allowed when forwarding is enabled) */
+  allowedLocalPorts: number[];
+  /** Restrict -R to these listen ports only */
+  allowedRemotePorts: number[];
 }
 
 /** SSHRecorderFailureAction defines behavior when session recording fails. */
@@ -4625,6 +4631,8 @@ function createBaseSSHAction(): SSHAction {
     allowRemotePortForwarding: false,
     recorders: [],
     onRecordingFailure: undefined,
+    allowedLocalPorts: [],
+    allowedRemotePorts: [],
   };
 }
 
@@ -4657,6 +4665,16 @@ export const SSHAction: MessageFns<SSHAction> = {
     if (message.onRecordingFailure !== undefined) {
       SSHRecorderFailureAction.encode(message.onRecordingFailure, writer.uint32(74).fork()).join();
     }
+    writer.uint32(90).fork();
+    for (const v of message.allowedLocalPorts) {
+      writer.uint32(v);
+    }
+    writer.join();
+    writer.uint32(98).fork();
+    for (const v of message.allowedRemotePorts) {
+      writer.uint32(v);
+    }
+    writer.join();
     return writer;
   },
 
@@ -4739,6 +4757,42 @@ export const SSHAction: MessageFns<SSHAction> = {
           message.onRecordingFailure = SSHRecorderFailureAction.decode(reader, reader.uint32());
           continue;
         }
+        case 11: {
+          if (tag === 88) {
+            message.allowedLocalPorts.push(reader.uint32());
+
+            continue;
+          }
+
+          if (tag === 90) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.allowedLocalPorts.push(reader.uint32());
+            }
+
+            continue;
+          }
+
+          break;
+        }
+        case 12: {
+          if (tag === 96) {
+            message.allowedRemotePorts.push(reader.uint32());
+
+            continue;
+          }
+
+          if (tag === 98) {
+            const end2 = reader.uint32() + reader.pos;
+            while (reader.pos < end2) {
+              message.allowedRemotePorts.push(reader.uint32());
+            }
+
+            continue;
+          }
+
+          break;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -4781,6 +4835,16 @@ export const SSHAction: MessageFns<SSHAction> = {
         : isSet(object.on_recording_failure)
         ? SSHRecorderFailureAction.fromJSON(object.on_recording_failure)
         : undefined,
+      allowedLocalPorts: globalThis.Array.isArray(object?.allowedLocalPorts)
+        ? object.allowedLocalPorts.map((e: any) => globalThis.Number(e))
+        : globalThis.Array.isArray(object?.allowed_local_ports)
+        ? object.allowed_local_ports.map((e: any) => globalThis.Number(e))
+        : [],
+      allowedRemotePorts: globalThis.Array.isArray(object?.allowedRemotePorts)
+        ? object.allowedRemotePorts.map((e: any) => globalThis.Number(e))
+        : globalThis.Array.isArray(object?.allowed_remote_ports)
+        ? object.allowed_remote_ports.map((e: any) => globalThis.Number(e))
+        : [],
     };
   },
 
@@ -4813,6 +4877,12 @@ export const SSHAction: MessageFns<SSHAction> = {
     if (message.onRecordingFailure !== undefined) {
       obj.onRecordingFailure = SSHRecorderFailureAction.toJSON(message.onRecordingFailure);
     }
+    if (message.allowedLocalPorts?.length) {
+      obj.allowedLocalPorts = message.allowedLocalPorts.map((e) => Math.round(e));
+    }
+    if (message.allowedRemotePorts?.length) {
+      obj.allowedRemotePorts = message.allowedRemotePorts.map((e) => Math.round(e));
+    }
     return obj;
   },
 
@@ -4832,6 +4902,8 @@ export const SSHAction: MessageFns<SSHAction> = {
     message.onRecordingFailure = (object.onRecordingFailure !== undefined && object.onRecordingFailure !== null)
       ? SSHRecorderFailureAction.fromPartial(object.onRecordingFailure)
       : undefined;
+    message.allowedLocalPorts = object.allowedLocalPorts?.map((e) => e) || [];
+    message.allowedRemotePorts = object.allowedRemotePorts?.map((e) => e) || [];
     return message;
   },
 };
