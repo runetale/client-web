@@ -324,6 +324,33 @@ export interface ComposeNodeResponse {
 }
 
 /**
+ * HostMeta contains metadata about the connecting host.
+ * Sent from client to server to describe the node's current state and capabilities.
+ * This is included in NetworkMapRequest on initial connection and when host state changes.
+ */
+export interface HostMeta {
+  /** os is the operating system (e.g., "linux", "darwin", "windows"). */
+  os: string;
+  /** hostname is the device hostname. */
+  hostname: string;
+  /** distro is the Linux distribution name (empty on non-Linux). */
+  distro: string;
+  /** computer_name is the human-friendly device name. */
+  computerName: string;
+  /**
+   * routable_ips are the CIDR prefixes this node advertises as reachable through it.
+   * Subnet routes: e.g., "10.0.0.0/8", "192.168.1.0/24"
+   * Exit node: "0.0.0.0/0" and "::/0" together indicate exit node capability.
+   */
+  routableIps: string[];
+  /**
+   * ssh_host_keys are the SSH host public keys for this node.
+   * Each entry is in authorized_keys format (e.g., "ssh-ed25519 AAAA...").
+   */
+  sshHostKeys: string[];
+}
+
+/**
  * NetworkMapRequest is sent from client to server in the ConnectNetworkMapTable stream.
  * It contains the client's VPN state and is used for keepalive.
  */
@@ -340,7 +367,15 @@ export interface NetworkMapRequest {
    * is_keepalive indicates if this is a periodic keepalive message.
    * When false, it's a state change notification.
    */
-  isKeepalive?: boolean | undefined;
+  isKeepalive?:
+    | boolean
+    | undefined;
+  /**
+   * host_meta contains metadata about the connecting host.
+   * Sent on initial connection and when host state changes (e.g., route advertisement).
+   * May be omitted on keepalive messages.
+   */
+  hostMeta?: HostMeta | undefined;
 }
 
 export interface NetPortRange {
@@ -1502,8 +1537,160 @@ export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
   },
 };
 
+function createBaseHostMeta(): HostMeta {
+  return { os: "", hostname: "", distro: "", computerName: "", routableIps: [], sshHostKeys: [] };
+}
+
+export const HostMeta: MessageFns<HostMeta> = {
+  encode(message: HostMeta, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.os !== "") {
+      writer.uint32(10).string(message.os);
+    }
+    if (message.hostname !== "") {
+      writer.uint32(18).string(message.hostname);
+    }
+    if (message.distro !== "") {
+      writer.uint32(26).string(message.distro);
+    }
+    if (message.computerName !== "") {
+      writer.uint32(34).string(message.computerName);
+    }
+    for (const v of message.routableIps) {
+      writer.uint32(42).string(v!);
+    }
+    for (const v of message.sshHostKeys) {
+      writer.uint32(50).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): HostMeta {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseHostMeta();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.os = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.hostname = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.distro = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.computerName = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.routableIps.push(reader.string());
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.sshHostKeys.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): HostMeta {
+    return {
+      os: isSet(object.os) ? globalThis.String(object.os) : "",
+      hostname: isSet(object.hostname) ? globalThis.String(object.hostname) : "",
+      distro: isSet(object.distro) ? globalThis.String(object.distro) : "",
+      computerName: isSet(object.computerName)
+        ? globalThis.String(object.computerName)
+        : isSet(object.computer_name)
+        ? globalThis.String(object.computer_name)
+        : "",
+      routableIps: globalThis.Array.isArray(object?.routableIps)
+        ? object.routableIps.map((e: any) => globalThis.String(e))
+        : globalThis.Array.isArray(object?.routable_ips)
+        ? object.routable_ips.map((e: any) => globalThis.String(e))
+        : [],
+      sshHostKeys: globalThis.Array.isArray(object?.sshHostKeys)
+        ? object.sshHostKeys.map((e: any) => globalThis.String(e))
+        : globalThis.Array.isArray(object?.ssh_host_keys)
+        ? object.ssh_host_keys.map((e: any) => globalThis.String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: HostMeta): unknown {
+    const obj: any = {};
+    if (message.os !== "") {
+      obj.os = message.os;
+    }
+    if (message.hostname !== "") {
+      obj.hostname = message.hostname;
+    }
+    if (message.distro !== "") {
+      obj.distro = message.distro;
+    }
+    if (message.computerName !== "") {
+      obj.computerName = message.computerName;
+    }
+    if (message.routableIps?.length) {
+      obj.routableIps = message.routableIps;
+    }
+    if (message.sshHostKeys?.length) {
+      obj.sshHostKeys = message.sshHostKeys;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<HostMeta>, I>>(base?: I): HostMeta {
+    return HostMeta.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<HostMeta>, I>>(object: I): HostMeta {
+    const message = createBaseHostMeta();
+    message.os = object.os ?? "";
+    message.hostname = object.hostname ?? "";
+    message.distro = object.distro ?? "";
+    message.computerName = object.computerName ?? "";
+    message.routableIps = object.routableIps?.map((e) => e) || [];
+    message.sshHostKeys = object.sshHostKeys?.map((e) => e) || [];
+    return message;
+  },
+};
+
 function createBaseNetworkMapRequest(): NetworkMapRequest {
-  return { vpnRunning: undefined, isKeepalive: undefined };
+  return { vpnRunning: undefined, isKeepalive: undefined, hostMeta: undefined };
 }
 
 export const NetworkMapRequest: MessageFns<NetworkMapRequest> = {
@@ -1513,6 +1700,9 @@ export const NetworkMapRequest: MessageFns<NetworkMapRequest> = {
     }
     if (message.isKeepalive !== undefined) {
       writer.uint32(16).bool(message.isKeepalive);
+    }
+    if (message.hostMeta !== undefined) {
+      HostMeta.encode(message.hostMeta, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -1540,6 +1730,14 @@ export const NetworkMapRequest: MessageFns<NetworkMapRequest> = {
           message.isKeepalive = reader.bool();
           continue;
         }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.hostMeta = HostMeta.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1561,6 +1759,11 @@ export const NetworkMapRequest: MessageFns<NetworkMapRequest> = {
         : isSet(object.is_keepalive)
         ? globalThis.Boolean(object.is_keepalive)
         : undefined,
+      hostMeta: isSet(object.hostMeta)
+        ? HostMeta.fromJSON(object.hostMeta)
+        : isSet(object.host_meta)
+        ? HostMeta.fromJSON(object.host_meta)
+        : undefined,
     };
   },
 
@@ -1572,6 +1775,9 @@ export const NetworkMapRequest: MessageFns<NetworkMapRequest> = {
     if (message.isKeepalive !== undefined) {
       obj.isKeepalive = message.isKeepalive;
     }
+    if (message.hostMeta !== undefined) {
+      obj.hostMeta = HostMeta.toJSON(message.hostMeta);
+    }
     return obj;
   },
 
@@ -1582,6 +1788,9 @@ export const NetworkMapRequest: MessageFns<NetworkMapRequest> = {
     const message = createBaseNetworkMapRequest();
     message.vpnRunning = object.vpnRunning ?? undefined;
     message.isKeepalive = object.isKeepalive ?? undefined;
+    message.hostMeta = (object.hostMeta !== undefined && object.hostMeta !== null)
+      ? HostMeta.fromPartial(object.hostMeta)
+      : undefined;
     return message;
   },
 };
