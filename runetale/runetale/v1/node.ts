@@ -348,6 +348,11 @@ export interface HostMeta {
    * Each entry is in authorized_keys format (e.g., "ssh-ed25519 AAAA...").
    */
   sshHostKeys: string[];
+  /**
+   * app_linker indicates whether this node is actively running as an app-linker.
+   * When true, the node is processing DNS queries and advertising routes for configured domains.
+   */
+  appLinker: boolean;
 }
 
 /**
@@ -1538,7 +1543,7 @@ export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
 };
 
 function createBaseHostMeta(): HostMeta {
-  return { os: "", hostname: "", distro: "", computerName: "", routableIps: [], sshHostKeys: [] };
+  return { os: "", hostname: "", distro: "", computerName: "", routableIps: [], sshHostKeys: [], appLinker: false };
 }
 
 export const HostMeta: MessageFns<HostMeta> = {
@@ -1560,6 +1565,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     }
     for (const v of message.sshHostKeys) {
       writer.uint32(50).string(v!);
+    }
+    if (message.appLinker !== false) {
+      writer.uint32(56).bool(message.appLinker);
     }
     return writer;
   },
@@ -1619,6 +1627,14 @@ export const HostMeta: MessageFns<HostMeta> = {
           message.sshHostKeys.push(reader.string());
           continue;
         }
+        case 7: {
+          if (tag !== 56) {
+            break;
+          }
+
+          message.appLinker = reader.bool();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1648,6 +1664,11 @@ export const HostMeta: MessageFns<HostMeta> = {
         : globalThis.Array.isArray(object?.ssh_host_keys)
         ? object.ssh_host_keys.map((e: any) => globalThis.String(e))
         : [],
+      appLinker: isSet(object.appLinker)
+        ? globalThis.Boolean(object.appLinker)
+        : isSet(object.app_linker)
+        ? globalThis.Boolean(object.app_linker)
+        : false,
     };
   },
 
@@ -1671,6 +1692,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     if (message.sshHostKeys?.length) {
       obj.sshHostKeys = message.sshHostKeys;
     }
+    if (message.appLinker !== false) {
+      obj.appLinker = message.appLinker;
+    }
     return obj;
   },
 
@@ -1685,6 +1709,7 @@ export const HostMeta: MessageFns<HostMeta> = {
     message.computerName = object.computerName ?? "";
     message.routableIps = object.routableIps?.map((e) => e) || [];
     message.sshHostKeys = object.sshHostKeys?.map((e) => e) || [];
+    message.appLinker = object.appLinker ?? false;
     return message;
   },
 };
