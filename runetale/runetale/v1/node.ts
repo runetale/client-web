@@ -461,7 +461,11 @@ export interface NetworkMapResponse {
   advertisedRoute: string;
   /** jailedがtrueの場合全てのパケットを拒否する */
   jailed: boolean;
-  iceTable: Node[];
+  /**
+   * ICE/STUN/TURN による NAT トラバーサルの対象となる全ピア候補。
+   * Peers (ACL で許可された通信先) とは異なり、接続確立に必要な全ノードを含む。
+   */
+  potentialPeers: Node[];
   dns: DNSConfig | undefined;
   appLinker: AppLinker[];
   /** cerfMap describes available CERF relay nodes. */
@@ -2104,7 +2108,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     packetFilter: [],
     advertisedRoute: "",
     jailed: false,
-    iceTable: [],
+    potentialPeers: [],
     dns: undefined,
     appLinker: [],
     cerfMap: undefined,
@@ -2145,7 +2149,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.jailed !== false) {
       writer.uint32(64).bool(message.jailed);
     }
-    for (const v of message.iceTable) {
+    for (const v of message.potentialPeers) {
       Node.encode(v!, writer.uint32(74).fork()).join();
     }
     if (message.dns !== undefined) {
@@ -2264,7 +2268,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
             break;
           }
 
-          message.iceTable.push(Node.decode(reader, reader.uint32()));
+          message.potentialPeers.push(Node.decode(reader, reader.uint32()));
           continue;
         }
         case 10: {
@@ -2364,7 +2368,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
         : [],
       advertisedRoute: isSet(object.advertisedRoute) ? globalThis.String(object.advertisedRoute) : "",
       jailed: isSet(object.jailed) ? globalThis.Boolean(object.jailed) : false,
-      iceTable: globalThis.Array.isArray(object?.iceTable) ? object.iceTable.map((e: any) => Node.fromJSON(e)) : [],
+      potentialPeers: globalThis.Array.isArray(object?.potentialPeers)
+        ? object.potentialPeers.map((e: any) => Node.fromJSON(e))
+        : [],
       dns: isSet(object.dns) ? DNSConfig.fromJSON(object.dns) : undefined,
       appLinker: globalThis.Array.isArray(object?.appLinker)
         ? object.appLinker.map((e: any) => AppLinker.fromJSON(e))
@@ -2423,8 +2429,8 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.jailed !== false) {
       obj.jailed = message.jailed;
     }
-    if (message.iceTable?.length) {
-      obj.iceTable = message.iceTable.map((e) => Node.toJSON(e));
+    if (message.potentialPeers?.length) {
+      obj.potentialPeers = message.potentialPeers.map((e) => Node.toJSON(e));
     }
     if (message.dns !== undefined) {
       obj.dns = DNSConfig.toJSON(message.dns);
@@ -2469,7 +2475,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.packetFilter = object.packetFilter?.map((e) => FilterRule.fromPartial(e)) || [];
     message.advertisedRoute = object.advertisedRoute ?? "";
     message.jailed = object.jailed ?? false;
-    message.iceTable = object.iceTable?.map((e) => Node.fromPartial(e)) || [];
+    message.potentialPeers = object.potentialPeers?.map((e) => Node.fromPartial(e)) || [];
     message.dns = (object.dns !== undefined && object.dns !== null) ? DNSConfig.fromPartial(object.dns) : undefined;
     message.appLinker = object.appLinker?.map((e) => AppLinker.fromPartial(e)) || [];
     message.cerfMap = (object.cerfMap !== undefined && object.cerfMap !== null)
