@@ -353,6 +353,12 @@ export interface HostMeta {
    * When true, the node is processing DNS queries and advertising routes for configured domains.
    */
   appLinker: boolean;
+  /**
+   * peer_api_port is the TCP port on which this node's PeerAPI HTTP server is
+   * listening. Only set when app_linker is true. The server stores this and
+   * distributes it to peers via AppLinker.peer_api_port in the NetworkMap.
+   */
+  peerApiPort: number;
 }
 
 /**
@@ -1558,7 +1564,16 @@ export const ComposeNodeResponse: MessageFns<ComposeNodeResponse> = {
 };
 
 function createBaseHostMeta(): HostMeta {
-  return { os: "", hostname: "", distro: "", computerName: "", routableIps: [], sshHostKeys: [], appLinker: false };
+  return {
+    os: "",
+    hostname: "",
+    distro: "",
+    computerName: "",
+    routableIps: [],
+    sshHostKeys: [],
+    appLinker: false,
+    peerApiPort: 0,
+  };
 }
 
 export const HostMeta: MessageFns<HostMeta> = {
@@ -1583,6 +1598,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     }
     if (message.appLinker !== false) {
       writer.uint32(56).bool(message.appLinker);
+    }
+    if (message.peerApiPort !== 0) {
+      writer.uint32(64).uint32(message.peerApiPort);
     }
     return writer;
   },
@@ -1650,6 +1668,14 @@ export const HostMeta: MessageFns<HostMeta> = {
           message.appLinker = reader.bool();
           continue;
         }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.peerApiPort = reader.uint32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1684,6 +1710,11 @@ export const HostMeta: MessageFns<HostMeta> = {
         : isSet(object.app_linker)
         ? globalThis.Boolean(object.app_linker)
         : false,
+      peerApiPort: isSet(object.peerApiPort)
+        ? globalThis.Number(object.peerApiPort)
+        : isSet(object.peer_api_port)
+        ? globalThis.Number(object.peer_api_port)
+        : 0,
     };
   },
 
@@ -1710,6 +1741,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     if (message.appLinker !== false) {
       obj.appLinker = message.appLinker;
     }
+    if (message.peerApiPort !== 0) {
+      obj.peerApiPort = Math.round(message.peerApiPort);
+    }
     return obj;
   },
 
@@ -1725,6 +1759,7 @@ export const HostMeta: MessageFns<HostMeta> = {
     message.routableIps = object.routableIps?.map((e) => e) || [];
     message.sshHostKeys = object.sshHostKeys?.map((e) => e) || [];
     message.appLinker = object.appLinker ?? false;
+    message.peerApiPort = object.peerApiPort ?? 0;
     return message;
   },
 };
