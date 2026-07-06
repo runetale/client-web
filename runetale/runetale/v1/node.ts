@@ -312,6 +312,12 @@ export interface Node {
    * without relying on ~/.ssh/known_hosts.
    */
   sshHostKeys: string[];
+  /**
+   * peer_api_port is the TCP port on which this node's PeerAPI HTTP server is
+   * listening. Set by the server from the value reported in HostMeta, and
+   * distributed to peers so they can send DNS queries to AppLinker nodes.
+   */
+  peerApiPort: number;
 }
 
 export interface ComposeNodeResponse {
@@ -1068,6 +1074,7 @@ function createBaseNode(): Node {
     expired: false,
     keySignature: new Uint8Array(0),
     sshHostKeys: [],
+    peerApiPort: 0,
   };
 }
 
@@ -1129,6 +1136,9 @@ export const Node: MessageFns<Node> = {
     }
     for (const v of message.sshHostKeys) {
       writer.uint32(154).string(v!);
+    }
+    if (message.peerApiPort !== 0) {
+      writer.uint32(160).uint32(message.peerApiPort);
     }
     return writer;
   },
@@ -1292,6 +1302,14 @@ export const Node: MessageFns<Node> = {
           message.sshHostKeys.push(reader.string());
           continue;
         }
+        case 20: {
+          if (tag !== 160) {
+            break;
+          }
+
+          message.peerApiPort = reader.uint32();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1330,6 +1348,11 @@ export const Node: MessageFns<Node> = {
         : globalThis.Array.isArray(object?.ssh_host_keys)
         ? object.ssh_host_keys.map((e: any) => globalThis.String(e))
         : [],
+      peerApiPort: isSet(object.peerApiPort)
+        ? globalThis.Number(object.peerApiPort)
+        : isSet(object.peer_api_port)
+        ? globalThis.Number(object.peer_api_port)
+        : 0,
     };
   },
 
@@ -1392,6 +1415,9 @@ export const Node: MessageFns<Node> = {
     if (message.sshHostKeys?.length) {
       obj.sshHostKeys = message.sshHostKeys;
     }
+    if (message.peerApiPort !== 0) {
+      obj.peerApiPort = Math.round(message.peerApiPort);
+    }
     return obj;
   },
 
@@ -1419,6 +1445,7 @@ export const Node: MessageFns<Node> = {
     message.expired = object.expired ?? false;
     message.keySignature = object.keySignature ?? new Uint8Array(0);
     message.sshHostKeys = object.sshHostKeys?.map((e) => e) || [];
+    message.peerApiPort = object.peerApiPort ?? 0;
     return message;
   },
 };
