@@ -365,6 +365,11 @@ export interface HostMeta {
    * distributes it to peers via AppLinker.peer_api_port in the NetworkMap.
    */
   peerApiPort: number;
+  /**
+   * client_version is the Runetale client software version (e.g., "1.5.0").
+   * Set by the client from its build-time version variable.
+   */
+  clientVersion: string;
 }
 
 /**
@@ -1600,6 +1605,7 @@ function createBaseHostMeta(): HostMeta {
     sshHostKeys: [],
     appLinker: false,
     peerApiPort: 0,
+    clientVersion: "",
   };
 }
 
@@ -1628,6 +1634,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     }
     if (message.peerApiPort !== 0) {
       writer.uint32(64).uint32(message.peerApiPort);
+    }
+    if (message.clientVersion !== "") {
+      writer.uint32(74).string(message.clientVersion);
     }
     return writer;
   },
@@ -1703,6 +1712,14 @@ export const HostMeta: MessageFns<HostMeta> = {
           message.peerApiPort = reader.uint32();
           continue;
         }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.clientVersion = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1742,6 +1759,11 @@ export const HostMeta: MessageFns<HostMeta> = {
         : isSet(object.peer_api_port)
         ? globalThis.Number(object.peer_api_port)
         : 0,
+      clientVersion: isSet(object.clientVersion)
+        ? globalThis.String(object.clientVersion)
+        : isSet(object.client_version)
+        ? globalThis.String(object.client_version)
+        : "",
     };
   },
 
@@ -1771,6 +1793,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     if (message.peerApiPort !== 0) {
       obj.peerApiPort = Math.round(message.peerApiPort);
     }
+    if (message.clientVersion !== "") {
+      obj.clientVersion = message.clientVersion;
+    }
     return obj;
   },
 
@@ -1787,6 +1812,7 @@ export const HostMeta: MessageFns<HostMeta> = {
     message.sshHostKeys = object.sshHostKeys?.map((e) => e) || [];
     message.appLinker = object.appLinker ?? false;
     message.peerApiPort = object.peerApiPort ?? 0;
+    message.clientVersion = object.clientVersion ?? "";
     return message;
   },
 };
