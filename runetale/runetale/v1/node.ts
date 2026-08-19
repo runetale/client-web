@@ -533,7 +533,14 @@ export interface NetworkMapResponse {
    * ssh_policy defines SSH access control rules for this node.
    * If set, the node should run an SSH server with these rules.
    */
-  sshPolicy: SSHPolicy | undefined;
+  sshPolicy:
+    | SSHPolicy
+    | undefined;
+  /**
+   * posture_checks defines posture check requirements from the server.
+   * Client evaluates these and reports results in HostMeta.device_posture.process_results.
+   */
+  postureChecks: PostureChecks | undefined;
 }
 
 export interface CerfMap {
@@ -1084,7 +1091,11 @@ export interface DevicePosture {
   screenLock: ScreenLock | undefined;
   uptimeSeconds: number;
   macAddresses: string[];
-  collectedAt: Date | undefined;
+  collectedAt:
+    | Date
+    | undefined;
+  /** process_results reports whether each server-requested process is running. */
+  processResults: ProcessCheckResult[];
 }
 
 export interface OSVersion {
@@ -1132,6 +1143,47 @@ export interface SecuritySoftware {
 export interface ScreenLock {
   passwordRequired: boolean;
   idleTimeoutSeconds: number;
+}
+
+/**
+ * PostureChecks defines what posture checks the client must evaluate.
+ * Sent from server to client via NetworkMapResponse.
+ */
+export interface PostureChecks {
+  /** processes are executable paths the client must verify are running. */
+  processes: PostureProcessCheck[];
+}
+
+/**
+ * PostureProcessCheck defines a process check requirement with OS-specific paths.
+ * The client selects the path matching its OS and checks if the process is running.
+ */
+export interface PostureProcessCheck {
+  /** server-side policy ID for result correlation */
+  id: string;
+  /** human-readable name, e.g. "CrowdStrike Falcon" */
+  displayName: string;
+  /** e.g. "/opt/CrowdStrike/falcond" */
+  linuxPath: string;
+  /** e.g. "/Library/CS/falconctl" */
+  darwinPath: string;
+  /** e.g. "C:\\Program Files\\CrowdStrike\\CSFalconService.exe" */
+  windowsPath: string;
+}
+
+/**
+ * ProcessCheckResult is the client's response for a single process check.
+ * Sent from client to server via HostMeta.device_posture.process_results.
+ */
+export interface ProcessCheckResult {
+  /** corresponds to PostureProcessCheck.id */
+  checkId: string;
+  /** the OS-specific path that was checked */
+  path: string;
+  /** whether the file exists on disk */
+  fileExists: boolean;
+  /** whether the process is currently running */
+  processRunning: boolean;
 }
 
 function createBaseNode(): Node {
@@ -2339,6 +2391,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     capabilities: [],
     serverTime: undefined,
     sshPolicy: undefined,
+    postureChecks: undefined,
   };
 }
 
@@ -2399,6 +2452,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     }
     if (message.sshPolicy !== undefined) {
       SSHPolicy.encode(message.sshPolicy, writer.uint32(210).fork()).join();
+    }
+    if (message.postureChecks !== undefined) {
+      PostureChecks.encode(message.postureChecks, writer.uint32(218).fork()).join();
     }
     return writer;
   },
@@ -2564,6 +2620,14 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
           message.sshPolicy = SSHPolicy.decode(reader, reader.uint32());
           continue;
         }
+        case 27: {
+          if (tag !== 218) {
+            break;
+          }
+
+          message.postureChecks = PostureChecks.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -2620,6 +2684,11 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
         ? SSHPolicy.fromJSON(object.sshPolicy)
         : isSet(object.ssh_policy)
         ? SSHPolicy.fromJSON(object.ssh_policy)
+        : undefined,
+      postureChecks: isSet(object.postureChecks)
+        ? PostureChecks.fromJSON(object.postureChecks)
+        : isSet(object.posture_checks)
+        ? PostureChecks.fromJSON(object.posture_checks)
         : undefined,
     };
   },
@@ -2680,6 +2749,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.sshPolicy !== undefined) {
       obj.sshPolicy = SSHPolicy.toJSON(message.sshPolicy);
     }
+    if (message.postureChecks !== undefined) {
+      obj.postureChecks = PostureChecks.toJSON(message.postureChecks);
+    }
     return obj;
   },
 
@@ -2709,6 +2781,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     message.serverTime = object.serverTime ?? undefined;
     message.sshPolicy = (object.sshPolicy !== undefined && object.sshPolicy !== null)
       ? SSHPolicy.fromPartial(object.sshPolicy)
+      : undefined;
+    message.postureChecks = (object.postureChecks !== undefined && object.postureChecks !== null)
+      ? PostureChecks.fromPartial(object.postureChecks)
       : undefined;
     return message;
   },
@@ -7480,6 +7555,7 @@ function createBaseDevicePosture(): DevicePosture {
     uptimeSeconds: 0,
     macAddresses: [],
     collectedAt: undefined,
+    processResults: [],
   };
 }
 
@@ -7514,6 +7590,9 @@ export const DevicePosture: MessageFns<DevicePosture> = {
     }
     if (message.collectedAt !== undefined) {
       Timestamp.encode(toTimestamp(message.collectedAt), writer.uint32(82).fork()).join();
+    }
+    for (const v of message.processResults) {
+      ProcessCheckResult.encode(v!, writer.uint32(90).fork()).join();
     }
     return writer;
   },
@@ -7605,6 +7684,14 @@ export const DevicePosture: MessageFns<DevicePosture> = {
           message.collectedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
           continue;
         }
+        case 11: {
+          if (tag !== 90) {
+            break;
+          }
+
+          message.processResults.push(ProcessCheckResult.decode(reader, reader.uint32()));
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -7666,6 +7753,11 @@ export const DevicePosture: MessageFns<DevicePosture> = {
         : isSet(object.collected_at)
         ? fromJsonTimestamp(object.collected_at)
         : undefined,
+      processResults: globalThis.Array.isArray(object?.processResults)
+        ? object.processResults.map((e: any) => ProcessCheckResult.fromJSON(e))
+        : globalThis.Array.isArray(object?.process_results)
+        ? object.process_results.map((e: any) => ProcessCheckResult.fromJSON(e))
+        : [],
     };
   },
 
@@ -7701,6 +7793,9 @@ export const DevicePosture: MessageFns<DevicePosture> = {
     if (message.collectedAt !== undefined) {
       obj.collectedAt = message.collectedAt.toISOString();
     }
+    if (message.processResults?.length) {
+      obj.processResults = message.processResults.map((e) => ProcessCheckResult.toJSON(e));
+    }
     return obj;
   },
 
@@ -7727,6 +7822,7 @@ export const DevicePosture: MessageFns<DevicePosture> = {
     message.uptimeSeconds = object.uptimeSeconds ?? 0;
     message.macAddresses = object.macAddresses?.map((e) => e) || [];
     message.collectedAt = object.collectedAt ?? undefined;
+    message.processResults = object.processResults?.map((e) => ProcessCheckResult.fromPartial(e)) || [];
     return message;
   },
 };
@@ -8319,6 +8415,328 @@ export const ScreenLock: MessageFns<ScreenLock> = {
     const message = createBaseScreenLock();
     message.passwordRequired = object.passwordRequired ?? false;
     message.idleTimeoutSeconds = object.idleTimeoutSeconds ?? 0;
+    return message;
+  },
+};
+
+function createBasePostureChecks(): PostureChecks {
+  return { processes: [] };
+}
+
+export const PostureChecks: MessageFns<PostureChecks> = {
+  encode(message: PostureChecks, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    for (const v of message.processes) {
+      PostureProcessCheck.encode(v!, writer.uint32(10).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PostureChecks {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePostureChecks();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.processes.push(PostureProcessCheck.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PostureChecks {
+    return {
+      processes: globalThis.Array.isArray(object?.processes)
+        ? object.processes.map((e: any) => PostureProcessCheck.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: PostureChecks): unknown {
+    const obj: any = {};
+    if (message.processes?.length) {
+      obj.processes = message.processes.map((e) => PostureProcessCheck.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PostureChecks>, I>>(base?: I): PostureChecks {
+    return PostureChecks.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PostureChecks>, I>>(object: I): PostureChecks {
+    const message = createBasePostureChecks();
+    message.processes = object.processes?.map((e) => PostureProcessCheck.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBasePostureProcessCheck(): PostureProcessCheck {
+  return { id: "", displayName: "", linuxPath: "", darwinPath: "", windowsPath: "" };
+}
+
+export const PostureProcessCheck: MessageFns<PostureProcessCheck> = {
+  encode(message: PostureProcessCheck, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.displayName !== "") {
+      writer.uint32(18).string(message.displayName);
+    }
+    if (message.linuxPath !== "") {
+      writer.uint32(26).string(message.linuxPath);
+    }
+    if (message.darwinPath !== "") {
+      writer.uint32(34).string(message.darwinPath);
+    }
+    if (message.windowsPath !== "") {
+      writer.uint32(42).string(message.windowsPath);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): PostureProcessCheck {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBasePostureProcessCheck();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.id = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.displayName = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.linuxPath = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.darwinPath = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.windowsPath = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): PostureProcessCheck {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      displayName: isSet(object.displayName)
+        ? globalThis.String(object.displayName)
+        : isSet(object.display_name)
+        ? globalThis.String(object.display_name)
+        : "",
+      linuxPath: isSet(object.linuxPath)
+        ? globalThis.String(object.linuxPath)
+        : isSet(object.linux_path)
+        ? globalThis.String(object.linux_path)
+        : "",
+      darwinPath: isSet(object.darwinPath)
+        ? globalThis.String(object.darwinPath)
+        : isSet(object.darwin_path)
+        ? globalThis.String(object.darwin_path)
+        : "",
+      windowsPath: isSet(object.windowsPath)
+        ? globalThis.String(object.windowsPath)
+        : isSet(object.windows_path)
+        ? globalThis.String(object.windows_path)
+        : "",
+    };
+  },
+
+  toJSON(message: PostureProcessCheck): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.displayName !== "") {
+      obj.displayName = message.displayName;
+    }
+    if (message.linuxPath !== "") {
+      obj.linuxPath = message.linuxPath;
+    }
+    if (message.darwinPath !== "") {
+      obj.darwinPath = message.darwinPath;
+    }
+    if (message.windowsPath !== "") {
+      obj.windowsPath = message.windowsPath;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<PostureProcessCheck>, I>>(base?: I): PostureProcessCheck {
+    return PostureProcessCheck.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<PostureProcessCheck>, I>>(object: I): PostureProcessCheck {
+    const message = createBasePostureProcessCheck();
+    message.id = object.id ?? "";
+    message.displayName = object.displayName ?? "";
+    message.linuxPath = object.linuxPath ?? "";
+    message.darwinPath = object.darwinPath ?? "";
+    message.windowsPath = object.windowsPath ?? "";
+    return message;
+  },
+};
+
+function createBaseProcessCheckResult(): ProcessCheckResult {
+  return { checkId: "", path: "", fileExists: false, processRunning: false };
+}
+
+export const ProcessCheckResult: MessageFns<ProcessCheckResult> = {
+  encode(message: ProcessCheckResult, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.checkId !== "") {
+      writer.uint32(10).string(message.checkId);
+    }
+    if (message.path !== "") {
+      writer.uint32(18).string(message.path);
+    }
+    if (message.fileExists !== false) {
+      writer.uint32(24).bool(message.fileExists);
+    }
+    if (message.processRunning !== false) {
+      writer.uint32(32).bool(message.processRunning);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ProcessCheckResult {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseProcessCheckResult();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.checkId = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.path = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 24) {
+            break;
+          }
+
+          message.fileExists = reader.bool();
+          continue;
+        }
+        case 4: {
+          if (tag !== 32) {
+            break;
+          }
+
+          message.processRunning = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ProcessCheckResult {
+    return {
+      checkId: isSet(object.checkId)
+        ? globalThis.String(object.checkId)
+        : isSet(object.check_id)
+        ? globalThis.String(object.check_id)
+        : "",
+      path: isSet(object.path) ? globalThis.String(object.path) : "",
+      fileExists: isSet(object.fileExists)
+        ? globalThis.Boolean(object.fileExists)
+        : isSet(object.file_exists)
+        ? globalThis.Boolean(object.file_exists)
+        : false,
+      processRunning: isSet(object.processRunning)
+        ? globalThis.Boolean(object.processRunning)
+        : isSet(object.process_running)
+        ? globalThis.Boolean(object.process_running)
+        : false,
+    };
+  },
+
+  toJSON(message: ProcessCheckResult): unknown {
+    const obj: any = {};
+    if (message.checkId !== "") {
+      obj.checkId = message.checkId;
+    }
+    if (message.path !== "") {
+      obj.path = message.path;
+    }
+    if (message.fileExists !== false) {
+      obj.fileExists = message.fileExists;
+    }
+    if (message.processRunning !== false) {
+      obj.processRunning = message.processRunning;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ProcessCheckResult>, I>>(base?: I): ProcessCheckResult {
+    return ProcessCheckResult.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ProcessCheckResult>, I>>(object: I): ProcessCheckResult {
+    const message = createBaseProcessCheckResult();
+    message.checkId = object.checkId ?? "";
+    message.path = object.path ?? "";
+    message.fileExists = object.fileExists ?? false;
+    message.processRunning = object.processRunning ?? false;
     return message;
   },
 };
