@@ -31,6 +31,7 @@ export interface LoginRequest {
   username: string;
   picture: string;
   inviteCode: string;
+  authProvider: string;
 }
 
 export interface AuthenticateResponse {
@@ -199,7 +200,17 @@ export const LoginResponse: MessageFns<LoginResponse> = {
 };
 
 function createBaseLoginRequest(): LoginRequest {
-  return { sub: "", tenantID: "", domain: "", providerID: "", email: "", username: "", picture: "", inviteCode: "" };
+  return {
+    sub: "",
+    tenantID: "",
+    domain: "",
+    providerID: "",
+    email: "",
+    username: "",
+    picture: "",
+    inviteCode: "",
+    authProvider: "",
+  };
 }
 
 export const LoginRequest: MessageFns<LoginRequest> = {
@@ -227,6 +238,9 @@ export const LoginRequest: MessageFns<LoginRequest> = {
     }
     if (message.inviteCode !== "") {
       writer.uint32(66).string(message.inviteCode);
+    }
+    if (message.authProvider !== "") {
+      writer.uint32(74).string(message.authProvider);
     }
     return writer;
   },
@@ -302,6 +316,14 @@ export const LoginRequest: MessageFns<LoginRequest> = {
           message.inviteCode = reader.string();
           continue;
         }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.authProvider = reader.string();
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -321,6 +343,7 @@ export const LoginRequest: MessageFns<LoginRequest> = {
       username: isSet(object.username) ? globalThis.String(object.username) : "",
       picture: isSet(object.picture) ? globalThis.String(object.picture) : "",
       inviteCode: isSet(object.inviteCode) ? globalThis.String(object.inviteCode) : "",
+      authProvider: isSet(object.authProvider) ? globalThis.String(object.authProvider) : "",
     };
   },
 
@@ -350,6 +373,9 @@ export const LoginRequest: MessageFns<LoginRequest> = {
     if (message.inviteCode !== "") {
       obj.inviteCode = message.inviteCode;
     }
+    if (message.authProvider !== "") {
+      obj.authProvider = message.authProvider;
+    }
     return obj;
   },
 
@@ -366,6 +392,7 @@ export const LoginRequest: MessageFns<LoginRequest> = {
     message.username = object.username ?? "";
     message.picture = object.picture ?? "";
     message.inviteCode = object.inviteCode ?? "";
+    message.authProvider = object.authProvider ?? "";
     return message;
   },
 };
