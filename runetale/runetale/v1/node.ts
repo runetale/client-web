@@ -318,6 +318,12 @@ export interface Node {
    * distributed to peers so they can send DNS queries to AppLinker nodes.
    */
   peerApiPort: number;
+  /**
+   * device_posture contains the device's security posture attributes.
+   * Populated by the server from HostMeta reports. Distributed to peers
+   * when the "runetale:device-posture" capability is enabled for the tenant.
+   */
+  devicePosture: DevicePosture | undefined;
 }
 
 export interface ComposeNodeResponse {
@@ -370,6 +376,12 @@ export interface HostMeta {
    * Set by the client from its build-time version variable.
    */
   clientVersion: string;
+  /**
+   * device_posture contains the device's collected security posture.
+   * Sent on initial connection and periodically (every 5 minutes) when changed.
+   * Only populated when the server grants "runetale:device-posture" capability.
+   */
+  devicePosture: DevicePosture | undefined;
 }
 
 /**
@@ -1058,6 +1070,70 @@ export interface PublishSessionResponse {
   error: string;
 }
 
+/**
+ * DevicePosture contains device security posture attributes collected from the OS.
+ * Sent from client to server via HostMeta, and from server to peers via Node.
+ */
+export interface DevicePosture {
+  osVersion: OSVersion | undefined;
+  systemInfo: SystemInfo | undefined;
+  diskEncryption: DiskEncryption[];
+  firewallStatus: FirewallStatus | undefined;
+  securitySoftware: SecuritySoftware[];
+  serialNumber: string;
+  screenLock: ScreenLock | undefined;
+  uptimeSeconds: number;
+  macAddresses: string[];
+  collectedAt: Date | undefined;
+}
+
+export interface OSVersion {
+  /** e.g. "macOS", "Ubuntu", "Windows 11" */
+  name: string;
+  /** e.g. "14.5", "22.04", "23H2" */
+  version: string;
+  /** e.g. "arm64", "amd64" */
+  arch: string;
+  /** e.g. "darwin", "linux", "windows" */
+  platform: string;
+}
+
+export interface SystemInfo {
+  hostname: string;
+  uuid: string;
+  hardwareSerial: string;
+  cpuType: string;
+  physicalMemoryBytes: number;
+}
+
+export interface DiskEncryption {
+  /** e.g. "/dev/sda1", "Macintosh HD", "C:" */
+  device: string;
+  encrypted: boolean;
+  /** "FileVault", "BitLocker", "LUKS" */
+  encryptionType: string;
+}
+
+export interface FirewallStatus {
+  enabled: boolean;
+  /** "macOS Application Firewall", "UFW", "Windows Defender Firewall" */
+  type: string;
+}
+
+export interface SecuritySoftware {
+  /** e.g. "CrowdStrike Falcon" */
+  name: string;
+  /** "antivirus", "antispyware", "firewall" */
+  type: string;
+  /** "on", "off", "snoozed", "expired", "unknown" */
+  state: string;
+}
+
+export interface ScreenLock {
+  passwordRequired: boolean;
+  idleTimeoutSeconds: number;
+}
+
 function createBaseNode(): Node {
   return {
     name: "",
@@ -1080,6 +1156,7 @@ function createBaseNode(): Node {
     keySignature: new Uint8Array(0),
     sshHostKeys: [],
     peerApiPort: 0,
+    devicePosture: undefined,
   };
 }
 
@@ -1144,6 +1221,9 @@ export const Node: MessageFns<Node> = {
     }
     if (message.peerApiPort !== 0) {
       writer.uint32(160).uint32(message.peerApiPort);
+    }
+    if (message.devicePosture !== undefined) {
+      DevicePosture.encode(message.devicePosture, writer.uint32(170).fork()).join();
     }
     return writer;
   },
@@ -1315,6 +1395,14 @@ export const Node: MessageFns<Node> = {
           message.peerApiPort = reader.uint32();
           continue;
         }
+        case 21: {
+          if (tag !== 170) {
+            break;
+          }
+
+          message.devicePosture = DevicePosture.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1358,6 +1446,11 @@ export const Node: MessageFns<Node> = {
         : isSet(object.peer_api_port)
         ? globalThis.Number(object.peer_api_port)
         : 0,
+      devicePosture: isSet(object.devicePosture)
+        ? DevicePosture.fromJSON(object.devicePosture)
+        : isSet(object.device_posture)
+        ? DevicePosture.fromJSON(object.device_posture)
+        : undefined,
     };
   },
 
@@ -1423,6 +1516,9 @@ export const Node: MessageFns<Node> = {
     if (message.peerApiPort !== 0) {
       obj.peerApiPort = Math.round(message.peerApiPort);
     }
+    if (message.devicePosture !== undefined) {
+      obj.devicePosture = DevicePosture.toJSON(message.devicePosture);
+    }
     return obj;
   },
 
@@ -1451,6 +1547,9 @@ export const Node: MessageFns<Node> = {
     message.keySignature = object.keySignature ?? new Uint8Array(0);
     message.sshHostKeys = object.sshHostKeys?.map((e) => e) || [];
     message.peerApiPort = object.peerApiPort ?? 0;
+    message.devicePosture = (object.devicePosture !== undefined && object.devicePosture !== null)
+      ? DevicePosture.fromPartial(object.devicePosture)
+      : undefined;
     return message;
   },
 };
@@ -1606,6 +1705,7 @@ function createBaseHostMeta(): HostMeta {
     appLinker: false,
     peerApiPort: 0,
     clientVersion: "",
+    devicePosture: undefined,
   };
 }
 
@@ -1637,6 +1737,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     }
     if (message.clientVersion !== "") {
       writer.uint32(74).string(message.clientVersion);
+    }
+    if (message.devicePosture !== undefined) {
+      DevicePosture.encode(message.devicePosture, writer.uint32(82).fork()).join();
     }
     return writer;
   },
@@ -1720,6 +1823,14 @@ export const HostMeta: MessageFns<HostMeta> = {
           message.clientVersion = reader.string();
           continue;
         }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.devicePosture = DevicePosture.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -1764,6 +1875,11 @@ export const HostMeta: MessageFns<HostMeta> = {
         : isSet(object.client_version)
         ? globalThis.String(object.client_version)
         : "",
+      devicePosture: isSet(object.devicePosture)
+        ? DevicePosture.fromJSON(object.devicePosture)
+        : isSet(object.device_posture)
+        ? DevicePosture.fromJSON(object.device_posture)
+        : undefined,
     };
   },
 
@@ -1796,6 +1912,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     if (message.clientVersion !== "") {
       obj.clientVersion = message.clientVersion;
     }
+    if (message.devicePosture !== undefined) {
+      obj.devicePosture = DevicePosture.toJSON(message.devicePosture);
+    }
     return obj;
   },
 
@@ -1813,6 +1932,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     message.appLinker = object.appLinker ?? false;
     message.peerApiPort = object.peerApiPort ?? 0;
     message.clientVersion = object.clientVersion ?? "";
+    message.devicePosture = (object.devicePosture !== undefined && object.devicePosture !== null)
+      ? DevicePosture.fromPartial(object.devicePosture)
+      : undefined;
     return message;
   },
 };
@@ -7342,6 +7464,861 @@ export const PublishSessionResponse: MessageFns<PublishSessionResponse> = {
     message.publishUrl = object.publishUrl ?? "";
     message.slug = object.slug ?? "";
     message.error = object.error ?? "";
+    return message;
+  },
+};
+
+function createBaseDevicePosture(): DevicePosture {
+  return {
+    osVersion: undefined,
+    systemInfo: undefined,
+    diskEncryption: [],
+    firewallStatus: undefined,
+    securitySoftware: [],
+    serialNumber: "",
+    screenLock: undefined,
+    uptimeSeconds: 0,
+    macAddresses: [],
+    collectedAt: undefined,
+  };
+}
+
+export const DevicePosture: MessageFns<DevicePosture> = {
+  encode(message: DevicePosture, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.osVersion !== undefined) {
+      OSVersion.encode(message.osVersion, writer.uint32(10).fork()).join();
+    }
+    if (message.systemInfo !== undefined) {
+      SystemInfo.encode(message.systemInfo, writer.uint32(18).fork()).join();
+    }
+    for (const v of message.diskEncryption) {
+      DiskEncryption.encode(v!, writer.uint32(26).fork()).join();
+    }
+    if (message.firewallStatus !== undefined) {
+      FirewallStatus.encode(message.firewallStatus, writer.uint32(34).fork()).join();
+    }
+    for (const v of message.securitySoftware) {
+      SecuritySoftware.encode(v!, writer.uint32(42).fork()).join();
+    }
+    if (message.serialNumber !== "") {
+      writer.uint32(50).string(message.serialNumber);
+    }
+    if (message.screenLock !== undefined) {
+      ScreenLock.encode(message.screenLock, writer.uint32(58).fork()).join();
+    }
+    if (message.uptimeSeconds !== 0) {
+      writer.uint32(64).uint64(message.uptimeSeconds);
+    }
+    for (const v of message.macAddresses) {
+      writer.uint32(74).string(v!);
+    }
+    if (message.collectedAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.collectedAt), writer.uint32(82).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DevicePosture {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDevicePosture();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.osVersion = OSVersion.decode(reader, reader.uint32());
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.systemInfo = SystemInfo.decode(reader, reader.uint32());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.diskEncryption.push(DiskEncryption.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.firewallStatus = FirewallStatus.decode(reader, reader.uint32());
+          continue;
+        }
+        case 5: {
+          if (tag !== 42) {
+            break;
+          }
+
+          message.securitySoftware.push(SecuritySoftware.decode(reader, reader.uint32()));
+          continue;
+        }
+        case 6: {
+          if (tag !== 50) {
+            break;
+          }
+
+          message.serialNumber = reader.string();
+          continue;
+        }
+        case 7: {
+          if (tag !== 58) {
+            break;
+          }
+
+          message.screenLock = ScreenLock.decode(reader, reader.uint32());
+          continue;
+        }
+        case 8: {
+          if (tag !== 64) {
+            break;
+          }
+
+          message.uptimeSeconds = longToNumber(reader.uint64());
+          continue;
+        }
+        case 9: {
+          if (tag !== 74) {
+            break;
+          }
+
+          message.macAddresses.push(reader.string());
+          continue;
+        }
+        case 10: {
+          if (tag !== 82) {
+            break;
+          }
+
+          message.collectedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DevicePosture {
+    return {
+      osVersion: isSet(object.osVersion)
+        ? OSVersion.fromJSON(object.osVersion)
+        : isSet(object.os_version)
+        ? OSVersion.fromJSON(object.os_version)
+        : undefined,
+      systemInfo: isSet(object.systemInfo)
+        ? SystemInfo.fromJSON(object.systemInfo)
+        : isSet(object.system_info)
+        ? SystemInfo.fromJSON(object.system_info)
+        : undefined,
+      diskEncryption: globalThis.Array.isArray(object?.diskEncryption)
+        ? object.diskEncryption.map((e: any) => DiskEncryption.fromJSON(e))
+        : globalThis.Array.isArray(object?.disk_encryption)
+        ? object.disk_encryption.map((e: any) => DiskEncryption.fromJSON(e))
+        : [],
+      firewallStatus: isSet(object.firewallStatus)
+        ? FirewallStatus.fromJSON(object.firewallStatus)
+        : isSet(object.firewall_status)
+        ? FirewallStatus.fromJSON(object.firewall_status)
+        : undefined,
+      securitySoftware: globalThis.Array.isArray(object?.securitySoftware)
+        ? object.securitySoftware.map((e: any) => SecuritySoftware.fromJSON(e))
+        : globalThis.Array.isArray(object?.security_software)
+        ? object.security_software.map((e: any) => SecuritySoftware.fromJSON(e))
+        : [],
+      serialNumber: isSet(object.serialNumber)
+        ? globalThis.String(object.serialNumber)
+        : isSet(object.serial_number)
+        ? globalThis.String(object.serial_number)
+        : "",
+      screenLock: isSet(object.screenLock)
+        ? ScreenLock.fromJSON(object.screenLock)
+        : isSet(object.screen_lock)
+        ? ScreenLock.fromJSON(object.screen_lock)
+        : undefined,
+      uptimeSeconds: isSet(object.uptimeSeconds)
+        ? globalThis.Number(object.uptimeSeconds)
+        : isSet(object.uptime_seconds)
+        ? globalThis.Number(object.uptime_seconds)
+        : 0,
+      macAddresses: globalThis.Array.isArray(object?.macAddresses)
+        ? object.macAddresses.map((e: any) => globalThis.String(e))
+        : globalThis.Array.isArray(object?.mac_addresses)
+        ? object.mac_addresses.map((e: any) => globalThis.String(e))
+        : [],
+      collectedAt: isSet(object.collectedAt)
+        ? fromJsonTimestamp(object.collectedAt)
+        : isSet(object.collected_at)
+        ? fromJsonTimestamp(object.collected_at)
+        : undefined,
+    };
+  },
+
+  toJSON(message: DevicePosture): unknown {
+    const obj: any = {};
+    if (message.osVersion !== undefined) {
+      obj.osVersion = OSVersion.toJSON(message.osVersion);
+    }
+    if (message.systemInfo !== undefined) {
+      obj.systemInfo = SystemInfo.toJSON(message.systemInfo);
+    }
+    if (message.diskEncryption?.length) {
+      obj.diskEncryption = message.diskEncryption.map((e) => DiskEncryption.toJSON(e));
+    }
+    if (message.firewallStatus !== undefined) {
+      obj.firewallStatus = FirewallStatus.toJSON(message.firewallStatus);
+    }
+    if (message.securitySoftware?.length) {
+      obj.securitySoftware = message.securitySoftware.map((e) => SecuritySoftware.toJSON(e));
+    }
+    if (message.serialNumber !== "") {
+      obj.serialNumber = message.serialNumber;
+    }
+    if (message.screenLock !== undefined) {
+      obj.screenLock = ScreenLock.toJSON(message.screenLock);
+    }
+    if (message.uptimeSeconds !== 0) {
+      obj.uptimeSeconds = Math.round(message.uptimeSeconds);
+    }
+    if (message.macAddresses?.length) {
+      obj.macAddresses = message.macAddresses;
+    }
+    if (message.collectedAt !== undefined) {
+      obj.collectedAt = message.collectedAt.toISOString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DevicePosture>, I>>(base?: I): DevicePosture {
+    return DevicePosture.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DevicePosture>, I>>(object: I): DevicePosture {
+    const message = createBaseDevicePosture();
+    message.osVersion = (object.osVersion !== undefined && object.osVersion !== null)
+      ? OSVersion.fromPartial(object.osVersion)
+      : undefined;
+    message.systemInfo = (object.systemInfo !== undefined && object.systemInfo !== null)
+      ? SystemInfo.fromPartial(object.systemInfo)
+      : undefined;
+    message.diskEncryption = object.diskEncryption?.map((e) => DiskEncryption.fromPartial(e)) || [];
+    message.firewallStatus = (object.firewallStatus !== undefined && object.firewallStatus !== null)
+      ? FirewallStatus.fromPartial(object.firewallStatus)
+      : undefined;
+    message.securitySoftware = object.securitySoftware?.map((e) => SecuritySoftware.fromPartial(e)) || [];
+    message.serialNumber = object.serialNumber ?? "";
+    message.screenLock = (object.screenLock !== undefined && object.screenLock !== null)
+      ? ScreenLock.fromPartial(object.screenLock)
+      : undefined;
+    message.uptimeSeconds = object.uptimeSeconds ?? 0;
+    message.macAddresses = object.macAddresses?.map((e) => e) || [];
+    message.collectedAt = object.collectedAt ?? undefined;
+    return message;
+  },
+};
+
+function createBaseOSVersion(): OSVersion {
+  return { name: "", version: "", arch: "", platform: "" };
+}
+
+export const OSVersion: MessageFns<OSVersion> = {
+  encode(message: OSVersion, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.version !== "") {
+      writer.uint32(18).string(message.version);
+    }
+    if (message.arch !== "") {
+      writer.uint32(26).string(message.arch);
+    }
+    if (message.platform !== "") {
+      writer.uint32(34).string(message.platform);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): OSVersion {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseOSVersion();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.version = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.arch = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.platform = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): OSVersion {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      version: isSet(object.version) ? globalThis.String(object.version) : "",
+      arch: isSet(object.arch) ? globalThis.String(object.arch) : "",
+      platform: isSet(object.platform) ? globalThis.String(object.platform) : "",
+    };
+  },
+
+  toJSON(message: OSVersion): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.version !== "") {
+      obj.version = message.version;
+    }
+    if (message.arch !== "") {
+      obj.arch = message.arch;
+    }
+    if (message.platform !== "") {
+      obj.platform = message.platform;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<OSVersion>, I>>(base?: I): OSVersion {
+    return OSVersion.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<OSVersion>, I>>(object: I): OSVersion {
+    const message = createBaseOSVersion();
+    message.name = object.name ?? "";
+    message.version = object.version ?? "";
+    message.arch = object.arch ?? "";
+    message.platform = object.platform ?? "";
+    return message;
+  },
+};
+
+function createBaseSystemInfo(): SystemInfo {
+  return { hostname: "", uuid: "", hardwareSerial: "", cpuType: "", physicalMemoryBytes: 0 };
+}
+
+export const SystemInfo: MessageFns<SystemInfo> = {
+  encode(message: SystemInfo, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.hostname !== "") {
+      writer.uint32(10).string(message.hostname);
+    }
+    if (message.uuid !== "") {
+      writer.uint32(18).string(message.uuid);
+    }
+    if (message.hardwareSerial !== "") {
+      writer.uint32(26).string(message.hardwareSerial);
+    }
+    if (message.cpuType !== "") {
+      writer.uint32(34).string(message.cpuType);
+    }
+    if (message.physicalMemoryBytes !== 0) {
+      writer.uint32(40).uint64(message.physicalMemoryBytes);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SystemInfo {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSystemInfo();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.hostname = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.uuid = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.hardwareSerial = reader.string();
+          continue;
+        }
+        case 4: {
+          if (tag !== 34) {
+            break;
+          }
+
+          message.cpuType = reader.string();
+          continue;
+        }
+        case 5: {
+          if (tag !== 40) {
+            break;
+          }
+
+          message.physicalMemoryBytes = longToNumber(reader.uint64());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SystemInfo {
+    return {
+      hostname: isSet(object.hostname) ? globalThis.String(object.hostname) : "",
+      uuid: isSet(object.uuid) ? globalThis.String(object.uuid) : "",
+      hardwareSerial: isSet(object.hardwareSerial)
+        ? globalThis.String(object.hardwareSerial)
+        : isSet(object.hardware_serial)
+        ? globalThis.String(object.hardware_serial)
+        : "",
+      cpuType: isSet(object.cpuType)
+        ? globalThis.String(object.cpuType)
+        : isSet(object.cpu_type)
+        ? globalThis.String(object.cpu_type)
+        : "",
+      physicalMemoryBytes: isSet(object.physicalMemoryBytes)
+        ? globalThis.Number(object.physicalMemoryBytes)
+        : isSet(object.physical_memory_bytes)
+        ? globalThis.Number(object.physical_memory_bytes)
+        : 0,
+    };
+  },
+
+  toJSON(message: SystemInfo): unknown {
+    const obj: any = {};
+    if (message.hostname !== "") {
+      obj.hostname = message.hostname;
+    }
+    if (message.uuid !== "") {
+      obj.uuid = message.uuid;
+    }
+    if (message.hardwareSerial !== "") {
+      obj.hardwareSerial = message.hardwareSerial;
+    }
+    if (message.cpuType !== "") {
+      obj.cpuType = message.cpuType;
+    }
+    if (message.physicalMemoryBytes !== 0) {
+      obj.physicalMemoryBytes = Math.round(message.physicalMemoryBytes);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SystemInfo>, I>>(base?: I): SystemInfo {
+    return SystemInfo.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SystemInfo>, I>>(object: I): SystemInfo {
+    const message = createBaseSystemInfo();
+    message.hostname = object.hostname ?? "";
+    message.uuid = object.uuid ?? "";
+    message.hardwareSerial = object.hardwareSerial ?? "";
+    message.cpuType = object.cpuType ?? "";
+    message.physicalMemoryBytes = object.physicalMemoryBytes ?? 0;
+    return message;
+  },
+};
+
+function createBaseDiskEncryption(): DiskEncryption {
+  return { device: "", encrypted: false, encryptionType: "" };
+}
+
+export const DiskEncryption: MessageFns<DiskEncryption> = {
+  encode(message: DiskEncryption, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.device !== "") {
+      writer.uint32(10).string(message.device);
+    }
+    if (message.encrypted !== false) {
+      writer.uint32(16).bool(message.encrypted);
+    }
+    if (message.encryptionType !== "") {
+      writer.uint32(26).string(message.encryptionType);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DiskEncryption {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDiskEncryption();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.device = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.encrypted = reader.bool();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.encryptionType = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DiskEncryption {
+    return {
+      device: isSet(object.device) ? globalThis.String(object.device) : "",
+      encrypted: isSet(object.encrypted) ? globalThis.Boolean(object.encrypted) : false,
+      encryptionType: isSet(object.encryptionType)
+        ? globalThis.String(object.encryptionType)
+        : isSet(object.encryption_type)
+        ? globalThis.String(object.encryption_type)
+        : "",
+    };
+  },
+
+  toJSON(message: DiskEncryption): unknown {
+    const obj: any = {};
+    if (message.device !== "") {
+      obj.device = message.device;
+    }
+    if (message.encrypted !== false) {
+      obj.encrypted = message.encrypted;
+    }
+    if (message.encryptionType !== "") {
+      obj.encryptionType = message.encryptionType;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DiskEncryption>, I>>(base?: I): DiskEncryption {
+    return DiskEncryption.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DiskEncryption>, I>>(object: I): DiskEncryption {
+    const message = createBaseDiskEncryption();
+    message.device = object.device ?? "";
+    message.encrypted = object.encrypted ?? false;
+    message.encryptionType = object.encryptionType ?? "";
+    return message;
+  },
+};
+
+function createBaseFirewallStatus(): FirewallStatus {
+  return { enabled: false, type: "" };
+}
+
+export const FirewallStatus: MessageFns<FirewallStatus> = {
+  encode(message: FirewallStatus, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.enabled !== false) {
+      writer.uint32(8).bool(message.enabled);
+    }
+    if (message.type !== "") {
+      writer.uint32(18).string(message.type);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): FirewallStatus {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseFirewallStatus();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.enabled = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): FirewallStatus {
+    return {
+      enabled: isSet(object.enabled) ? globalThis.Boolean(object.enabled) : false,
+      type: isSet(object.type) ? globalThis.String(object.type) : "",
+    };
+  },
+
+  toJSON(message: FirewallStatus): unknown {
+    const obj: any = {};
+    if (message.enabled !== false) {
+      obj.enabled = message.enabled;
+    }
+    if (message.type !== "") {
+      obj.type = message.type;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<FirewallStatus>, I>>(base?: I): FirewallStatus {
+    return FirewallStatus.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<FirewallStatus>, I>>(object: I): FirewallStatus {
+    const message = createBaseFirewallStatus();
+    message.enabled = object.enabled ?? false;
+    message.type = object.type ?? "";
+    return message;
+  },
+};
+
+function createBaseSecuritySoftware(): SecuritySoftware {
+  return { name: "", type: "", state: "" };
+}
+
+export const SecuritySoftware: MessageFns<SecuritySoftware> = {
+  encode(message: SecuritySoftware, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.type !== "") {
+      writer.uint32(18).string(message.type);
+    }
+    if (message.state !== "") {
+      writer.uint32(26).string(message.state);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SecuritySoftware {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseSecuritySoftware();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.name = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.type = reader.string();
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.state = reader.string();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): SecuritySoftware {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      type: isSet(object.type) ? globalThis.String(object.type) : "",
+      state: isSet(object.state) ? globalThis.String(object.state) : "",
+    };
+  },
+
+  toJSON(message: SecuritySoftware): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.type !== "") {
+      obj.type = message.type;
+    }
+    if (message.state !== "") {
+      obj.state = message.state;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SecuritySoftware>, I>>(base?: I): SecuritySoftware {
+    return SecuritySoftware.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SecuritySoftware>, I>>(object: I): SecuritySoftware {
+    const message = createBaseSecuritySoftware();
+    message.name = object.name ?? "";
+    message.type = object.type ?? "";
+    message.state = object.state ?? "";
+    return message;
+  },
+};
+
+function createBaseScreenLock(): ScreenLock {
+  return { passwordRequired: false, idleTimeoutSeconds: 0 };
+}
+
+export const ScreenLock: MessageFns<ScreenLock> = {
+  encode(message: ScreenLock, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.passwordRequired !== false) {
+      writer.uint32(8).bool(message.passwordRequired);
+    }
+    if (message.idleTimeoutSeconds !== 0) {
+      writer.uint32(16).uint32(message.idleTimeoutSeconds);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ScreenLock {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseScreenLock();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.passwordRequired = reader.bool();
+          continue;
+        }
+        case 2: {
+          if (tag !== 16) {
+            break;
+          }
+
+          message.idleTimeoutSeconds = reader.uint32();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): ScreenLock {
+    return {
+      passwordRequired: isSet(object.passwordRequired)
+        ? globalThis.Boolean(object.passwordRequired)
+        : isSet(object.password_required)
+        ? globalThis.Boolean(object.password_required)
+        : false,
+      idleTimeoutSeconds: isSet(object.idleTimeoutSeconds)
+        ? globalThis.Number(object.idleTimeoutSeconds)
+        : isSet(object.idle_timeout_seconds)
+        ? globalThis.Number(object.idle_timeout_seconds)
+        : 0,
+    };
+  },
+
+  toJSON(message: ScreenLock): unknown {
+    const obj: any = {};
+    if (message.passwordRequired !== false) {
+      obj.passwordRequired = message.passwordRequired;
+    }
+    if (message.idleTimeoutSeconds !== 0) {
+      obj.idleTimeoutSeconds = Math.round(message.idleTimeoutSeconds);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ScreenLock>, I>>(base?: I): ScreenLock {
+    return ScreenLock.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ScreenLock>, I>>(object: I): ScreenLock {
+    const message = createBaseScreenLock();
+    message.passwordRequired = object.passwordRequired ?? false;
+    message.idleTimeoutSeconds = object.idleTimeoutSeconds ?? 0;
     return message;
   },
 };
