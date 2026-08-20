@@ -1152,6 +1152,29 @@ export interface ScreenLock {
 export interface PostureChecks {
   /** processes are executable paths the client must verify are running. */
   processes: PostureProcessCheck[];
+  /** os_version_check defines minimum OS version requirements. */
+  osVersionCheck:
+    | OSVersionCheck
+    | undefined;
+  /** disk_encryption_check defines disk encryption requirements. */
+  diskEncryptionCheck: DiskEncryptionCheck | undefined;
+}
+
+/**
+ * OSVersionCheck defines the minimum OS version requirement.
+ * Client compares its OS version against min_version using semver.
+ */
+export interface OSVersionCheck {
+  /** e.g. "14.0", "22.04", "10.0.22621" */
+  minVersion: string;
+  /** platforms this check applies to: "darwin", "linux", "windows" */
+  platforms: string[];
+}
+
+/** DiskEncryptionCheck defines disk encryption requirements. */
+export interface DiskEncryptionCheck {
+  /** if true, all disks must be encrypted */
+  required: boolean;
 }
 
 /**
@@ -8420,13 +8443,19 @@ export const ScreenLock: MessageFns<ScreenLock> = {
 };
 
 function createBasePostureChecks(): PostureChecks {
-  return { processes: [] };
+  return { processes: [], osVersionCheck: undefined, diskEncryptionCheck: undefined };
 }
 
 export const PostureChecks: MessageFns<PostureChecks> = {
   encode(message: PostureChecks, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
     for (const v of message.processes) {
       PostureProcessCheck.encode(v!, writer.uint32(10).fork()).join();
+    }
+    if (message.osVersionCheck !== undefined) {
+      OSVersionCheck.encode(message.osVersionCheck, writer.uint32(18).fork()).join();
+    }
+    if (message.diskEncryptionCheck !== undefined) {
+      DiskEncryptionCheck.encode(message.diskEncryptionCheck, writer.uint32(26).fork()).join();
     }
     return writer;
   },
@@ -8446,6 +8475,22 @@ export const PostureChecks: MessageFns<PostureChecks> = {
           message.processes.push(PostureProcessCheck.decode(reader, reader.uint32()));
           continue;
         }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.osVersionCheck = OSVersionCheck.decode(reader, reader.uint32());
+          continue;
+        }
+        case 3: {
+          if (tag !== 26) {
+            break;
+          }
+
+          message.diskEncryptionCheck = DiskEncryptionCheck.decode(reader, reader.uint32());
+          continue;
+        }
       }
       if ((tag & 7) === 4 || tag === 0) {
         break;
@@ -8460,6 +8505,16 @@ export const PostureChecks: MessageFns<PostureChecks> = {
       processes: globalThis.Array.isArray(object?.processes)
         ? object.processes.map((e: any) => PostureProcessCheck.fromJSON(e))
         : [],
+      osVersionCheck: isSet(object.osVersionCheck)
+        ? OSVersionCheck.fromJSON(object.osVersionCheck)
+        : isSet(object.os_version_check)
+        ? OSVersionCheck.fromJSON(object.os_version_check)
+        : undefined,
+      diskEncryptionCheck: isSet(object.diskEncryptionCheck)
+        ? DiskEncryptionCheck.fromJSON(object.diskEncryptionCheck)
+        : isSet(object.disk_encryption_check)
+        ? DiskEncryptionCheck.fromJSON(object.disk_encryption_check)
+        : undefined,
     };
   },
 
@@ -8467,6 +8522,12 @@ export const PostureChecks: MessageFns<PostureChecks> = {
     const obj: any = {};
     if (message.processes?.length) {
       obj.processes = message.processes.map((e) => PostureProcessCheck.toJSON(e));
+    }
+    if (message.osVersionCheck !== undefined) {
+      obj.osVersionCheck = OSVersionCheck.toJSON(message.osVersionCheck);
+    }
+    if (message.diskEncryptionCheck !== undefined) {
+      obj.diskEncryptionCheck = DiskEncryptionCheck.toJSON(message.diskEncryptionCheck);
     }
     return obj;
   },
@@ -8477,6 +8538,152 @@ export const PostureChecks: MessageFns<PostureChecks> = {
   fromPartial<I extends Exact<DeepPartial<PostureChecks>, I>>(object: I): PostureChecks {
     const message = createBasePostureChecks();
     message.processes = object.processes?.map((e) => PostureProcessCheck.fromPartial(e)) || [];
+    message.osVersionCheck = (object.osVersionCheck !== undefined && object.osVersionCheck !== null)
+      ? OSVersionCheck.fromPartial(object.osVersionCheck)
+      : undefined;
+    message.diskEncryptionCheck = (object.diskEncryptionCheck !== undefined && object.diskEncryptionCheck !== null)
+      ? DiskEncryptionCheck.fromPartial(object.diskEncryptionCheck)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseOSVersionCheck(): OSVersionCheck {
+  return { minVersion: "", platforms: [] };
+}
+
+export const OSVersionCheck: MessageFns<OSVersionCheck> = {
+  encode(message: OSVersionCheck, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.minVersion !== "") {
+      writer.uint32(10).string(message.minVersion);
+    }
+    for (const v of message.platforms) {
+      writer.uint32(18).string(v!);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): OSVersionCheck {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseOSVersionCheck();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 10) {
+            break;
+          }
+
+          message.minVersion = reader.string();
+          continue;
+        }
+        case 2: {
+          if (tag !== 18) {
+            break;
+          }
+
+          message.platforms.push(reader.string());
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): OSVersionCheck {
+    return {
+      minVersion: isSet(object.minVersion)
+        ? globalThis.String(object.minVersion)
+        : isSet(object.min_version)
+        ? globalThis.String(object.min_version)
+        : "",
+      platforms: globalThis.Array.isArray(object?.platforms)
+        ? object.platforms.map((e: any) => globalThis.String(e))
+        : [],
+    };
+  },
+
+  toJSON(message: OSVersionCheck): unknown {
+    const obj: any = {};
+    if (message.minVersion !== "") {
+      obj.minVersion = message.minVersion;
+    }
+    if (message.platforms?.length) {
+      obj.platforms = message.platforms;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<OSVersionCheck>, I>>(base?: I): OSVersionCheck {
+    return OSVersionCheck.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<OSVersionCheck>, I>>(object: I): OSVersionCheck {
+    const message = createBaseOSVersionCheck();
+    message.minVersion = object.minVersion ?? "";
+    message.platforms = object.platforms?.map((e) => e) || [];
+    return message;
+  },
+};
+
+function createBaseDiskEncryptionCheck(): DiskEncryptionCheck {
+  return { required: false };
+}
+
+export const DiskEncryptionCheck: MessageFns<DiskEncryptionCheck> = {
+  encode(message: DiskEncryptionCheck, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.required !== false) {
+      writer.uint32(8).bool(message.required);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): DiskEncryptionCheck {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const end = length === undefined ? reader.len : reader.pos + length;
+    const message = createBaseDiskEncryptionCheck();
+    while (reader.pos < end) {
+      const tag = reader.uint32();
+      switch (tag >>> 3) {
+        case 1: {
+          if (tag !== 8) {
+            break;
+          }
+
+          message.required = reader.bool();
+          continue;
+        }
+      }
+      if ((tag & 7) === 4 || tag === 0) {
+        break;
+      }
+      reader.skip(tag & 7);
+    }
+    return message;
+  },
+
+  fromJSON(object: any): DiskEncryptionCheck {
+    return { required: isSet(object.required) ? globalThis.Boolean(object.required) : false };
+  },
+
+  toJSON(message: DiskEncryptionCheck): unknown {
+    const obj: any = {};
+    if (message.required !== false) {
+      obj.required = message.required;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<DiskEncryptionCheck>, I>>(base?: I): DiskEncryptionCheck {
+    return DiskEncryptionCheck.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<DiskEncryptionCheck>, I>>(object: I): DiskEncryptionCheck {
+    const message = createBaseDiskEncryptionCheck();
+    message.required = object.required ?? false;
     return message;
   },
 };
