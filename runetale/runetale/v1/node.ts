@@ -399,6 +399,19 @@ export interface HostMeta {
    * address to wake while the node itself is still awake to report it.
    */
   wolMacs: string[];
+  /**
+   * preferred_cerf_region_id is the CERF region this node measured as nearest,
+   * by STUN round trip to every region in the CerfMap. Zero means the node has
+   * not measured one yet, and the server keeps whatever it already had.
+   *
+   * Relayed traffic goes through the *destination's* home region, so a node
+   * reporting the region nearest to itself is what lets a peer reach it over a
+   * short path. This cannot be decided server-side from the node's public
+   * address: what matters is the route, not the map. It also cannot be left to
+   * the connecting party, because a client with no UDP socket - a browser -
+   * cannot measure at all, and yet is exactly the client that always relays.
+   */
+  preferredCerfRegionId: number;
 }
 
 /**
@@ -1838,6 +1851,7 @@ function createBaseHostMeta(): HostMeta {
     clientVersion: "",
     devicePosture: undefined,
     wolMacs: [],
+    preferredCerfRegionId: 0,
   };
 }
 
@@ -1875,6 +1889,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     }
     for (const v of message.wolMacs) {
       writer.uint32(90).string(v!);
+    }
+    if (message.preferredCerfRegionId !== 0) {
+      writer.uint32(96).uint32(message.preferredCerfRegionId);
     }
     return writer;
   },
@@ -1980,6 +1997,14 @@ export const HostMeta: MessageFns<HostMeta> = {
             message.wolMacs.push(reader.string());
             continue;
           }
+          case 12: {
+            if (tag !== 96) {
+              break;
+            }
+
+            message.preferredCerfRegionId = reader.uint32();
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -2037,6 +2062,11 @@ export const HostMeta: MessageFns<HostMeta> = {
         : globalThis.Array.isArray(object?.wol_macs)
         ? object.wol_macs.map((e: any) => globalThis.String(e))
         : [],
+      preferredCerfRegionId: isSet(object.preferredCerfRegionId)
+        ? globalThis.Number(object.preferredCerfRegionId)
+        : isSet(object.preferred_cerf_region_id)
+        ? globalThis.Number(object.preferred_cerf_region_id)
+        : 0,
     };
   },
 
@@ -2075,6 +2105,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     if (message.wolMacs?.length) {
       obj.wolMacs = message.wolMacs;
     }
+    if (message.preferredCerfRegionId !== 0) {
+      obj.preferredCerfRegionId = Math.round(message.preferredCerfRegionId);
+    }
     return obj;
   },
 
@@ -2096,6 +2129,7 @@ export const HostMeta: MessageFns<HostMeta> = {
       ? DevicePosture.fromPartial(object.devicePosture)
       : undefined;
     message.wolMacs = object.wolMacs?.map((e) => e) || [];
+    message.preferredCerfRegionId = object.preferredCerfRegionId ?? 0;
     return message;
   },
 };
