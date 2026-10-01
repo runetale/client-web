@@ -15,6 +15,80 @@ import { Timestamp } from "../../../google/protobuf/timestamp";
 
 export const protobufPackage = "protos";
 
+/**
+ * AutoUpdateInstallKind is how the client binaries were installed. It decides
+ * whether the client may replace itself: an installation owned by a package
+ * manager or by the desktop app must be updated through that owner instead.
+ */
+export enum AutoUpdateInstallKind {
+  AUTO_UPDATE_INSTALL_KIND_UNSPECIFIED = 0,
+  /** AUTO_UPDATE_INSTALL_KIND_TARBALL - Extracted from a release archive (install script) */
+  AUTO_UPDATE_INSTALL_KIND_TARBALL = 1,
+  /** AUTO_UPDATE_INSTALL_KIND_DEB - Installed from the APT repository */
+  AUTO_UPDATE_INSTALL_KIND_DEB = 2,
+  /** AUTO_UPDATE_INSTALL_KIND_HOMEBREW - Installed with Homebrew */
+  AUTO_UPDATE_INSTALL_KIND_HOMEBREW = 3,
+  /** AUTO_UPDATE_INSTALL_KIND_MAC_DESKTOP - Bundled with the macOS desktop app */
+  AUTO_UPDATE_INSTALL_KIND_MAC_DESKTOP = 4,
+  /** AUTO_UPDATE_INSTALL_KIND_WINDOWS_DESKTOP - Bundled with the Windows desktop app */
+  AUTO_UPDATE_INSTALL_KIND_WINDOWS_DESKTOP = 5,
+  /** AUTO_UPDATE_INSTALL_KIND_DEVELOPMENT - Local development build */
+  AUTO_UPDATE_INSTALL_KIND_DEVELOPMENT = 6,
+  UNRECOGNIZED = -1,
+}
+
+export function autoUpdateInstallKindFromJSON(object: any): AutoUpdateInstallKind {
+  switch (object) {
+    case 0:
+    case "AUTO_UPDATE_INSTALL_KIND_UNSPECIFIED":
+      return AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_UNSPECIFIED;
+    case 1:
+    case "AUTO_UPDATE_INSTALL_KIND_TARBALL":
+      return AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_TARBALL;
+    case 2:
+    case "AUTO_UPDATE_INSTALL_KIND_DEB":
+      return AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_DEB;
+    case 3:
+    case "AUTO_UPDATE_INSTALL_KIND_HOMEBREW":
+      return AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_HOMEBREW;
+    case 4:
+    case "AUTO_UPDATE_INSTALL_KIND_MAC_DESKTOP":
+      return AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_MAC_DESKTOP;
+    case 5:
+    case "AUTO_UPDATE_INSTALL_KIND_WINDOWS_DESKTOP":
+      return AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_WINDOWS_DESKTOP;
+    case 6:
+    case "AUTO_UPDATE_INSTALL_KIND_DEVELOPMENT":
+      return AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_DEVELOPMENT;
+    case -1:
+    case "UNRECOGNIZED":
+    default:
+      return AutoUpdateInstallKind.UNRECOGNIZED;
+  }
+}
+
+export function autoUpdateInstallKindToJSON(object: AutoUpdateInstallKind): string {
+  switch (object) {
+    case AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_UNSPECIFIED:
+      return "AUTO_UPDATE_INSTALL_KIND_UNSPECIFIED";
+    case AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_TARBALL:
+      return "AUTO_UPDATE_INSTALL_KIND_TARBALL";
+    case AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_DEB:
+      return "AUTO_UPDATE_INSTALL_KIND_DEB";
+    case AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_HOMEBREW:
+      return "AUTO_UPDATE_INSTALL_KIND_HOMEBREW";
+    case AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_MAC_DESKTOP:
+      return "AUTO_UPDATE_INSTALL_KIND_MAC_DESKTOP";
+    case AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_WINDOWS_DESKTOP:
+      return "AUTO_UPDATE_INSTALL_KIND_WINDOWS_DESKTOP";
+    case AutoUpdateInstallKind.AUTO_UPDATE_INSTALL_KIND_DEVELOPMENT:
+      return "AUTO_UPDATE_INSTALL_KIND_DEVELOPMENT";
+    case AutoUpdateInstallKind.UNRECOGNIZED:
+    default:
+      return "UNRECOGNIZED";
+  }
+}
+
 /** SSHSessionState represents the state of an SSH session. */
 export enum SSHSessionState {
   SSH_SESSION_STATE_UNSPECIFIED = 0,
@@ -412,6 +486,41 @@ export interface HostMeta {
    * cannot measure at all, and yet is exactly the client that always relays.
    */
   preferredCerfRegionId: number;
+  /**
+   * auto_update reports whether this node can apply server-directed client
+   * updates and how its most recent attempt ended. The server shows it to
+   * administrators deciding which nodes to enable auto-update on. Unset means
+   * the client predates auto-update, which the server treats as unsupported.
+   */
+  autoUpdate: AutoUpdateStatus | undefined;
+}
+
+export interface AutoUpdateStatus {
+  installKind: AutoUpdateInstallKind;
+  /**
+   * supported is true when this client can apply an update on its own.
+   * False for installations owned by a package manager or the desktop app,
+   * development builds, and platforms the client does not yet update.
+   */
+  supported: boolean;
+  /**
+   * last_attempt is the most recent update this client tried to apply.
+   * Unset when it has never attempted one.
+   */
+  lastAttempt: AutoUpdateAttempt | undefined;
+}
+
+export interface AutoUpdateAttempt {
+  /**
+   * from_version and target_version are client versions as reported in
+   * HostMeta.client_version (e.g., "0.0.27-hennge-stg").
+   */
+  fromVersion: string;
+  targetVersion: string;
+  success: boolean;
+  /** error describes why the attempt failed. Empty when success is true. */
+  error: string;
+  finishedAt: Date | undefined;
 }
 
 /**
@@ -1852,6 +1961,7 @@ function createBaseHostMeta(): HostMeta {
     devicePosture: undefined,
     wolMacs: [],
     preferredCerfRegionId: 0,
+    autoUpdate: undefined,
   };
 }
 
@@ -1892,6 +2002,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     }
     if (message.preferredCerfRegionId !== 0) {
       writer.uint32(96).uint32(message.preferredCerfRegionId);
+    }
+    if (message.autoUpdate !== undefined) {
+      AutoUpdateStatus.encode(message.autoUpdate, writer.uint32(106).fork()).join();
     }
     return writer;
   },
@@ -2005,6 +2118,14 @@ export const HostMeta: MessageFns<HostMeta> = {
             message.preferredCerfRegionId = reader.uint32();
             continue;
           }
+          case 13: {
+            if (tag !== 106) {
+              break;
+            }
+
+            message.autoUpdate = AutoUpdateStatus.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -2067,6 +2188,11 @@ export const HostMeta: MessageFns<HostMeta> = {
         : isSet(object.preferred_cerf_region_id)
         ? globalThis.Number(object.preferred_cerf_region_id)
         : 0,
+      autoUpdate: isSet(object.autoUpdate)
+        ? AutoUpdateStatus.fromJSON(object.autoUpdate)
+        : isSet(object.auto_update)
+        ? AutoUpdateStatus.fromJSON(object.auto_update)
+        : undefined,
     };
   },
 
@@ -2108,6 +2234,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     if (message.preferredCerfRegionId !== 0) {
       obj.preferredCerfRegionId = Math.round(message.preferredCerfRegionId);
     }
+    if (message.autoUpdate !== undefined) {
+      obj.autoUpdate = AutoUpdateStatus.toJSON(message.autoUpdate);
+    }
     return obj;
   },
 
@@ -2130,6 +2259,265 @@ export const HostMeta: MessageFns<HostMeta> = {
       : undefined;
     message.wolMacs = object.wolMacs?.map((e) => e) || [];
     message.preferredCerfRegionId = object.preferredCerfRegionId ?? 0;
+    message.autoUpdate = (object.autoUpdate !== undefined && object.autoUpdate !== null)
+      ? AutoUpdateStatus.fromPartial(object.autoUpdate)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseAutoUpdateStatus(): AutoUpdateStatus {
+  return { installKind: 0, supported: false, lastAttempt: undefined };
+}
+
+export const AutoUpdateStatus: MessageFns<AutoUpdateStatus> = {
+  encode(message: AutoUpdateStatus, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.installKind !== 0) {
+      writer.uint32(8).int32(message.installKind);
+    }
+    if (message.supported !== false) {
+      writer.uint32(16).bool(message.supported);
+    }
+    if (message.lastAttempt !== undefined) {
+      AutoUpdateAttempt.encode(message.lastAttempt, writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AutoUpdateStatus {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseAutoUpdateStatus();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 8) {
+              break;
+            }
+
+            message.installKind = reader.int32() as any;
+            continue;
+          }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.supported = reader.bool();
+            continue;
+          }
+          case 3: {
+            if (tag !== 26) {
+              break;
+            }
+
+            message.lastAttempt = AutoUpdateAttempt.decode(reader, reader.uint32());
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): AutoUpdateStatus {
+    return {
+      installKind: isSet(object.installKind)
+        ? autoUpdateInstallKindFromJSON(object.installKind)
+        : isSet(object.install_kind)
+        ? autoUpdateInstallKindFromJSON(object.install_kind)
+        : 0,
+      supported: isSet(object.supported) ? globalThis.Boolean(object.supported) : false,
+      lastAttempt: isSet(object.lastAttempt)
+        ? AutoUpdateAttempt.fromJSON(object.lastAttempt)
+        : isSet(object.last_attempt)
+        ? AutoUpdateAttempt.fromJSON(object.last_attempt)
+        : undefined,
+    };
+  },
+
+  toJSON(message: AutoUpdateStatus): unknown {
+    const obj: any = {};
+    if (message.installKind !== 0) {
+      obj.installKind = autoUpdateInstallKindToJSON(message.installKind);
+    }
+    if (message.supported !== false) {
+      obj.supported = message.supported;
+    }
+    if (message.lastAttempt !== undefined) {
+      obj.lastAttempt = AutoUpdateAttempt.toJSON(message.lastAttempt);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AutoUpdateStatus>, I>>(base?: I): AutoUpdateStatus {
+    return AutoUpdateStatus.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AutoUpdateStatus>, I>>(object: I): AutoUpdateStatus {
+    const message = createBaseAutoUpdateStatus();
+    message.installKind = object.installKind ?? 0;
+    message.supported = object.supported ?? false;
+    message.lastAttempt = (object.lastAttempt !== undefined && object.lastAttempt !== null)
+      ? AutoUpdateAttempt.fromPartial(object.lastAttempt)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseAutoUpdateAttempt(): AutoUpdateAttempt {
+  return { fromVersion: "", targetVersion: "", success: false, error: "", finishedAt: undefined };
+}
+
+export const AutoUpdateAttempt: MessageFns<AutoUpdateAttempt> = {
+  encode(message: AutoUpdateAttempt, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.fromVersion !== "") {
+      writer.uint32(10).string(message.fromVersion);
+    }
+    if (message.targetVersion !== "") {
+      writer.uint32(18).string(message.targetVersion);
+    }
+    if (message.success !== false) {
+      writer.uint32(24).bool(message.success);
+    }
+    if (message.error !== "") {
+      writer.uint32(34).string(message.error);
+    }
+    if (message.finishedAt !== undefined) {
+      Timestamp.encode(toTimestamp(message.finishedAt), writer.uint32(42).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): AutoUpdateAttempt {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseAutoUpdateAttempt();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.fromVersion = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.targetVersion = reader.string();
+            continue;
+          }
+          case 3: {
+            if (tag !== 24) {
+              break;
+            }
+
+            message.success = reader.bool();
+            continue;
+          }
+          case 4: {
+            if (tag !== 34) {
+              break;
+            }
+
+            message.error = reader.string();
+            continue;
+          }
+          case 5: {
+            if (tag !== 42) {
+              break;
+            }
+
+            message.finishedAt = fromTimestamp(Timestamp.decode(reader, reader.uint32()));
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): AutoUpdateAttempt {
+    return {
+      fromVersion: isSet(object.fromVersion)
+        ? globalThis.String(object.fromVersion)
+        : isSet(object.from_version)
+        ? globalThis.String(object.from_version)
+        : "",
+      targetVersion: isSet(object.targetVersion)
+        ? globalThis.String(object.targetVersion)
+        : isSet(object.target_version)
+        ? globalThis.String(object.target_version)
+        : "",
+      success: isSet(object.success) ? globalThis.Boolean(object.success) : false,
+      error: isSet(object.error) ? globalThis.String(object.error) : "",
+      finishedAt: isSet(object.finishedAt)
+        ? fromJsonTimestamp(object.finishedAt)
+        : isSet(object.finished_at)
+        ? fromJsonTimestamp(object.finished_at)
+        : undefined,
+    };
+  },
+
+  toJSON(message: AutoUpdateAttempt): unknown {
+    const obj: any = {};
+    if (message.fromVersion !== "") {
+      obj.fromVersion = message.fromVersion;
+    }
+    if (message.targetVersion !== "") {
+      obj.targetVersion = message.targetVersion;
+    }
+    if (message.success !== false) {
+      obj.success = message.success;
+    }
+    if (message.error !== "") {
+      obj.error = message.error;
+    }
+    if (message.finishedAt !== undefined) {
+      obj.finishedAt = message.finishedAt.toISOString();
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<AutoUpdateAttempt>, I>>(base?: I): AutoUpdateAttempt {
+    return AutoUpdateAttempt.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<AutoUpdateAttempt>, I>>(object: I): AutoUpdateAttempt {
+    const message = createBaseAutoUpdateAttempt();
+    message.fromVersion = object.fromVersion ?? "";
+    message.targetVersion = object.targetVersion ?? "";
+    message.success = object.success ?? false;
+    message.error = object.error ?? "";
+    message.finishedAt = object.finishedAt ?? undefined;
     return message;
   },
 };
