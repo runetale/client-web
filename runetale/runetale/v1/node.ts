@@ -554,18 +554,7 @@ export interface HostMeta {
    * administrators deciding which nodes to enable auto-update on. Unset means
    * the client predates auto-update, which the server treats as unsupported.
    */
-  autoUpdate:
-    | AutoUpdateStatus
-    | undefined;
-  /**
-   * app_linker_wonder_ranges reports that this client uses the wonder
-   * ranges the server assigns in AppLinker.wonder_prefix4 and
-   * wonder_prefix6, and, when it serves an AppLinker, takes traffic to them.
-   * The server sends those ranges for an AppLinker only while the node
-   * serving it reports this, so that a client never sends traffic to a
-   * range its AppLinker node does not know.
-   */
-  appLinkerWonderRanges: boolean;
+  autoUpdate: AutoUpdateStatus | undefined;
 }
 
 export interface AutoUpdateStatus {
@@ -826,7 +815,9 @@ export interface AppLinker {
    * answer DNS queries for its domains with addresses in them, and the node
    * in node_id takes traffic to them. Each AppLinker keeps its ranges
    * whichever node serves it. Empty means clients choose the ranges
-   * themselves, as clients without app_linker_wonder_ranges always do.
+   * themselves, as older clients always do. A node serving the AppLinker
+   * with an older client refuses addresses in these ranges, and clients
+   * then fall back to choosing the range themselves.
    */
   wonderPrefix4: string;
   wonderPrefix6: string;
@@ -2139,7 +2130,6 @@ function createBaseHostMeta(): HostMeta {
     wolMacs: [],
     preferredCerfRegionId: 0,
     autoUpdate: undefined,
-    appLinkerWonderRanges: false,
   };
 }
 
@@ -2183,9 +2173,6 @@ export const HostMeta: MessageFns<HostMeta> = {
     }
     if (message.autoUpdate !== undefined) {
       AutoUpdateStatus.encode(message.autoUpdate, writer.uint32(106).fork()).join();
-    }
-    if (message.appLinkerWonderRanges !== false) {
-      writer.uint32(112).bool(message.appLinkerWonderRanges);
     }
     return writer;
   },
@@ -2307,14 +2294,6 @@ export const HostMeta: MessageFns<HostMeta> = {
             message.autoUpdate = AutoUpdateStatus.decode(reader, reader.uint32());
             continue;
           }
-          case 14: {
-            if (tag !== 112) {
-              break;
-            }
-
-            message.appLinkerWonderRanges = reader.bool();
-            continue;
-          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -2382,11 +2361,6 @@ export const HostMeta: MessageFns<HostMeta> = {
         : isSet(object.auto_update)
         ? AutoUpdateStatus.fromJSON(object.auto_update)
         : undefined,
-      appLinkerWonderRanges: isSet(object.appLinkerWonderRanges)
-        ? globalThis.Boolean(object.appLinkerWonderRanges)
-        : isSet(object.app_linker_wonder_ranges)
-        ? globalThis.Boolean(object.app_linker_wonder_ranges)
-        : false,
     };
   },
 
@@ -2431,9 +2405,6 @@ export const HostMeta: MessageFns<HostMeta> = {
     if (message.autoUpdate !== undefined) {
       obj.autoUpdate = AutoUpdateStatus.toJSON(message.autoUpdate);
     }
-    if (message.appLinkerWonderRanges !== false) {
-      obj.appLinkerWonderRanges = message.appLinkerWonderRanges;
-    }
     return obj;
   },
 
@@ -2459,7 +2430,6 @@ export const HostMeta: MessageFns<HostMeta> = {
     message.autoUpdate = (object.autoUpdate !== undefined && object.autoUpdate !== null)
       ? AutoUpdateStatus.fromPartial(object.autoUpdate)
       : undefined;
-    message.appLinkerWonderRanges = object.appLinkerWonderRanges ?? false;
     return message;
   },
 };
