@@ -750,6 +750,32 @@ export interface NetworkMapResponse {
    * included, so a node never receives header values meant for others.
    */
   httpServices: HTTPService[];
+  /**
+   * exit_nodes are the ExitNode entries this node may route through. An
+   * entry can have several member nodes, of which the server picks one to
+   * carry its traffic; only that node is given the exit routes. A client
+   * using an entry routes through its node_id, and follows the entry when
+   * the server picks another member.
+   */
+  exitNodes: ExitNode[];
+}
+
+export interface ExitNode {
+  /** id identifies the entry. It stays the same whichever member serves it. */
+  id: string;
+  /** name is the entry's name as shown to users. */
+  name: string;
+  /**
+   * node_id is the member that carries the entry's traffic now. Zero
+   * means none can.
+   */
+  nodeId: number;
+  /**
+   * member_node_ids are every node that may serve the entry, in the order
+   * they take over. A client that chose one of them by node ID follows
+   * the entry.
+   */
+  memberNodeIds: number[];
 }
 
 export interface CerfMap {
@@ -3130,6 +3156,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     sshPolicy: undefined,
     postureChecks: undefined,
     httpServices: [],
+    exitNodes: [],
   };
 }
 
@@ -3198,6 +3225,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     }
     for (const v of message.httpServices) {
       HTTPService.encode(v!, writer.uint32(226).fork()).join();
+    }
+    for (const v of message.exitNodes) {
+      ExitNode.encode(v!, writer.uint32(234).fork()).join();
     }
     return writer;
   },
@@ -3385,6 +3415,14 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
             message.httpServices.push(HTTPService.decode(reader, reader.uint32()));
             continue;
           }
+          case 29: {
+            if (tag !== 234) {
+              break;
+            }
+
+            message.exitNodes.push(ExitNode.decode(reader, reader.uint32()));
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -3455,6 +3493,11 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
         : globalThis.Array.isArray(object?.http_services)
         ? object.http_services.map((e: any) => HTTPService.fromJSON(e))
         : [],
+      exitNodes: globalThis.Array.isArray(object?.exitNodes)
+        ? object.exitNodes.map((e: any) => ExitNode.fromJSON(e))
+        : globalThis.Array.isArray(object?.exit_nodes)
+        ? object.exit_nodes.map((e: any) => ExitNode.fromJSON(e))
+        : [],
     };
   },
 
@@ -3520,6 +3563,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.httpServices?.length) {
       obj.httpServices = message.httpServices.map((e) => HTTPService.toJSON(e));
     }
+    if (message.exitNodes?.length) {
+      obj.exitNodes = message.exitNodes.map((e) => ExitNode.toJSON(e));
+    }
     return obj;
   },
 
@@ -3554,6 +3600,146 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
       ? PostureChecks.fromPartial(object.postureChecks)
       : undefined;
     message.httpServices = object.httpServices?.map((e) => HTTPService.fromPartial(e)) || [];
+    message.exitNodes = object.exitNodes?.map((e) => ExitNode.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseExitNode(): ExitNode {
+  return { id: "", name: "", nodeId: 0, memberNodeIds: [] };
+}
+
+export const ExitNode: MessageFns<ExitNode> = {
+  encode(message: ExitNode, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.id !== "") {
+      writer.uint32(10).string(message.id);
+    }
+    if (message.name !== "") {
+      writer.uint32(18).string(message.name);
+    }
+    if (message.nodeId !== 0) {
+      writer.uint32(24).uint64(message.nodeId);
+    }
+    if (message.memberNodeIds.length !== 0) {
+      writer.uint32(34).fork();
+      for (const v of message.memberNodeIds) {
+        writer.uint64(v);
+      }
+      writer.join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): ExitNode {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseExitNode();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.id = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.name = reader.string();
+            continue;
+          }
+          case 3: {
+            if (tag !== 24) {
+              break;
+            }
+
+            message.nodeId = longToNumber(reader.uint64());
+            continue;
+          }
+          case 4: {
+            if (tag === 32) {
+              message.memberNodeIds.push(longToNumber(reader.uint64()));
+
+              continue;
+            }
+
+            if (tag === 34) {
+              const end2 = reader.uint32() + reader.pos;
+              while (reader.pos < end2) {
+                message.memberNodeIds.push(longToNumber(reader.uint64()));
+              }
+
+              continue;
+            }
+
+            break;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): ExitNode {
+    return {
+      id: isSet(object.id) ? globalThis.String(object.id) : "",
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      nodeId: isSet(object.nodeId)
+        ? globalThis.Number(object.nodeId)
+        : isSet(object.node_id)
+        ? globalThis.Number(object.node_id)
+        : 0,
+      memberNodeIds: globalThis.Array.isArray(object?.memberNodeIds)
+        ? object.memberNodeIds.map((e: any) => globalThis.Number(e))
+        : globalThis.Array.isArray(object?.member_node_ids)
+        ? object.member_node_ids.map((e: any) => globalThis.Number(e))
+        : [],
+    };
+  },
+
+  toJSON(message: ExitNode): unknown {
+    const obj: any = {};
+    if (message.id !== "") {
+      obj.id = message.id;
+    }
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.memberNodeIds?.length) {
+      obj.memberNodeIds = message.memberNodeIds.map((e) => Math.round(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<ExitNode>, I>>(base?: I): ExitNode {
+    return ExitNode.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<ExitNode>, I>>(object: I): ExitNode {
+    const message = createBaseExitNode();
+    message.id = object.id ?? "";
+    message.name = object.name ?? "";
+    message.nodeId = object.nodeId ?? 0;
+    message.memberNodeIds = object.memberNodeIds?.map((e) => e) || [];
     return message;
   },
 };
