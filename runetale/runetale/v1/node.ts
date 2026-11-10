@@ -468,6 +468,12 @@ export interface Node {
    * own name, not the user's.
    */
   userDisplayName: string;
+  /**
+   * noroshi_relay marks a peer as a noroshi relay: a server-run node that
+   * forwards connections from the internet to nodes publishing a port.
+   * A node accepts noroshi connections only from such peers.
+   */
+  noroshiRelay: boolean;
 }
 
 export interface ComposeNodeResponse {
@@ -554,7 +560,14 @@ export interface HostMeta {
    * administrators deciding which nodes to enable auto-update on. Unset means
    * the client predates auto-update, which the server treats as unsupported.
    */
-  autoUpdate: AutoUpdateStatus | undefined;
+  autoUpdate:
+    | AutoUpdateStatus
+    | undefined;
+  /**
+   * noroshi_ports are the ports this node is publishing to the internet
+   * through noroshi. The server publishes only those it allows the node.
+   */
+  noroshiPorts: number[];
 }
 
 export interface AutoUpdateStatus {
@@ -758,6 +771,68 @@ export interface NetworkMapResponse {
    * the server picks another member.
    */
   exitNodes: ExitNode[];
+  /**
+   * noroshi is this node's noroshi state: whether it may publish ports to
+   * the internet and its public name, or, for a noroshi relay, where each
+   * published name leads. Unset means noroshi is not available.
+   */
+  noroshi: Noroshi | undefined;
+}
+
+/**
+ * Noroshi carries what a node needs to publish ports to the internet, or
+ * what a noroshi relay needs to forward connections to them.
+ */
+export interface Noroshi {
+  /**
+   * allowed_ports are the ports this node may publish. Empty means it may
+   * not publish any.
+   */
+  allowedPorts: number[];
+  /**
+   * public_name is the name the node is published under, e.g.
+   * "web.rune1234abcd.rune.host", without a trailing dot.
+   */
+  publicName: string;
+  /**
+   * targets are set only for a noroshi relay: every published name and
+   * port, across all networks, with the node that serves it.
+   */
+  targets: NoroshiTarget[];
+}
+
+/** NoroshiTarget is one published name and port as a noroshi relay sees it. */
+export interface NoroshiTarget {
+  /** name is the public name, without a trailing dot. */
+  name: string;
+  /** port is the public port. */
+  port: number;
+  /** node_id is the node serving it. It is also among the relay's peers. */
+  nodeId: number;
+  /**
+   * addresses are the node's addresses, as in Node.addresses. Addresses
+   * are unique only within a network, so the relay tells nodes apart by
+   * node_id, not by address.
+   */
+  addresses: string[];
+  /**
+   * peer_api_port is the node's peer service port, where the relay sends
+   * each connection.
+   */
+  peerApiPort: number;
+}
+
+export interface SetDNSChallengeRequest {
+  /**
+   * name is the name the certificate is for, without a trailing dot. It
+   * must be the calling node's own name.
+   */
+  name: string;
+  /** value is the TXT record value. Empty removes the record. */
+  value: string;
+}
+
+export interface SetDNSChallengeResponse {
 }
 
 export interface ExitNode {
@@ -1546,6 +1621,7 @@ function createBaseNode(): Node {
     devicePosture: undefined,
     wolMacs: [],
     userDisplayName: "",
+    noroshiRelay: false,
   };
 }
 
@@ -1619,6 +1695,9 @@ export const Node: MessageFns<Node> = {
     }
     if (message.userDisplayName !== "") {
       writer.uint32(186).string(message.userDisplayName);
+    }
+    if (message.noroshiRelay !== false) {
+      writer.uint32(192).bool(message.noroshiRelay);
     }
     return writer;
   },
@@ -1820,6 +1899,14 @@ export const Node: MessageFns<Node> = {
             message.userDisplayName = reader.string();
             continue;
           }
+          case 24: {
+            if (tag !== 192) {
+              break;
+            }
+
+            message.noroshiRelay = reader.bool();
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -1881,6 +1968,11 @@ export const Node: MessageFns<Node> = {
         : isSet(object.user_display_name)
         ? globalThis.String(object.user_display_name)
         : "",
+      noroshiRelay: isSet(object.noroshiRelay)
+        ? globalThis.Boolean(object.noroshiRelay)
+        : isSet(object.noroshi_relay)
+        ? globalThis.Boolean(object.noroshi_relay)
+        : false,
     };
   },
 
@@ -1955,6 +2047,9 @@ export const Node: MessageFns<Node> = {
     if (message.userDisplayName !== "") {
       obj.userDisplayName = message.userDisplayName;
     }
+    if (message.noroshiRelay !== false) {
+      obj.noroshiRelay = message.noroshiRelay;
+    }
     return obj;
   },
 
@@ -1988,6 +2083,7 @@ export const Node: MessageFns<Node> = {
       : undefined;
     message.wolMacs = object.wolMacs?.map((e) => e) || [];
     message.userDisplayName = object.userDisplayName ?? "";
+    message.noroshiRelay = object.noroshiRelay ?? false;
     return message;
   },
 };
@@ -2156,6 +2252,7 @@ function createBaseHostMeta(): HostMeta {
     wolMacs: [],
     preferredCerfRegionId: 0,
     autoUpdate: undefined,
+    noroshiPorts: [],
   };
 }
 
@@ -2199,6 +2296,13 @@ export const HostMeta: MessageFns<HostMeta> = {
     }
     if (message.autoUpdate !== undefined) {
       AutoUpdateStatus.encode(message.autoUpdate, writer.uint32(106).fork()).join();
+    }
+    if (message.noroshiPorts.length !== 0) {
+      writer.uint32(114).fork();
+      for (const v of message.noroshiPorts) {
+        writer.uint32(v);
+      }
+      writer.join();
     }
     return writer;
   },
@@ -2320,6 +2424,24 @@ export const HostMeta: MessageFns<HostMeta> = {
             message.autoUpdate = AutoUpdateStatus.decode(reader, reader.uint32());
             continue;
           }
+          case 14: {
+            if (tag === 112) {
+              message.noroshiPorts.push(reader.uint32());
+
+              continue;
+            }
+
+            if (tag === 114) {
+              const end2 = reader.uint32() + reader.pos;
+              while (reader.pos < end2) {
+                message.noroshiPorts.push(reader.uint32());
+              }
+
+              continue;
+            }
+
+            break;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -2387,6 +2509,11 @@ export const HostMeta: MessageFns<HostMeta> = {
         : isSet(object.auto_update)
         ? AutoUpdateStatus.fromJSON(object.auto_update)
         : undefined,
+      noroshiPorts: globalThis.Array.isArray(object?.noroshiPorts)
+        ? object.noroshiPorts.map((e: any) => globalThis.Number(e))
+        : globalThis.Array.isArray(object?.noroshi_ports)
+        ? object.noroshi_ports.map((e: any) => globalThis.Number(e))
+        : [],
     };
   },
 
@@ -2431,6 +2558,9 @@ export const HostMeta: MessageFns<HostMeta> = {
     if (message.autoUpdate !== undefined) {
       obj.autoUpdate = AutoUpdateStatus.toJSON(message.autoUpdate);
     }
+    if (message.noroshiPorts?.length) {
+      obj.noroshiPorts = message.noroshiPorts.map((e) => Math.round(e));
+    }
     return obj;
   },
 
@@ -2456,6 +2586,7 @@ export const HostMeta: MessageFns<HostMeta> = {
     message.autoUpdate = (object.autoUpdate !== undefined && object.autoUpdate !== null)
       ? AutoUpdateStatus.fromPartial(object.autoUpdate)
       : undefined;
+    message.noroshiPorts = object.noroshiPorts?.map((e) => e) || [];
     return message;
   },
 };
@@ -3157,6 +3288,7 @@ function createBaseNetworkMapResponse(): NetworkMapResponse {
     postureChecks: undefined,
     httpServices: [],
     exitNodes: [],
+    noroshi: undefined,
   };
 }
 
@@ -3228,6 +3360,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     }
     for (const v of message.exitNodes) {
       ExitNode.encode(v!, writer.uint32(234).fork()).join();
+    }
+    if (message.noroshi !== undefined) {
+      Noroshi.encode(message.noroshi, writer.uint32(242).fork()).join();
     }
     return writer;
   },
@@ -3423,6 +3558,14 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
             message.exitNodes.push(ExitNode.decode(reader, reader.uint32()));
             continue;
           }
+          case 30: {
+            if (tag !== 242) {
+              break;
+            }
+
+            message.noroshi = Noroshi.decode(reader, reader.uint32());
+            continue;
+          }
         }
         if ((tag & 7) === 4 || tag === 0) {
           break;
@@ -3498,6 +3641,7 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
         : globalThis.Array.isArray(object?.exit_nodes)
         ? object.exit_nodes.map((e: any) => ExitNode.fromJSON(e))
         : [],
+      noroshi: isSet(object.noroshi) ? Noroshi.fromJSON(object.noroshi) : undefined,
     };
   },
 
@@ -3566,6 +3710,9 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
     if (message.exitNodes?.length) {
       obj.exitNodes = message.exitNodes.map((e) => ExitNode.toJSON(e));
     }
+    if (message.noroshi !== undefined) {
+      obj.noroshi = Noroshi.toJSON(message.noroshi);
+    }
     return obj;
   },
 
@@ -3601,6 +3748,414 @@ export const NetworkMapResponse: MessageFns<NetworkMapResponse> = {
       : undefined;
     message.httpServices = object.httpServices?.map((e) => HTTPService.fromPartial(e)) || [];
     message.exitNodes = object.exitNodes?.map((e) => ExitNode.fromPartial(e)) || [];
+    message.noroshi = (object.noroshi !== undefined && object.noroshi !== null)
+      ? Noroshi.fromPartial(object.noroshi)
+      : undefined;
+    return message;
+  },
+};
+
+function createBaseNoroshi(): Noroshi {
+  return { allowedPorts: [], publicName: "", targets: [] };
+}
+
+export const Noroshi: MessageFns<Noroshi> = {
+  encode(message: Noroshi, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.allowedPorts.length !== 0) {
+      writer.uint32(10).fork();
+      for (const v of message.allowedPorts) {
+        writer.uint32(v);
+      }
+      writer.join();
+    }
+    if (message.publicName !== "") {
+      writer.uint32(18).string(message.publicName);
+    }
+    for (const v of message.targets) {
+      NoroshiTarget.encode(v!, writer.uint32(26).fork()).join();
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): Noroshi {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseNoroshi();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag === 8) {
+              message.allowedPorts.push(reader.uint32());
+
+              continue;
+            }
+
+            if (tag === 10) {
+              const end2 = reader.uint32() + reader.pos;
+              while (reader.pos < end2) {
+                message.allowedPorts.push(reader.uint32());
+              }
+
+              continue;
+            }
+
+            break;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.publicName = reader.string();
+            continue;
+          }
+          case 3: {
+            if (tag !== 26) {
+              break;
+            }
+
+            message.targets.push(NoroshiTarget.decode(reader, reader.uint32()));
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): Noroshi {
+    return {
+      allowedPorts: globalThis.Array.isArray(object?.allowedPorts)
+        ? object.allowedPorts.map((e: any) => globalThis.Number(e))
+        : globalThis.Array.isArray(object?.allowed_ports)
+        ? object.allowed_ports.map((e: any) => globalThis.Number(e))
+        : [],
+      publicName: isSet(object.publicName)
+        ? globalThis.String(object.publicName)
+        : isSet(object.public_name)
+        ? globalThis.String(object.public_name)
+        : "",
+      targets: globalThis.Array.isArray(object?.targets)
+        ? object.targets.map((e: any) => NoroshiTarget.fromJSON(e))
+        : [],
+    };
+  },
+
+  toJSON(message: Noroshi): unknown {
+    const obj: any = {};
+    if (message.allowedPorts?.length) {
+      obj.allowedPorts = message.allowedPorts.map((e) => Math.round(e));
+    }
+    if (message.publicName !== "") {
+      obj.publicName = message.publicName;
+    }
+    if (message.targets?.length) {
+      obj.targets = message.targets.map((e) => NoroshiTarget.toJSON(e));
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<Noroshi>, I>>(base?: I): Noroshi {
+    return Noroshi.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<Noroshi>, I>>(object: I): Noroshi {
+    const message = createBaseNoroshi();
+    message.allowedPorts = object.allowedPorts?.map((e) => e) || [];
+    message.publicName = object.publicName ?? "";
+    message.targets = object.targets?.map((e) => NoroshiTarget.fromPartial(e)) || [];
+    return message;
+  },
+};
+
+function createBaseNoroshiTarget(): NoroshiTarget {
+  return { name: "", port: 0, nodeId: 0, addresses: [], peerApiPort: 0 };
+}
+
+export const NoroshiTarget: MessageFns<NoroshiTarget> = {
+  encode(message: NoroshiTarget, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.port !== 0) {
+      writer.uint32(16).uint32(message.port);
+    }
+    if (message.nodeId !== 0) {
+      writer.uint32(24).uint64(message.nodeId);
+    }
+    for (const v of message.addresses) {
+      writer.uint32(34).string(v!);
+    }
+    if (message.peerApiPort !== 0) {
+      writer.uint32(40).uint32(message.peerApiPort);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): NoroshiTarget {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseNoroshiTarget();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.name = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 16) {
+              break;
+            }
+
+            message.port = reader.uint32();
+            continue;
+          }
+          case 3: {
+            if (tag !== 24) {
+              break;
+            }
+
+            message.nodeId = longToNumber(reader.uint64());
+            continue;
+          }
+          case 4: {
+            if (tag !== 34) {
+              break;
+            }
+
+            message.addresses.push(reader.string());
+            continue;
+          }
+          case 5: {
+            if (tag !== 40) {
+              break;
+            }
+
+            message.peerApiPort = reader.uint32();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): NoroshiTarget {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      port: isSet(object.port) ? globalThis.Number(object.port) : 0,
+      nodeId: isSet(object.nodeId)
+        ? globalThis.Number(object.nodeId)
+        : isSet(object.node_id)
+        ? globalThis.Number(object.node_id)
+        : 0,
+      addresses: globalThis.Array.isArray(object?.addresses)
+        ? object.addresses.map((e: any) => globalThis.String(e))
+        : [],
+      peerApiPort: isSet(object.peerApiPort)
+        ? globalThis.Number(object.peerApiPort)
+        : isSet(object.peer_api_port)
+        ? globalThis.Number(object.peer_api_port)
+        : 0,
+    };
+  },
+
+  toJSON(message: NoroshiTarget): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.port !== 0) {
+      obj.port = Math.round(message.port);
+    }
+    if (message.nodeId !== 0) {
+      obj.nodeId = Math.round(message.nodeId);
+    }
+    if (message.addresses?.length) {
+      obj.addresses = message.addresses;
+    }
+    if (message.peerApiPort !== 0) {
+      obj.peerApiPort = Math.round(message.peerApiPort);
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<NoroshiTarget>, I>>(base?: I): NoroshiTarget {
+    return NoroshiTarget.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<NoroshiTarget>, I>>(object: I): NoroshiTarget {
+    const message = createBaseNoroshiTarget();
+    message.name = object.name ?? "";
+    message.port = object.port ?? 0;
+    message.nodeId = object.nodeId ?? 0;
+    message.addresses = object.addresses?.map((e) => e) || [];
+    message.peerApiPort = object.peerApiPort ?? 0;
+    return message;
+  },
+};
+
+function createBaseSetDNSChallengeRequest(): SetDNSChallengeRequest {
+  return { name: "", value: "" };
+}
+
+export const SetDNSChallengeRequest: MessageFns<SetDNSChallengeRequest> = {
+  encode(message: SetDNSChallengeRequest, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    if (message.name !== "") {
+      writer.uint32(10).string(message.name);
+    }
+    if (message.value !== "") {
+      writer.uint32(18).string(message.value);
+    }
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SetDNSChallengeRequest {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseSetDNSChallengeRequest();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+          case 1: {
+            if (tag !== 10) {
+              break;
+            }
+
+            message.name = reader.string();
+            continue;
+          }
+          case 2: {
+            if (tag !== 18) {
+              break;
+            }
+
+            message.value = reader.string();
+            continue;
+          }
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(object: any): SetDNSChallengeRequest {
+    return {
+      name: isSet(object.name) ? globalThis.String(object.name) : "",
+      value: isSet(object.value) ? globalThis.String(object.value) : "",
+    };
+  },
+
+  toJSON(message: SetDNSChallengeRequest): unknown {
+    const obj: any = {};
+    if (message.name !== "") {
+      obj.name = message.name;
+    }
+    if (message.value !== "") {
+      obj.value = message.value;
+    }
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SetDNSChallengeRequest>, I>>(base?: I): SetDNSChallengeRequest {
+    return SetDNSChallengeRequest.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SetDNSChallengeRequest>, I>>(object: I): SetDNSChallengeRequest {
+    const message = createBaseSetDNSChallengeRequest();
+    message.name = object.name ?? "";
+    message.value = object.value ?? "";
+    return message;
+  },
+};
+
+function createBaseSetDNSChallengeResponse(): SetDNSChallengeResponse {
+  return {};
+}
+
+export const SetDNSChallengeResponse: MessageFns<SetDNSChallengeResponse> = {
+  encode(_: SetDNSChallengeResponse, writer: BinaryWriter = new BinaryWriter()): BinaryWriter {
+    return writer;
+  },
+
+  decode(input: BinaryReader | Uint8Array, length?: number): SetDNSChallengeResponse {
+    const reader = input instanceof BinaryReader ? input : new BinaryReader(input);
+    const previousRecursionDepth = (reader as any).__tsProtoDecodeDepth ?? 0;
+    if (previousRecursionDepth >= 100) {
+      throw new globalThis.Error("protobuf decode recursion limit exceeded");
+    }
+    (reader as any).__tsProtoDecodeDepth = previousRecursionDepth + 1;
+    try {
+      const end = length === undefined ? reader.len : reader.pos + length;
+      const message = createBaseSetDNSChallengeResponse();
+      while (reader.pos < end) {
+        const tag = reader.uint32();
+        switch (tag >>> 3) {
+        }
+        if ((tag & 7) === 4 || tag === 0) {
+          break;
+        }
+        reader.skip(tag & 7);
+      }
+      return message;
+    } finally {
+      (reader as any).__tsProtoDecodeDepth = previousRecursionDepth;
+    }
+  },
+
+  fromJSON(_: any): SetDNSChallengeResponse {
+    return {};
+  },
+
+  toJSON(_: SetDNSChallengeResponse): unknown {
+    const obj: any = {};
+    return obj;
+  },
+
+  create<I extends Exact<DeepPartial<SetDNSChallengeResponse>, I>>(base?: I): SetDNSChallengeResponse {
+    return SetDNSChallengeResponse.fromPartial(base ?? ({} as any));
+  },
+  fromPartial<I extends Exact<DeepPartial<SetDNSChallengeResponse>, I>>(_: I): SetDNSChallengeResponse {
+    const message = createBaseSetDNSChallengeResponse();
     return message;
   },
 };
@@ -10952,6 +11507,15 @@ export interface NodeService {
     request: DeepPartial<PublishSessionRequest>,
     metadata?: grpc.Metadata,
   ): Promise<PublishSessionResponse>;
+  /**
+   * SetDNSChallenge writes, or with an empty value removes, the ACME DNS-01
+   * TXT record for one of the calling node's own names, so the node can get
+   * a certificate for it without holding DNS credentials.
+   */
+  SetDNSChallenge(
+    request: DeepPartial<SetDNSChallengeRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<SetDNSChallengeResponse>;
 }
 
 export class NodeServiceClientImpl implements NodeService {
@@ -10974,6 +11538,7 @@ export class NodeServiceClientImpl implements NodeService {
     this.ResumeSession = this.ResumeSession.bind(this);
     this.ShareSession = this.ShareSession.bind(this);
     this.PublishSession = this.PublishSession.bind(this);
+    this.SetDNSChallenge = this.SetDNSChallenge.bind(this);
   }
 
   ComposeNode(request: DeepPartial<Empty>, metadata?: grpc.Metadata): Promise<ComposeNodeResponse> {
@@ -11055,6 +11620,13 @@ export class NodeServiceClientImpl implements NodeService {
     metadata?: grpc.Metadata,
   ): Promise<PublishSessionResponse> {
     return this.rpc.unary(NodeServicePublishSessionDesc, PublishSessionRequest.fromPartial(request), metadata);
+  }
+
+  SetDNSChallenge(
+    request: DeepPartial<SetDNSChallengeRequest>,
+    metadata?: grpc.Metadata,
+  ): Promise<SetDNSChallengeResponse> {
+    return this.rpc.unary(NodeServiceSetDNSChallengeDesc, SetDNSChallengeRequest.fromPartial(request), metadata);
   }
 }
 
@@ -11372,6 +11944,29 @@ export const NodeServicePublishSessionDesc: UnaryMethodDefinitionish = {
   responseType: {
     deserializeBinary(data: Uint8Array) {
       const value = PublishSessionResponse.decode(data);
+      return {
+        ...value,
+        toObject() {
+          return value;
+        },
+      };
+    },
+  } as any,
+};
+
+export const NodeServiceSetDNSChallengeDesc: UnaryMethodDefinitionish = {
+  methodName: "SetDNSChallenge",
+  service: NodeServiceDesc,
+  requestStream: false,
+  responseStream: false,
+  requestType: {
+    serializeBinary() {
+      return SetDNSChallengeRequest.encode(this).finish();
+    },
+  } as any,
+  responseType: {
+    deserializeBinary(data: Uint8Array) {
+      const value = SetDNSChallengeResponse.decode(data);
       return {
         ...value,
         toObject() {
